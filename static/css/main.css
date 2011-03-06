@@ -1,0 +1,27 @@
+html {
+  height: 100%; }
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0; }
+
+#wrapper {
+  width: 980px; }
+
+#nav a {
+  margin: 0 10; }
+
+#logo {
+  color: red;
+  font-size: 35px; }
+
+#content {
+  text-align: left; }
+
+#footer {
+  text-align: left; }
+
+.center {
+  margin-left: auto;
+  margin-right: auto; }
