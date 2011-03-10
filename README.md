@@ -1,8 +1,13 @@
 To start run
 
-$ sudo pip install -r requirements.txt <br />
-$ python manage.py syncdb <br />
-$ python manage.py runserver <br />
+$ sudo pip install -r requirements.txt <br>
+
+If you don't have pip, run: <br>
+$ sudo easy_install pip
+
+Then run:
+$ python manage.py syncdb <br>
+$ python manage.py runserver <br>
 
 then go to
 http://localhost:8000 in your browser
