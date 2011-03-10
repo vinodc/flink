@@ -12,5 +12,6 @@ django-openid-auth
 django-openid-consumer
 django-debug-toolbar
 django-email-confirmation
+-e git+http://github.com/facebook/python-sdk.git#egg=facebook-sdk
 django-allauth
 PIL # Python Imaging Library

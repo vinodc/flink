@@ -11,6 +11,7 @@ urlpatterns = patterns('',
 
     (r'^admin/', include(admin.site.urls)),
     (r'^accounts/', include('allauth.urls')),
+    #(r'^person/', include('account.person_urls')),
 )
 
 # this allows you to access static file when DEBUG=True
