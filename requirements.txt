@@ -13,3 +13,4 @@ django-openid-consumer
 django-debug-toolbar
 django-email-confirmation
 django-allauth
+PIL # Python Imaging Library

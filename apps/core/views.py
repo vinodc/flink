@@ -10,7 +10,9 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
 import json
-import ipdb
+
+# Debugger:
+# import ipdb
 
 
 @login_required

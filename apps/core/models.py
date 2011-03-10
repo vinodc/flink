@@ -1,6 +1,9 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.core.validators import *
+
+from decimal import *
 
 #-------------------------------
 #
@@ -52,7 +55,7 @@ class PBElement(CommonInfo):
        return self.title
 
 class State(CommonInfo):
-    pb_element = models.ForeignKey('posterboard element', PBElement)
+    pb_element = models.ForeignKey(PBElement, verbose_name='posterboard element')
     # Position WxH is a factor of grid size.
     position_width = models.IntegerField(default=1)
     position_height = models.IntegerField(default=1)
