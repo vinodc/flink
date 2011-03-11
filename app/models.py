@@ -24,8 +24,13 @@ class CommonInfo(models.Model):
 # This is the profile for users. Use the get_profile() method provided by
 # the User model to get this.
 # http://docs.djangoproject.com/en/dev/topics/auth/#storing-additional-information-about-users
+# This represents a blog.
 class Profile(CommonInfo):
     user = models.OneToOneField(User, primary_key=True)
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('profile', (self.url_username))
 
     def __unicode__(self):
         if self.user_set.count() == 0:
