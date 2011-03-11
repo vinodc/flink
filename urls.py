@@ -7,7 +7,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    (r'^$',   'apps.core.views.index'),
+    (r'^$',   'app.views.index'),
 
     (r'^admin/', include(admin.site.urls)),
     (r'^accounts/', include('allauth.urls')),

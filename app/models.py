@@ -21,6 +21,18 @@ class CommonInfo(models.Model):
     class Meta:
         abstract = True
 
+# This is the profile for users. Use the get_profile() method provided by
+# the User model to get this.
+# http://docs.djangoproject.com/en/dev/topics/auth/#storing-additional-information-about-users
+class Profile(CommonInfo):
+    user = models.OneToOneField(User, primary_key=True)
+
+    def __unicode__(self):
+        if self.user_set.count() == 0:
+            return ''
+        else:
+            return self.user
+
 class Posterboard(CommonInfo):
     title = models.CharField('title', max_length=250)
     is_private = models.BooleanField('private', default=False)
