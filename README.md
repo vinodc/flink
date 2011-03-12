@@ -5,8 +5,12 @@ $ sudo pip install -r requirements.txt <br>
 If you don't have pip, run: <br>
 $ sudo easy_install pip
 
+Create a directory to log to:
+$ mkdir logs
+
 Then run:
 $ python manage.py syncdb <br>
+$ python manage.py collectstatic (Type 'yes' when prompted) <br>
 $ python manage.py runserver <br>
 
 then go to

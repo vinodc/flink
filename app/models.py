@@ -24,8 +24,13 @@ class CommonInfo(models.Model):
 # This is the profile for users. Use the get_profile() method provided by
 # the User model to get this.
 # http://docs.djangoproject.com/en/dev/topics/auth/#storing-additional-information-about-users
+# This represents a blog.
 class Profile(CommonInfo):
     user = models.OneToOneField(User, primary_key=True)
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('profile', (self.url_username))
 
     def __unicode__(self):
         if self.user_set.count() == 0:
@@ -34,14 +39,14 @@ class Profile(CommonInfo):
             return self.user
 
 class Posterboard(CommonInfo):
-    title = models.CharField('title', max_length=250)
+    title = models.CharField('title', unique=True, max_length=250)
     is_private = models.BooleanField('private', default=False)
     user = models.ForeignKey(User, editable=False)
     
     # Regarding display on the User Home Page (UHP).
     # Each set is a set of posterboards starting from 1 onwards and control
     # which posterboards are displayed on the home page at any given time.
-    display_set = models.IntegerField(blank=True, null=True, default=None)
+    display_set = models.IntegerField(blank=True, null=True, default=1)
     # Display position of posterboard in set.
     display_position = models.IntegerField(blank=True, null=True, default=None)
     # Get size of snapshot (in grid blocks AxB). Don't store this

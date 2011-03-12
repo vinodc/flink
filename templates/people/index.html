@@ -1,6 +1,6 @@
 {% extends "site_base.html" %}
 {% block title %}
-    Flink | Dynamic Blogging
+    People | Flink
 {% endblock %}
 {% block extra_head %}
     {{ block.super }}
@@ -8,12 +8,10 @@
 {% endblock %}
 {% block content %}
     <div id='content'>
-
-        <br> <br> <br>
-        Content Placeholder
-        <br> <br> <br>
-        cheers
-        <br> <br> <br>
-
+      <ul>
+      {% for blogger in bloggers %}
+         <li><a href="{% url person_url blogger.username %}">{{ blogger.full_name }}</a></li>
+      {% endfor %}
+      </ul>
     </div>
 {% endblock %}

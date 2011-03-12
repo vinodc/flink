@@ -7,7 +7,10 @@ body {
   padding: 0; }
 
 #wrapper {
-  width: 980px; }
+  width: 980px; 
+  margin-left: auto;
+  margin-right: auto;
+}
 
 #nav a {
   margin: 0 10; }
@@ -24,4 +27,15 @@ body {
 
 .center {
   margin-left: auto;
-  margin-right: auto; }
+  margin-right: auto; 
+}
+
+.grid {
+    -moz-box-shadow: 0 0 1em grey;
+    -webkit-box-shadow: 0 0 1em grey;
+    box-shadow: 0 0 1em grey; 
+    margin-left: auto;
+    margin-right: auto;
+    width: 960px;
+    height: 900px;
+}
