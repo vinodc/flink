@@ -1,23 +1,22 @@
 To start:
 
----------------------------- <br>
-$ fab setup <br>
-$ python manage.py runserver <br>
----------------------------- <br>
-         *** OR *** <br>
----------------------------- <br>
-$ sudo pip install -r requirements.txt <br>
+    $ fab setup
+    $ python manage.py runserver
 
-If you don't have pip, run: <br>
-$ sudo easy_install pip
+   *** OR ***
 
-Create a directory to log to: <br>
-$ mkdir logs
+    $ sudo pip install -r requirements.txt
 
-Then run: <br>
-$ python manage.py syncdb <br>
-$ python manage.py runserver <br>
------------------------------
+    If you don't have pip, run:
+    $ sudo easy_install pip
+
+    Create a directory to log to:
+    $ mkdir logs
+
+    Then run:
+    $ python manage.py syncdb
+    $ python manage.py runserver
+
 
 Then go to http://localhost:8000 in your browser.
 
