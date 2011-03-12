@@ -9,8 +9,6 @@ def hello():
     print(green('printing!'))
     print(yellow('printing!'))
 
-# run
-# fab clean
 def clean():
     local('python manage.py clean_pyc')
 

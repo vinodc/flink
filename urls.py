@@ -16,18 +16,18 @@ elementpatterns = patterns(
 posterboardpatterns = patterns(
     'app.views',
     url(r'^$', 'posterboards_handler'),
-    url(r'^(?P<posterboard>[^./]+)/?(\.(?P<format>(json|html)))?$', \
+    url(r'^(?P<posterboard>[^./]+)/?(\.(?P<format>(json|html)))?$',
          'posterboards_handler', name='posterboard_url'),
-    (r'^(?P<posterboard>[^./]+)/elements(/?$|/?\.(?P<format>(json|html))$)', \
+    (r'^(?P<posterboard>[^./]+)/elements(/?$|/?\.(?P<format>(json|html))$)',
          include(elementpatterns)),
     )
 
 peoplepatterns = patterns(
     'app.views',
     url(r'^$', 'people_handler'),
-    url(r'^(?P<blogger>[^./]+)/?(\.(?P<format>(json|html)))?$', \
+    url(r'^(?P<blogger>[^./]+)/?(\.(?P<format>(json|html)))?$',
          'people_handler', name='person_url'),
-    (r'^(?P<blogger>[^./]+)/posterboards(/?$|/?\.(?P<format>(json|html))$)', \
+    (r'^(?P<blogger>[^./]+)/posterboards(/?$|/?\.(?P<format>(json|html))$)',
          include(posterboardpatterns)),
     )
 
