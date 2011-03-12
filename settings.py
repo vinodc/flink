@@ -45,6 +45,8 @@ logging.basicConfig(
     format = '%(asctime)s %(levelname)s %(message)s',
     filename = LOG_FILENAME,
 )
+logger = logging.getLogger()
+
 
 SITE_ID = 1
 

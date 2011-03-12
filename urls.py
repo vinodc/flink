@@ -8,27 +8,32 @@ admin.autodiscover()
 
 elementpatterns = patterns(
     'app.views',
-    url(r'^$', 'elements_handler'),
+    url(r'^$', 'elements_handler', name='elements_url'),
     url(r'^(?P<element_id>\d+)/?(\.(?P<format>(json|html)))?$',
-         'elements_handler', name='element_url'),
+        'elements_handler', name='element_url'),
     )
 
 posterboardpatterns = patterns(
     'app.views',
-    url(r'^$', 'posterboards_handler'),
+    url(r'^$', 'posterboards_handler', name='posterboards_url'),
+    # Get a particular set of posterboards.
+    url(r'^sets/?(\.(?P<format>(json|html)))?$', 'sets_handler',
+        name='sets_url'),
+    url(r'^sets/(?P<set>\d+)/?(\.(?P<format>(json|html)))?$', 
+        'sets_handler', name='set_url'),
     url(r'^(?P<posterboard>[^./]+)/?(\.(?P<format>(json|html)))?$',
-         'posterboards_handler', name='posterboard_url'),
+        'posterboards_handler', name='posterboard_url'),
     (r'^(?P<posterboard>[^./]+)/elements(/?$|/?\.(?P<format>(json|html))$)',
-         include(elementpatterns)),
+     include(elementpatterns)),
     )
 
 peoplepatterns = patterns(
     'app.views',
-    url(r'^$', 'people_handler'),
+    url(r'^$', 'people_handler', name='people_url'),
     url(r'^(?P<blogger>[^./]+)/?(\.(?P<format>(json|html)))?$',
-         'people_handler', name='person_url'),
+        'people_handler', name='person_url'),
     (r'^(?P<blogger>[^./]+)/posterboards(/?$|/?\.(?P<format>(json|html))$)',
-         include(posterboardpatterns)),
+     include(posterboardpatterns)),
     )
 
 urlpatterns = patterns(
