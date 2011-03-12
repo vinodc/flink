@@ -13,3 +13,11 @@ def hello():
 # fab clean
 def clean():
     local('python manage.py clean_pyc')
+
+# setup
+def setup():
+    local('sudo easy_install pip')
+    local('sudo pip install -r requirements.txt')
+    local('mkdir -p logs')
+    local('python manage.py syncdb')
+    #local('python manage.py collectstatic')
