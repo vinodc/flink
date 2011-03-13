@@ -10,3 +10,15 @@ class ProfileForm(ModelForm):
 class PosterboardForm(ModelForm):
     class Meta:
         model = Posterboard
+
+class ElementForm(ModelForm):
+    class Meta:
+        model = PBElement
+
+class StateForm(ModelForm):
+    class Meta:
+        model = State
+
+class ImageStateForm(ModelForm):
+    class Meta:
+        model = ImageState

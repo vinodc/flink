@@ -23,25 +23,25 @@ posterboardpatterns = patterns(
         'sets_handler', name='set_url'),
     url(r'^(?P<posterboard>[^./]+)/?(\.(?P<format>(json|html)))?$',
         'posterboards_handler', name='posterboard_url'),
-    (r'^(?P<posterboard>[^./]+)/elements(/?$|/?\.(?P<format>(json|html))$)',
+    (r'^(?P<posterboard>[^./]+)/elements(/|/?\.(?P<format>(json|html))$)',
      include(elementpatterns)),
     )
 
 peoplepatterns = patterns(
     'app.views',
-    url(r'^$', 'people_handler', name='people_url'),
+    url(r'^(\.(?P<format>(json|html)))?$', 'people_handler', name='people_url'),
     url(r'^(?P<blogger>[^./]+)/?(\.(?P<format>(json|html)))?$',
         'people_handler', name='person_url'),
-    (r'^(?P<blogger>[^./]+)/posterboards(/?$|/?\.(?P<format>(json|html))$)',
+    (r'^(?P<blogger>[^./]+)/posterboards(/|/?\.(?P<format>(json|html))$)',
      include(posterboardpatterns)),
     )
 
 urlpatterns = patterns(
     '',
     (r'^$', 'app.views.index'),
-    (r'^people/', include(peoplepatterns)),
-    (r'^admin/', include(admin.site.urls)),
-    (r'^accounts/', include('allauth.urls')),
+    (r'^people(/?|$)', include(peoplepatterns)),
+    (r'^admin(/?|$)', include(admin.site.urls)),
+    (r'^accounts(/?|$)', include('allauth.urls')),
     #(r'^person/', include('account.person_urls')),
     )
 

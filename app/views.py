@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect, render
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.template import RequestContext, Context, loader
@@ -66,7 +66,7 @@ def people_handler(request, blogger=None, format='html'):
             return render_to_response('people/index.html',data,
                                       context_instance=RequestContext(request))
         elif format == 'json':
-            return HTTPResponse(json.dumps(data), mimetype='application/json')
+            return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # GET request with a specific user, so show that user's blog.
     elif request.method == 'GET' and blogger is not None:
@@ -82,7 +82,7 @@ def people_handler(request, blogger=None, format='html'):
             return render_to_response('people/show.html', data,
                                       context_instance=RequestContext(request))
         elif format == 'json':
-            return HTTPResponse(json.dumps(data), mimetype='application/json')
+            return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # DELETE request, to delete that specific blog and user. Error for now.
     elif request.method == 'DELETE' and blogger is not None and \
@@ -96,7 +96,7 @@ def people_handler(request, blogger=None, format='html'):
             return render_to_response('people/show.html', data,
                                       context_instance=RequestContext(request))
         elif format == 'json':
-            return HTTPResponse(json.dumps(data), mimetype='application/json')
+            return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
@@ -104,7 +104,7 @@ def people_handler(request, blogger=None, format='html'):
         return render_to_response('people/index.html', error,
                                   context_instance=RequestContext(request))
     elif format == 'json':
-        return HTTPResponse(json.dumps(error), mimetype='application/json',
+        return HttpResponse(json.dumps(error), mimetype='application/json',
                             status=400)
 
 @handle_handlers
@@ -113,7 +113,7 @@ def people_handler(request, blogger=None, format='html'):
 def sets_handler(request, blogger=None, set=None, format='html'):
     user = request.user
     # TODO
-    return HTTPResponseNotFound()
+    return HttpResponseNotFound()
 
 
 @handle_handlers
@@ -127,7 +127,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
     # Extra check for redundancy. This is already handled in the decorator.
     if blogger is None:
         logger.info("Attempt to access PB without blogger o.O")
-        return HTTPResponseForbidden('Please specify a blogger first.')
+        return HttpResponseForbidden('Please specify a blogger first.')
 
     # index
     if request.method == 'GET' and posterboard is None:
@@ -141,24 +141,27 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                                       {'blogger': blogger, 'posterboards': pbs}, 
                                       context_instance=RequestContext(request))
         elif format == 'json':
-            data = serializers.serialize('json', pbs)
-            return HTTPResponse(data, mimetype='application/json')
+            # Serialize object .. then get actual data structure out of serialized string
+            data['posterboards'] = eval(serializers.serialize('json', pbs))
+            # Then serialize again.
+            return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # show
     elif request.method == 'GET' and posterboard is not None:
-        if blogger.id != user.id and pb.is_private:
-            return HTTPResponseForbidden('Private Posterboard.')
+        if blogger.id != user.id and posterboard.is_private:
+            return HttpResponseForbidden('Private Posterboard.')
 
         if format == 'html':
-            ElementFormSet = modelformset_factory(Element)
+            ElementFormSet = modelformset_factory(PBElement)
             e = ElementFormSet()
             return render_to_response('posterboards/show.html',
-                                      {'blogger': blogger, 'posterboard': pb, 
-                                       'element': e},
+                                      {'blogger': blogger, 
+                                        'posterboard': posterboard, 
+                                        'element': e},
                                       context_instance=RequestContext(request))
         elif format == 'json':
-            data = serializers.serialize('json', pb)
-            return HTTPResponse(json.dumps(data), mimetype='application/json')
+            data['posterboard'] = eval(serializers.serialize('json', posterboard))
+            return HttpResponse(json.dumps(data), mimetype='application/json')
         
     # create
     elif request.method == 'POST':
@@ -181,29 +184,29 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             elif format == 'json':
                 data['message'] = 'Posterboard created successfully.'
                 data['posterboard'] = serializers.serialize('json', posterboard)
-                return HTTPResponse(json.dumps(data), mimetype='application/json')
+                return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
             data['errors'] = 'Posterboard data isn\'t valid.'
             if format == 'html':
                 return redirect(user, data)
             elif format == 'json':
-                return HTTPResponseBadRequest(json.dumps(data), mimetype='application/json')
+                return HttpResponseBadRequest(json.dumps(data), mimetype='application/json')
 
     # destroy
     elif request.method == 'DELETE' and posterboard is not None and \
             blogger.id == user.id:
-        data = {'success': True}
         if format == 'html':
             return redirect(blogger)
         elif format == 'json':
-            return HTTPResponse(json.dumps(data), mimetype='application/json')
+            data['message'] = 'Successfully removed posterboard '+ posterboard.id
+            return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
     if format == 'html':
         return redirect(blogger)
     elif format == 'json':
-        return HTTPResponse(json.dumps(error), mimetype='application/json',
+        return HttpResponse(json.dumps(error), mimetype='application/json',
                             status=400)
 
 @handle_handlers
@@ -215,5 +218,5 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
     user = request.user
 
     # TODO
-    return HTTPResponseNotFound()
+    return HttpResponseNotFound()
 

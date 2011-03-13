@@ -36,7 +36,7 @@ def get_blogger(func):
 
         # Superusers aren't allowed to be bloggers.
         if blogger is not None and blogger.is_superuser:
-            return HTTPResponseForbidden()
+            return HttpResponseForbidden()
         
         kwargs['blogger'] = blogger
         return func(*args, **kwargs)
@@ -52,13 +52,13 @@ def get_set(func):
 
         if blogger is None:
             logger.info("Attempt to access PB set without blogger o.O")
-            return HTTPResponseForbidden('Please specify a blogger first.')
+            return HttpResponseForbidden('Please specify a blogger first.')
         
         try:
             pbset = int(pbset)
         except ValueError:
             logger.info('Attempt to access PB set' + str(pbset))
-            return HTTPResponseBadRequest('Set should be an id, '+
+            return HttpResponseBadRequest('Set should be an id, '+
                                           'which is a number.')
 
         kwargs['set'] = pbset
@@ -75,7 +75,7 @@ def get_posterboard(func):
 
         if blogger is None:
             logger.info("Attempt to access PB without blogger o.O")
-            return HTTPResponseForbidden('Please specify a blogger first.')
+            return HttpResponseForbidden('Please specify a blogger first.')
 
         # Find the PB that corresponds to PB
         if pb is not None:
@@ -95,7 +95,7 @@ def get_element(func):
         
         if pb is None:
             logger.info("Attempt to access element without PB o.O")
-            return HTTPResponseForbidden('Please specify a posterboard first.')
+            return HttpResponseForbidden('Please specify a posterboard first.')
 
         # Find the element being referred to.
         if element is not None:
@@ -104,9 +104,9 @@ def get_element(func):
             except ValueError:
                 logger.info('Attempt to access element '+ str(element)+
                             ' for pb '+ str(pb.id))
-                return HTTPResponseBadRequest('Element should be an id, '+
+                return HttpResponseBadRequest('Element should be an id, '+
                                               'which is a number.')
-            element = posterboard.element_set.get(id=element)
+            element = pb.element_set.get(id=element)
 
         kwargs['element'] = element
         return func(*args, **kwargs)
