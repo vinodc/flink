@@ -39,9 +39,9 @@ peoplepatterns = patterns(
 urlpatterns = patterns(
     '',
     (r'^$', 'app.views.index'),
-    (r'^people(/?|$)', include(peoplepatterns)),
-    (r'^admin(/?|$)', include(admin.site.urls)),
-    (r'^accounts(/?|$)', include('allauth.urls')),
+    (r'^people[/$]', include(peoplepatterns)),
+    (r'^admin[/$]', include(admin.site.urls)),
+    (r'^accounts[/$]', include('allauth.urls')),
     #(r'^person/', include('account.person_urls')),
     )
 
