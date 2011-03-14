@@ -1,7 +1,7 @@
 To start:
 
     $ sudo easy_install fabric # On some systems, easy_install might be easy_install.py
-    $ fab setup
+    $ fab setup #if asked about facebook-sdk, say wipe(w) to proceed
     $ python manage.py runserver
 
    *** OR ***
