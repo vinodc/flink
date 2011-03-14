@@ -4,7 +4,7 @@ from django.shortcuts import render_to_response, redirect, render
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.template import RequestContext, Context, loader
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import *
 from django.conf import settings
 from django.core import serializers
 from django.forms.models import modelformset_factory
@@ -13,12 +13,16 @@ from django.views.decorators.csrf import csrf_exempt
 
 import json
 
-from app.forms import *
-from app.models import *
-from app.decorators import *
+from app.forms import PosterboardForm, ImageStateForm, StateForm, ProfileForm, \
+    ElementForm
+from app.models import Profile, Posterboard, BlogSettings, PBElement, State, \
+    ImageState
+from app.decorators import get_blogger, get_element, get_posterboard, \
+    get_set, handle_handlers
 
 # Logger:
 from settings import logger
+from app.lib import title_to_path
 # To log, logger.debug('HELLO')
 # or, logger.info('just some info here')
 # or perhaps, logger.error('ERROR!!!')
@@ -77,7 +81,8 @@ def people_handler(request, blogger=None, format='html'):
                 }
         if format == 'html':
             if blogger.id == user.id:
-                PosterboardFormSet = modelformset_factory(Posterboard)
+                PosterboardFormSet = modelformset_factory(Posterboard,
+                                                          exclude=('title_path'))
                 data['posterboard_formset'] = PosterboardFormSet()
             return render_to_response('people/show.html', data,
                                       context_instance=RequestContext(request))
@@ -114,7 +119,6 @@ def sets_handler(request, blogger=None, set=None, format='html'):
     user = request.user
     # TODO
     return HttpResponseNotFound()
-
 
 @handle_handlers
 @get_blogger
@@ -167,7 +171,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
     elif request.method == 'POST':
         form = PosterboardForm(request.POST)
         if form.is_valid():
-            # commit=False returns the model object but doesn't save it.
+            # commit=False creates and returns the model object but doesn't save it.
             posterboard = form.save(commit=False)
             # Do some stuff if necessary.
             # ...

@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import *
 
 from decimal import *
+from app.lib import *
 
 #-------------------------------
 #
@@ -58,7 +59,9 @@ class BlogSettings(CommonInfo):
         return self.blog_title + ' settings'
 
 class Posterboard(CommonInfo):
-    title = models.CharField('title', unique=True, max_length=250)
+    title = models.CharField('title', unique=True, max_length=125,
+                             validators=[MinLengthValidator(5)])
+    title_path = models.CharField('title', unique=True, max_length=250)
     is_private = models.BooleanField('private', default=False)
     user = models.ForeignKey(User, editable=False)
     
@@ -69,12 +72,20 @@ class Posterboard(CommonInfo):
     # Display position of posterboard in set.
     display_position = models.IntegerField(blank=True, null=True, default=None)
     # Get size of snapshot (in grid blocks AxB). Don't store this
-    # in snapshot ImageField.
+    # in snapshot ImageField. This is the grid blocks spanned by the image of this
+    # posterboard in the User Home Page.
     snapshot_width = models.IntegerField(default=1)
     snapshot_height = models.IntegerField(default=1)
     # Eventually use "from django.core.files.storage import default_storage"
     # at https://bitbucket.org/david/django-storages/wiki/Home
     snapshot = models.ImageField(upload_to='pbsnapshots', max_length=255, blank=True, null=True)
+
+    def clean(self):
+        if self.title is None or len(self.title) < 5:
+            self.title_path = title_to_path(self.title)
+        if len(self.title_path) < 5:
+            raise ValidationError('Please enter a longer posterboard title', 
+                                   'min_value')
 
     def __unicode__(self):
         return self.title

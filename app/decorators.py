@@ -79,7 +79,7 @@ def get_posterboard(func):
 
         # Find the PB that corresponds to PB
         if pb is not None:
-            pb = blogger.posterboard_set.get(title=pb)
+            pb = blogger.posterboard_set.get(title_path=pb)
 
         kwargs['posterboard'] = pb
         return func(*args, **kwargs)
