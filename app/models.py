@@ -31,7 +31,7 @@ class Profile(CommonInfo):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('profile', (self.url_username))
+        return ('profile', (self.user))
 
     def __unicode__(self):
         if self.user_set.count() == 0:

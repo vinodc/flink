@@ -36,12 +36,19 @@ peoplepatterns = patterns(
      include(posterboardpatterns)),
     )
 
+profilepatterns = patterns(
+    'app.views',
+    url(r'^$', 'profile_handler', name='user_settings'),                       
+    )
+
 urlpatterns = patterns(
     '',
     (r'^$', 'app.views.index'),
     (r'^people[/$]', include(peoplepatterns)),
     (r'^admin[/$]', include(admin.site.urls)),
+    (r'^profile[/$]', include(profilepatterns)),
     (r'^accounts[/$]', include('allauth.urls')),
+
     #(r'^person/', include('account.person_urls')),
     )
 

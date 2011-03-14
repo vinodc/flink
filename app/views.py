@@ -41,6 +41,18 @@ def index(request):
     return render_to_response('index.html', {
         }, context_instance=RequestContext(request))
 
+@login_required
+def profile_handler(request):
+    user = request.user
+    
+    data = {'profile':
+            {'username': user.username,
+             'email': user.email
+             }
+            }
+    return render_to_response('profile/index.html',data,
+                              context_instance=RequestContext(request))
+
 # Follow the REST philosophy that:
 # GET /posterboards - index of all PBs (for that user)
 # POST /posterboards - create new PB

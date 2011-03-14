@@ -1,0 +1,16 @@
+{% extends "site_base.html" %}
+
+{% block title %} Settings {% endblock %}
+
+{% block content %}
+<h1>Personal Settings</h1>
+
+<p>
+<div id='content'>
+    {% for key, value in profile.items %}
+        <div id='{{key}}'> {{key}} : {{ value }}</div>
+    {% endfor %}
+</div>
+</p>
+
+{% endblock %}
