@@ -2,7 +2,7 @@ To start:
 
     $ sudo easy_install fabric # On some systems, easy_install might be easy_install.py
     $ fab setup
-    $ python manage.py runserver
+    $ sudo python manage.py runserver
 
    *** OR ***
 
@@ -16,7 +16,7 @@ To start:
 
     Then run:
     $ python manage.py syncdb
-    $ python manage.py runserver
+    $ sudo python manage.py runserver
 
 
 Then go to http://localhost:8000 in your browser.
