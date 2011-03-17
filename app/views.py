@@ -31,7 +31,7 @@ from app.lib import title_to_path
 # http://docs.djangoproject.com/en/dev/topics/logging/
 
 # Debugger:
-# import ipdb
+import ipdb
 
 
 # The @login_required decorator makes it necessary for the user to have logged
@@ -44,7 +44,7 @@ def index(request):
 @login_required
 def profile_handler(request):
     user = request.user
-    
+
     data = {'profile':
             {'username': user.username,
              'email': user.email
@@ -74,8 +74,8 @@ def people_handler(request, blogger=None, format='html'):
     # GET request with no specific user, so what is needed is a list of users.
     if request.method == 'GET' and blogger is None:
         bloggers = User.objects.filter(is_superuser__exact=False)
-        data = {'bloggers': map(lambda b: 
-                                {'username': b.username, 
+        data = {'bloggers': map(lambda b:
+                                {'username': b.username,
                                  'full_name': b.get_full_name()},
                                 bloggers)}
         if format == 'html':
@@ -86,10 +86,10 @@ def people_handler(request, blogger=None, format='html'):
 
     # GET request with a specific user, so show that user's blog.
     elif request.method == 'GET' and blogger is not None:
-        data = {'blogger': 
-                {'username': blogger.username, 
+        data = {'blogger':
+                {'username': blogger.username,
                  'full_name': blogger.get_full_name()
-                 }                
+                 }
                 }
         if format == 'html':
             if blogger.id == user.id:
@@ -105,7 +105,7 @@ def people_handler(request, blogger=None, format='html'):
     elif request.method == 'DELETE' and blogger is not None and \
             (blogger.id == user.id and blogger.username == user.username):
         # Trying to delete themselves? Not handling it for now.
-        data = {'blogger': 
+        data = {'blogger':
                 {'username': blogger.username,
                  'full_name': blogger.get_full_name()},
                 'errors': 'User deletion not supported this way.'}
@@ -148,13 +148,13 @@ def posterboards_handler(request, blogger=None, posterboard=None,
     # index
     if request.method == 'GET' and posterboard is None:
         if blogger.id == user.id:
-            pbs = blogger.posterboard_set.all()    
+            pbs = blogger.posterboard_set.all()
         else:
             pbs = blogger.posterboard_set.filter(is_private=False).all()
 
         if format == 'html':
             return render_to_response('posterboards/index.html',
-                                      {'blogger': blogger, 'posterboards': pbs}, 
+                                      {'blogger': blogger, 'posterboards': pbs},
                                       context_instance=RequestContext(request))
         elif format == 'json':
             # Serialize object .. then get actual data structure out of serialized string
@@ -171,14 +171,14 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             ElementFormSet = modelformset_factory(PBElement)
             e = ElementFormSet()
             return render_to_response('posterboards/show.html',
-                                      {'blogger': blogger, 
-                                        'posterboard': posterboard, 
+                                      {'blogger': blogger,
+                                        'posterboard': posterboard,
                                         'element': e},
                                       context_instance=RequestContext(request))
         elif format == 'json':
             data['posterboard'] = eval(serializers.serialize('json', posterboard))
             return HttpResponse(json.dumps(data), mimetype='application/json')
-        
+
     # create
     elif request.method == 'POST':
         form = PosterboardForm(request.POST)
@@ -190,9 +190,9 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             # Just demonstrating here how we can separately save the PB.
             posterboard.save()
             user.posterboard_set.add(posterboard)
-            
+
             if format == 'html':
-                # A redirect with this object will redirect to the url 
+                # A redirect with this object will redirect to the url
                 # specified as the permalink in that model.
                 # More info:
                 # http://docs.djangoproject.com/en/dev/topics/http/shortcuts/#redirect

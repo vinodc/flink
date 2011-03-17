@@ -86,7 +86,7 @@ ADMIN_MEDIA_PREFIX = '/static/admin/'
 STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative 
+    # Don't forget to use absolute paths, not relative
     os.path.join(PROJECT_ROOT, 'static'),
 )
 
@@ -106,16 +106,21 @@ DEBUG_TOOLBAR_CONFIG = {
 
 #caching
 CACHE_BACKEND = 'file:///tmp/flink_cache'
-GEOTWEET_CACHE_TIME = 24 * 60 * 60      # cache geotweets for a day
 
 #registration
 LOGIN_REDIRECT_URL = '/'
-ACCOUNT_EMAIL_AUTHENTICATION = True
-ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_EMAIL_VERIFICATION = False
-SOCIAL_ACCOUNT_AUTO_SIGNUP = True
+ACCOUNT_NAME_REQUIRED = True #requires first and last name
 ACCOUNT_EMAIL_REQUIRED = True
-SOCIALACCOUNT_QUERY_EMAIL = ACCOUNT_EMAIL_REQUIRED
+ACCOUNT_EMAIL_VERIFICATION = False #keeps account inactive until email is verified
+ACCOUNT_EMAIL_AUTHENTICATION = True #uses email+pass instead of username+pass
+ACCOUNT_USERNAME_REQUIRED = False #generates a random username
+ACCOUNT_PASSWORD_VERIFICATION = False #requires password to be entered twice
+ACCOUNT_UNIQUE_EMAIL = True
+SOCIALACCOUNT_QUERY_EMAIL = ACCOUNT_EMAIL_REQUIRED #use 3rd parties for email
+SOCIALACCOUNT_AUTO_SIGNUP = False
+EMAIL_CONFIRMATION_DAYS = 3
+DEFAULT_FROM_EMAIL = 'signup@flink.com'
+CONTACT_EMAIL = 'support@flink.com'
 
 ACCOUNT_ACTIVATION_DAYS = 3
 #DEFAULT_FROM_EMAIL = 'account@flink.com'

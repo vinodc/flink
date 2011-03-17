@@ -11,6 +11,8 @@
       <ul>
       {% for blogger in bloggers %}
          <li><a href="{% url person_url blogger.username %}">{{ blogger.full_name }}</a></li>
+      {% empty %}
+        no bloggers here!
       {% endfor %}
       </ul>
     </div>
