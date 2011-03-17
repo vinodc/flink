@@ -201,7 +201,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             e = ElementFormSet()
             return render_to_response('posterboards/show.html',
                                       {'blogger': blogger, 
-                                        'posterboard': posterboard, 
+                                        'posterboard': posterboard,
+                                        'blog_owner': blogger.id == user.id, 
                                         'element': e},
                                       context_instance=RequestContext(request))
         elif format == 'json':
@@ -231,7 +232,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                 return redirect('/people/'+user.username+'/posterboards/'+posterboard.title_path+'/')
             elif format == 'json':
                 data['message'] = 'Posterboard created successfully.'
-                data['posterboard'] = serializers.serialize('json', posterboard)
+                data['posterboard'] = eval(serializers.serialize('json', posterboard))
                 return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
             data['errors'] = 'Posterboard data isn\'t valid: '
