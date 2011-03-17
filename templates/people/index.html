@@ -4,13 +4,13 @@
 {% endblock %}
 {% block extra_head %}
     {{ block.super }}
-    <script src='{{ STATIC_URL }}js/main.js' type='text/javascript'></script>
+
 {% endblock %}
 {% block content %}
     <div id='content'>
       <ul>
       {% for blogger in bloggers %}
-         <li><a href="{% url person_url blogger.username %}">{{ blogger.full_name }}</a></li>
+         <li><a href="{% url person_url blogger.username %}">{{ blogger.username # blogger.full_name }}</a></li>
       {% endfor %}
       </ul>
     </div>

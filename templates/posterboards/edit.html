@@ -1,10 +1,10 @@
 {% extends "site_base.html" %}
 {% block title %}
-    {{ blogger.first_name }} {{ blogger.last_name }} ({{blogger.username}})| Flink
+    {{ posterboard.title }} | Flink
 {% endblock %}
 {% block extra_head %}
     {{ block.super }}
-
+    
 {% endblock %}
 {% block content %}
     <div id='content'>
@@ -17,14 +17,7 @@
 	     in an attempt to 'save' the current state of the elements.
 	     All elements must be draggable, resizeable and extend properties that make
 	     them editable.
-	  -->
-      <p>Here's a list of posterboards. This will soon be updated to be a nice posterboard of 
-         posterboards, just like you'd expect!</p>
-      <ul>
-      {% for p in posterboards %}
-         <li><a href="/people/{{ blogger.username }}/posterboards/{{ p.title_path }}/">{{ p.title }}</a></li>
-      {% endfor %}
-      </ul>
+	  -->       
       </div>
     </div>
 {% endblock %}

@@ -58,8 +58,8 @@ def new_form_handler(request, modelname=None, blogger=None, format=None):
 
     data = {}
     if model_mapping.has_key(modelname):
-        fs = modelformset_factory(model_mapping[modelname], fields=fields_mapping[modelname], max_num = 1)
-        data['formset'] = fs()
+        fs = modelformset_factory(model_mapping[modelname], fields=fields_mapping[modelname])
+        data['formset'] = fs(queryset=model_mapping[modelname].objects.none())
         return render_to_response(modelname +'/new.html', data,
                                   context_instance=RequestContext(request))
     else:
@@ -267,6 +267,56 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                      format='html'):
     user = request.user
 
-    # TODO
-    return HttpResponseNotFound()
+    data = {}
+
+    if request.method == 'GET':
+        return HttpResponseNotFound()
+    # create
+    elif request.method == 'POST':
+        PBElementFormSet =  modelformset_factory(PBElement)
+        formset = PBElementFormSet(request.POST)
+        if formset.is_valid():
+            # commit=False creates and returns the model object but doesn't save it.
+            # Remove it if unnecessary.
+            elements = formset.save(commit=False)
+            # There should only be one element anyway.
+            for element in elements:
+                posterboard.pbelement_set.add(element)
+                element.save()
+            
+            data['element'] = serializers.serialize('json', element)
+            data['elementcontent'] = '<img src="/static/images/placeholder.gif">'
+            
+            # TODO:
+            # Create new State, and.. depending on what kind of element this is,
+            # create a new <type>state, such as imagestate.
+            # Save the element to the state_set by adding it.. and then save 
+            # teh actual state.
+            
+            if format == 'html':
+                # A redirect with this object will redirect to the url 
+                # specified as the permalink in that model.
+                # More info:
+                # http://docs.djangoproject.com/en/dev/topics/http/shortcuts/#redirect
+                return render_to_response('elements/wrapper.html', data,
+                                          context_instance=RequestContext(request))
+            elif format == 'json':
+                data['message'] = 'Posterboard created successfully.'
+                return HttpResponse(json.dumps(data), mimetype='application/json')
+        else:
+            data['errors'] = 'Element data isn\'t valid: '
+            data['errors'] += str(formset.errors)
+            
+            if format == 'html':
+                return HttpResponseBadRequest(data['errors'])
+            elif format == 'json':
+                return HttpResponseBadRequest(json.dumps(data), mimetype='application/json')
+
+     # All other types of requests are invalid for this specific scenario.
+    error = {'errors': 'Invalid request'}
+    if format == 'html':
+        return redirect(posterboard)
+    elif format == 'json':
+        return HttpResponse(json.dumps(error), mimetype='application/json',
+                            status=400)
 
