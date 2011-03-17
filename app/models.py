@@ -117,15 +117,16 @@ class Posterboard(CommonInfo):
     def __unicode__(self):
         return self.title
     
-    @models.permalink
+    #@models.permalink
     def get_absolute_url(self):
-        return ('posterboard_url', (), {
-                    'blogger': self.user.username, 
-                    'posterboard': self.title_path,
-                    'format':'html'})
+        return '/people/'+ self.user.username +'/posterboards/'+ self.title_path +'/'
+        #return ('posterboard_url', (), {
+        #            'blogger': self.user.username, 
+        #            'posterboard': self.title_path,
+        #            'format':'html'})
 
 ELEMENT_TYPE_CHOICES = (('image','image'),('audio','audio'),('video','video'),('text','text'))
-class PBElement(CommonInfo):
+class Element(CommonInfo):
     # title = models.CharField('title', max_length=250, blank = True)
     type = models.CharField(max_length=5, choices=ELEMENT_TYPE_CHOICES)
     posterboard = models.ForeignKey(Posterboard, editable=False)
@@ -134,7 +135,7 @@ class PBElement(CommonInfo):
        return self.title
 
 class State(CommonInfo):
-    pb_element = models.ForeignKey(PBElement, verbose_name='posterboard element', editable=False)
+    pb_element = models.ForeignKey(Element, verbose_name='posterboard element', editable=False)
     # Specify the type of the state
     # Position WxH is a factor of grid size.
     position_width = models.IntegerField(default=1)

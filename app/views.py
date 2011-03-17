@@ -16,7 +16,7 @@ import json
 
 from app.forms import PosterboardForm, ImageStateForm, StateForm, ProfileForm, \
     ElementForm
-from app.models import Profile, Posterboard, BlogSettings, PBElement, State, \
+from app.models import Profile, Posterboard, BlogSettings, Element, State, \
     ImageState
 from app.decorators import get_blogger, get_element, get_posterboard, \
     get_set, handle_handlers
@@ -107,7 +107,7 @@ def people_handler(request, blogger=None, format='html'):
             return render_to_response('people/index.html',data,
                                       context_instance=RequestContext(request))
         elif format == 'json':
-            return HttpResponse(json.dumps(data), mimetype='application/javascript')
+            return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # GET request with a specific user, so show that user's blog.
     elif request.method == 'GET' and blogger is not None:
@@ -128,7 +128,7 @@ def people_handler(request, blogger=None, format='html'):
             return render_to_response('people/show.html', data,
                                       context_instance=RequestContext(request))
         elif format == 'json':
-            return HttpResponse(json.dumps(data), mimetype='application/javascript')
+            return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # DELETE request, to delete that specific blog and user. Error for now.
     elif request.method == 'DELETE' and blogger is not None and \
@@ -142,7 +142,7 @@ def people_handler(request, blogger=None, format='html'):
             return render_to_response('people/show.html', data,
                                       context_instance=RequestContext(request))
         elif format == 'json':
-            return HttpResponse(json.dumps(data), mimetype='application/javascript')
+            return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
@@ -150,7 +150,7 @@ def people_handler(request, blogger=None, format='html'):
         return render_to_response('people/index.html', error,
                                   context_instance=RequestContext(request))
     elif format == 'json':
-        return HttpResponse(json.dumps(error), mimetype='application/javascript',
+        return HttpResponse(json.dumps(error), mimetype='application/json',
                             status=400)
 
 @handle_handlers
@@ -169,7 +169,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                          format='html'):
     user = request.user
     data = {}
-
+    
     # Extra check for redundancy. This is already handled in the decorator.
     if blogger is None:
         logger.info("Attempt to access PB without blogger o.O")
@@ -188,27 +188,42 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                                       context_instance=RequestContext(request))
         elif format == 'json':
             # Serialize object .. then get actual data structure out of serialized string
-            data['posterboards'] = eval(serializers.serialize('json', pbs))
-            # Then serialize again.
-            return HttpResponse(json.dumps(data), mimetype='application/javascript')
+            data['posterboards'] = pbs
+            data = serializers.serialize('json', data)
+            return HttpResponse(data, mimetype='application/json')
 
     # show
     elif request.method == 'GET' and posterboard is not None:
         if blogger.id != user.id and posterboard.is_private:
             return HttpResponseForbidden('Private Posterboard.')
 
+        element_data = []
+        for e in posterboard.element_set.all():
+            sset = e.state_set.all()
+            sset = list(sset[:1])
+            s = None
+            if sset:
+                s = sset[0]
+            ts = None
+            if s is not None:
+                type = e.type
+                if type == 'image':
+                    ts = s.imagestate
+                else:
+                    logger.debug(u"Can't get type state for type %s" % type)
+            element_data.append(eval(serializers.serialize('json', [e, s, ts])))
+        data['element_data'] = element_data
+        logger.debug('Element data passed to posterboard/show: '+ str(data['element_data']))                    
         if format == 'html':
-            ElementFormSet = modelformset_factory(PBElement)
-            e = ElementFormSet()
             return render_to_response('posterboards/show.html',
                                       {'blogger': blogger, 
                                         'posterboard': posterboard,
-                                        'blog_owner': blogger.id == user.id, 
-                                        'element': e},
+                                        'element_data': data['element_data'],
+                                        'blog_owner': blogger.id == user.id},
                                       context_instance=RequestContext(request))
         elif format == 'json':
-            data['posterboard'] = eval(serializers.serialize('json', posterboard))
-            return HttpResponse(json.dumps(data), mimetype='application/javascript')
+            data['posterboard'] = posterboard
+            return HttpResponse(json.dumps(data), mimetype='application/json')
         
     # create
     elif request.method == 'POST':
@@ -233,8 +248,9 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                 return redirect('/people/'+user.username+'/posterboards/'+posterboard.title_path+'/')
             elif format == 'json':
                 data['message'] = 'Posterboard created successfully.'
-                data['posterboard'] = eval(serializers.serialize('json', posterboard))
-                return HttpResponse(json.dumps(data), mimetype='application/javascript')
+                data['posterboard'] = posterboard
+                data = serializers.serialize('json', data)
+                return HttpResponse(data, mimetype='application/json')
         else:
             data['errors'] = 'Posterboard data isn\'t valid: '
             data['errors'] += str(formset.errors)
@@ -242,7 +258,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             if format == 'html':
                 return HttpResponseBadRequest(data['errors'])
             elif format == 'json':
-                return HttpResponseBadRequest(json.dumps(data), mimetype='application/javascript')
+                return HttpResponseBadRequest(json.dumps(data), mimetype='application/json')
 
     # destroy
     elif request.method == 'DELETE' and posterboard is not None and \
@@ -251,14 +267,14 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             return redirect(blogger)
         elif format == 'json':
             data['message'] = 'Successfully removed posterboard '+ posterboard.id
-            return HttpResponse(json.dumps(data), mimetype='application/javascript')
+            return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
     if format == 'html':
         return redirect(blogger)
     elif format == 'json':
-        return HttpResponse(json.dumps(error), mimetype='application/javascript',
+        return HttpResponse(json.dumps(error), mimetype='application/json',
                             status=400)
 
 @handle_handlers
@@ -275,13 +291,17 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
         return HttpResponseBadRequest()
     # create
     elif request.method == 'POST':
-        PBElementForm =  ElementForm(request.POST, prefix='element')
-        if PBElementForm.is_valid():
+        
+        # Testing json response:
+        #return HttpResponse(json.dumps({'test':1, 'again':2}), mimetype='application/json')
+        
+        elementform =  ElementForm(request.POST, prefix='element')
+        if elementform.is_valid():
 
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
-            element = PBElementForm.save(commit=False)
-            posterboard.pbelement_set.add(element)
+            element = elementform.save(commit=False)
+            posterboard.element_set.add(element)
             data['element_id'] = element.id
 
             if element.type == 'image':
@@ -306,7 +326,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 if format == 'html':
                     return HttpResponseBadRequest(data['errors'])
                 elif format == 'json':
-                    return HttpResponseBadRequest(json.dumps(data), mimetype='application/javascript')
+                    return HttpResponseBadRequest(json.dumps(data), mimetype='application/json')
                 
             element.save()
             state.save()
@@ -316,25 +336,25 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                                           context_instance=RequestContext(request))
 
             if format == 'html':
-                return response
+                return redirect(posterboard)
             elif format == 'json':
                 data['message'] = 'Element created successfully.'
                 data['content'] = response.content
-                return HttpResponse(json.dumps(data), mimetype='application/javascript')
+                return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
             data['errors'] = 'Element data isn\'t valid: '
-            data['errors'] += str(PBElementForm.errors)
-            logger.debug('Errors creating PBElement: '+ data['errors'])
+            data['errors'] += str(ElementForm.errors)
+            logger.debug('Errors creating Element: '+ data['errors'])
             if format == 'html':
                 return HttpResponse(data['errors'], status=400)
             elif format == 'json':
-                return HttpResponse(json.dumps(data), mimetype='application/javascript', status=400)
+                return HttpResponse(json.dumps(data), mimetype='application/json', status=400)
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
     if format == 'html':
         return redirect(posterboard)
     elif format == 'json':
-        return HttpResponse(json.dumps(error), mimetype='application/javascript',
+        return HttpResponse(json.dumps(error), mimetype='application/json',
                             status=400)
 

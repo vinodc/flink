@@ -36,7 +36,7 @@ div#modalBoxFaderLayer {
 	z-index:9999;
 }
 div#modalBoxAjaxLoader {
-	background:transparent url(../../images/jquery-modelbox-1.2.0/ajax-loader.gif) 50% 40% no-repeat; 
+	background:transparent url(../../images/jquery-modalbox-1.2.0/ajax-loader.gif) 50% 40% no-repeat; 
 	height:100px; 
 	padding:130px 0 0 0; 
 	text-align:center; 

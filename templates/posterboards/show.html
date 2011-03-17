@@ -49,15 +49,12 @@
                     });
                 });
                 
-                $('#image_upload_button').click(function() {
-                    $('#image_upload_form').ajaxSubmit({ 
-                       success: image_upload_callback,
-                       dataType: 'json',
-                       type: 'POST',
-                       error: function(xhr, statusText, error) { image_upload_callback(error, statusText, xhr); },
-                    });
-                    return false;
-                });
+                // AJAX REQUEST
+                /*$('#image_upload_form').ajaxForm({ 
+                   success: image_upload_callback, 
+                   dataType: 'json',
+                   type: 'post',
+                });*/
                 
             });
             
@@ -95,7 +92,7 @@
     <div id='content'>
        {% if blog_owner %}
        <div id="editbar">
-           <a href="#" id="edit_toggle"><img src="{{ STATIC_URL }}images/spacer.gif"></a>
+           <a href="javascript:void(0);" id="edit_toggle"><img src="{{ STATIC_URL }}images/spacer.gif"></a>
            <div id="editbar_contents" style="display: none">
                <div id="editbar_contents_inner">
                    <div id="scrollbar_container">
@@ -107,13 +104,13 @@
            </div>
        </div>
        <div style="display:none" id="image_upload_form_wrapper">
-           <form action='elements.json' id="image_upload_form" name="image_upload_form" method="POST"
+           <form action='elements/' id="image_upload_form" name="image_upload_form" method="post"
             enctype="multipart/form-data">
                <div class="form-submit-errors"></div>
                {% csrf_token %}
                <input type="hidden" name="element-type" value="image">
-               Image: <input type="file" name="image"><br>
-               <button id="image_upload_button">Upload Image</button>
+               Image: <input type="file" id="upload-image-field" name="image"><br>
+               <input type="submit" id="image_upload_button" value="Upload Image">
            </form>
        </div>
        {% endif %}
