@@ -116,8 +116,8 @@ class Posterboard(CommonInfo):
 
 ELEMENT_TYPE_CHOICES = (('I','image'),('A','audio'),('V','video'),('T','text'))
 class PBElement(CommonInfo):
-    title = models.CharField('title', max_length=250, blank = True, null= True)
-    element_type = models.CharField(max_length=1, choices=ELEMENT_TYPE_CHOICES, null= True, editable=False)
+    # title = models.CharField('title', max_length=250, blank = True)
+    type = models.CharField(max_length=1, choices=ELEMENT_TYPE_CHOICES, editable=False)
     posterboard = models.ForeignKey(Posterboard, editable=False)
 
     def clean(self):
@@ -168,4 +168,5 @@ class State(CommonInfo):
         
 class ImageState(CommonInfo):
     state = models.OneToOneField(State, primary_key=True)
+    alt = models.CharField('alt', max_length=250, blank = True)
     image = models.ImageField(upload_to='images', max_length=255)

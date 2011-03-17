@@ -277,7 +277,6 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
         PBElementForm =  ElementForm(request.POST['element'])
 
         if PBElementForm.is_valid():
-            type = request.POST['type']
             parentContent = request.POST['parentStateContent']
             childContent = request.POST['childStateContent']
 
@@ -285,8 +284,9 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             # Remove it if unnecessary.
             element = PBElementForm.save(commit=False)
             posterboard.pbelement_set.add(element)
+            data['element_id'] = element.id
                         
-            if type == 'image':
+            if element.type == 'image':
                 element.element_type = 'I'
                 state = State(parentContent)
                 state.full_clean()
@@ -297,9 +297,11 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 state.imageState_set.add(imageState)            
 
                 # Write the element_content, which should be an image
-                data['element_content'] = '<img src= "'+imageState.image.url+'">'
+                data['element_content'] = '<img src= "'+imageState.image.url+ '"'\
+                                            'alt="'+imageState.alt+'"'+'>'
+                data['element_path'] = imageState.image.url
             else: # no matching type
-                data['errors'] = 'Element type isn\'t valid: ' + type
+                data['errors'] = 'Element type isn\'t valid: ' + element.type
                 if format == 'html':
                     return HttpResponseBadRequest(data['errors'])
                 elif format == 'json':
@@ -308,12 +310,15 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             element.save()
             state.save()
             imageState.save()
-                             
-            if format == 'html':
-                return render_to_response('elements/wrapper.html', data,
+            
+            response = render_to_response('elements/wrapper.html', data,
                                           context_instance=RequestContext(request))
+
+            if format == 'html':
+                return response
             elif format == 'json':
-                data['message'] = 'Posterboard created successfully.'
+                data['message'] = 'Element created successfully.'
+                data['content'] = response.content
                 return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
             data['errors'] = 'Element data isn\'t valid: '

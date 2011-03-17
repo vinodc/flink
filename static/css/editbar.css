@@ -25,8 +25,8 @@
 #editbar{
     position: absolute;
     width: auto;
-    height: 480px;
-    top: 97px;
+    height: 300px;
+    top: 100px;
     left:0px;
     z-index: 200;
     background:#000;
@@ -34,32 +34,32 @@
 
 #edit_toggle{
     float:right;
-    height:428px;
-    width:6px;
+    height:300px;
+    width:50px;
     border:0;
 }
 
-#edit_toggle img{
-    padding-top:209px;
+#edit_toggle_img{
+    padding-top:200px;
     border:0;
 }
 
 #editbar_contents{
     float:right;
-    overflow:hidden !important;
-    width:318px;
-    height:480px;
+    width:100px;
+    height:300px;
 }
 
 #editbar_conntents_inner{
     float:right;
     width:auto;
-    height:200px;
+    height:300px;
 }
 
 #scrollbar_container {
     float:right;
     width:auto;
+    height:auto;
     padding: 41px 0 25px 0px;
     _margin-right:-3px;
 } 
@@ -68,7 +68,7 @@
     float:right;
     overflow:hidden;  
     width:auto;
-    height:400px;
+    height:300px;
     margin-left:0px;
     overflow-y: auto;
 }  
