@@ -59,6 +59,7 @@
             });
             
             function image_upload_callback(responseText, statusText, xhr) {
+                console.log('WOOHOOO');
                 if(xhr.status < 200 || xhr.status > 299) {
                     $("#image_upload_form .form-submit-errors")
                         .html('An error occured while uploading the file: ' + responseText.errors);
@@ -103,7 +104,8 @@
            </div>
        </div>
        <div style="display:none" id="image_upload_form_wrapper">
-           <form action='elements.json' id="image_upload_form" name="image_upload_form" method="POST">
+           <form action='elements.json' id="image_upload_form" name="image_upload_form" method="POST"
+            enctype="multipart/form-data">
                <div class="form-submit-errors"></div>
                {% csrf_token %}
                <input type="hidden" name="element-type" value="image">

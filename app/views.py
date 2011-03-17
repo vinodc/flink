@@ -292,7 +292,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     return HttpResponseBadRequest(str(e))
                 element.state_set.add(state)
 
-                imageState = ImageState(image=request.POST['image'])
+                imageState = ImageState(image=request.FILES['image'])
                 imageState.full_clean()
                 state.imagestate = imageState    
 
