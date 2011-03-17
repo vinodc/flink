@@ -274,46 +274,61 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
         return HttpResponseNotFound()
     # create
     elif request.method == 'POST':
-        PBElementFormSet =  modelformset_factory(PBElement)
-        formset = PBElementFormSet(request.POST)
-        if formset.is_valid():
+        PBElementForm =  ElementForm(request.POST['element'])
+
+        if PBElementForm.is_valid():
+            parentContent = request.POST['parentStateContent']
+            childContent = request.POST['childStateContent']
+
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
-            elements = formset.save(commit=False)
-            # There should only be one element anyway.
-            for element in elements:
-                posterboard.pbelement_set.add(element)
-                element.save()
+            element = PBElementForm.save(commit=False)
+            posterboard.pbelement_set.add(element)
+            data['element_id'] = element.id
+                        
+            if element.type == 'image':
+                element.element_type = 'I'
+                state = State(parentContent)
+                state.full_clean()
+                element.state_set.add(state)
+
+                imageState = ImageState(childContent)
+                imageState.full_clean()
+                state.imageState_set.add(imageState)            
+
+                # Write the element_content, which should be an image
+                data['element_content'] = '<img src= "'+imageState.image.url+ '"'\
+                                            'alt="'+imageState.alt+'"'+'>'
+                data['element_path'] = imageState.image.url
+            else: # no matching type
+                data['errors'] = 'Element type isn\'t valid: ' + element.type
+                if format == 'html':
+                    return HttpResponseBadRequest(data['errors'])
+                elif format == 'json':
+                    return HttpResponseBadRequest(json.dumps(data), mimetype='application/json')
+                
+            element.save()
+            state.save()
+            imageState.save()
             
-            data['element'] = serializers.serialize('json', element)
-            data['elementcontent'] = '<img src="/static/images/placeholder.gif">'
-            
-            # TODO:
-            # Create new State, and.. depending on what kind of element this is,
-            # create a new <type>state, such as imagestate.
-            # Save the element to the state_set by adding it.. and then save 
-            # teh actual state.
-            
-            if format == 'html':
-                # A redirect with this object will redirect to the url 
-                # specified as the permalink in that model.
-                # More info:
-                # http://docs.djangoproject.com/en/dev/topics/http/shortcuts/#redirect
-                return render_to_response('elements/wrapper.html', data,
+            response = render_to_response('elements/wrapper.html', data,
                                           context_instance=RequestContext(request))
+
+            if format == 'html':
+                return response
             elif format == 'json':
-                data['message'] = 'Posterboard created successfully.'
+                data['message'] = 'Element created successfully.'
+                data['content'] = response.content
                 return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
             data['errors'] = 'Element data isn\'t valid: '
-            data['errors'] += str(formset.errors)
-            
+            data['errors'] += str(PBElementForm.errors)
             if format == 'html':
                 return HttpResponseBadRequest(data['errors'])
             elif format == 'json':
                 return HttpResponseBadRequest(json.dumps(data), mimetype='application/json')
 
-     # All other types of requests are invalid for this specific scenario.
+    # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
     if format == 'html':
         return redirect(posterboard)

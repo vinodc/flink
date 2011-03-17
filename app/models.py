@@ -114,8 +114,10 @@ class Posterboard(CommonInfo):
                     'posterboard': self.title_path,
                     'format':'html'})
 
+ELEMENT_TYPE_CHOICES = (('I','image'),('A','audio'),('V','video'),('T','text'))
 class PBElement(CommonInfo):
-    title = models.CharField('title', max_length=250)
+    # title = models.CharField('title', max_length=250, blank = True)
+    type = models.CharField(max_length=1, choices=ELEMENT_TYPE_CHOICES, editable=False)
     posterboard = models.ForeignKey(Posterboard, editable=False)
 
     def clean(self):
@@ -127,6 +129,7 @@ class PBElement(CommonInfo):
 
 class State(CommonInfo):
     pb_element = models.ForeignKey(PBElement, verbose_name='posterboard element')
+    # Specify the type of the state
     # Position WxH is a factor of grid size.
     position_width = models.IntegerField(default=1)
     position_height = models.IntegerField(default=1)
@@ -165,4 +168,5 @@ class State(CommonInfo):
         
 class ImageState(CommonInfo):
     state = models.OneToOneField(State, primary_key=True)
-    path = models.ImageField(upload_to='images', max_length=255)
+    alt = models.CharField('alt', max_length=250, blank = True)
+    image = models.ImageField(upload_to='images', max_length=255)

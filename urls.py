@@ -41,7 +41,7 @@ peoplepatterns = patterns(
 
 profilepatterns = patterns(
     'app.views',
-    url(r'^$', 'profile_handler', name='user_settings'),                       
+    url(r'^$', 'profile_handler', name='profile_url'),                       
     )
 
 urlpatterns = patterns(
