@@ -10,48 +10,111 @@
     {% if blog_owner %}
         <link href="{{ STATIC_URL }}css/editbar.css" type='text/css' rel='stylesheet' />
         <script type="text/javascript">
-            var sidebar_in = 0;
+            var pbid = "#posterboard{{posterboard.id}}";
+            var canvas;
+            var ctx;
+            //var gridArray = [{{gridwidth}}, {{gridheight}}];
+            var gridArray = [40,40];
+            
+            var sidebar_out = 0;
             
             // Changing this will break css.
             var sidebartab_id = "#edit_toggle";
             var sidebarcontent_id = "#editbar_contents";
             
             $(document).ready(function(){
+                canvas = document.getElementById("posterboard{{posterboard.id}}");
+                ctx = canvas.getContext("2d");
+                
                 $(sidebartab_id).click(function(){
                     $(sidebarcontent_id).animate({ "width":"toggle"},{duration:1000,queue:false});
      
-                    if(sidebar_in == 0){
+                    if(sidebar_out == 0){
                         $(sidebartab_id).html($(sidebartab_id).html().replace(/(\.[^.]+)$/, '-active$1'));
-                        sidebar_in = 1;
+                        $
+                        sidebar_out = 1;
                     }
                     else{
                         $(sidebartab_id).html($(sidebartab_id).html().replace(/-active(\.[^.]+)$/, '$1'));
-                        sidebar_in = 0;
+                        sidebar_out = 0;
                     }
                 });
                 // http://www.kelvinluck.com/assets/jquery/jScrollPane/jScrollPane.html
                 // $("#scrollbar_container").jScrollPane();
+                
+                $('image_upload').click(function() {
+                    jQuery.fn.modalBox("close");
+                    jQuery.fn.modalBox({
+                        directCall : { element: '#image_upload_form_wrapper' }
+                    });
+                });
+                
+                $('#image_upload_button').click(function() {
+                    $('#image_upload_form').ajaxSubmit({ 
+                       success: image_upload_callback,
+                       dataType: 'json',
+                    });
+                });
+                
             });
+            
+            function image_upload_callback(responseText, statusText, xhr) {
+                if(xhr.status < 200 || xhr.status > 299) {
+                    $("#image_upload_form .form-submit-errors")
+                        .html('An error occured while uploading the file: ' + responseText.errors);
+                    $("#image_upload_form").effect("highlight", {}, 3000);
+                }
+                else {
+                    $("#image_upload_form_wrapper .form-submit-errors").html('');
+                    add_image_to_posterboard(responseText);
+                    jQuery.fn.modalBox("close");
+                }
+            }
+            
+            function add_image_to_posterboard(responseText) {
+                var id = responseText.element_id;
+                $(pbid).append(responseText.content);
+                $("#element"+id).draggable({ 
+                    containment: pbid, 
+                    scroll: false,
+                    grid: gridArray,
+                    stack: pbid +" div",
+                });
+                $("#element"+id).resizeable({
+                    grid: gridArray,
+                    containment: pbid,
+                    animate: true,
+                })
+            }
         </script>
     {% endif %}
     <div id='content'>
+       {% if blog_owner %}
        <div id="editbar">
            <a href="#" id="edit_toggle"><img src="{{ STATIC_URL }}images/spacer.gif"></a>
            <div id="editbar_contents" style="display: none">
                <div id="editbar_contents_inner">
                    <div id="scrollbar_container">
                        <div id="scrollbar_content">
-                       <ul>
-                           <li> First </li>
-                           <li> Second </li>
-                           <li> Third </li>
-                       </ul>
+                           <a href="javascript:void(0);" id="image_upload">Upload Image</a>
                        </div>
                    </div>
                </div>
            </div>
        </div>
-      <div class='grid pbgrid'>
+       <div style="display:none" id="image_upload_form_wrapper">
+           <form action='elements.json' id="image_upload_form" name="image_upload_form" method="POST">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="element[type]" value="image">
+               Image: <input type="file" name="imagestate[image]"><br>
+               <button id="image_upload_button">Upload Image</button>
+           </form>
+       </div>
+       {% endif %}
+      <!--<canvas id="posterboard{{posterboard.id}}" width="960px" height="900px" class='grid pbgrid'>
+      </canvas>-->
+      <div id="posterboard{{posterboard.id}}" class='grid pbgrid'>
 	<!-- 
 	     There shouldn't be any hardcoded elements here.
 	     All elements must be carefully added via jQuery and kept track of.
@@ -60,7 +123,9 @@
 	     in an attempt to 'save' the current state of the elements.
 	     All elements must be draggable, resizeable and extend properties that make
 	     them editable.
-	  -->       
+	  --> 
+      </div>      
+      <div style="display:none" id="hidden-store">
       </div>
     </div>
 {% endblock %}
