@@ -23,8 +23,8 @@
             var sidebarcontent_id = "#editbar_contents";
             
             $(document).ready(function(){
-                canvas = document.getElementById("posterboard{{posterboard.id}}");
-                ctx = canvas.getContext("2d");
+                //canvas = document.getElementById("posterboard{{posterboard.id}}");
+                //ctx = canvas.getContext("2d");
                 
                 $(sidebartab_id).click(function(){
                     $(sidebarcontent_id).animate({ "width":"toggle"},{duration:1000,queue:false});
@@ -42,7 +42,7 @@
                 // http://www.kelvinluck.com/assets/jquery/jScrollPane/jScrollPane.html
                 // $("#scrollbar_container").jScrollPane();
                 
-                $('image_upload').click(function() {
+                $('#image_upload').click(function() {
                     jQuery.fn.modalBox("close");
                     jQuery.fn.modalBox({
                         directCall : { element: '#image_upload_form_wrapper' }
@@ -96,7 +96,7 @@
                <div id="editbar_contents_inner">
                    <div id="scrollbar_container">
                        <div id="scrollbar_content">
-                           <a href="javascript:void(0);" id="image_upload">Upload Image</a>
+                           <a href="javascript:void(0);" id="image_upload">Add Image</a>
                        </div>
                    </div>
                </div>
@@ -106,8 +106,8 @@
            <form action='elements.json' id="image_upload_form" name="image_upload_form" method="POST">
                <div class="form-submit-errors"></div>
                {% csrf_token %}
-               <input type="hidden" name="element[type]" value="image">
-               Image: <input type="file" name="imagestate[image]"><br>
+               <input type="hidden" name="element-type" value="image">
+               Image: <input type="file" name="image"><br>
                <button id="image_upload_button">Upload Image</button>
            </form>
        </div>

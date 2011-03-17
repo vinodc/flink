@@ -8,6 +8,7 @@ from django.http import *
 from django.conf import settings
 from django.core import serializers
 from django.forms.models import modelformset_factory
+from django.core.exceptions import ValidationError
 
 from django.views.decorators.csrf import csrf_exempt
 
@@ -271,30 +272,30 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
     data = {}
 
     if request.method == 'GET':
-        return HttpResponseNotFound()
+        return HttpResponseBadRequest()
     # create
     elif request.method == 'POST':
-        PBElementForm =  ElementForm(request.POST['element'])
-
+        PBElementForm =  ElementForm(request.POST, prefix='element')
         if PBElementForm.is_valid():
-            parentContent = request.POST['parentStateContent']
-            childContent = request.POST['childStateContent']
 
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
             element = PBElementForm.save(commit=False)
             posterboard.pbelement_set.add(element)
             data['element_id'] = element.id
-                        
+
             if element.type == 'image':
-                element.element_type = 'I'
-                state = State(parentContent)
-                state.full_clean()
+                state = State()
+                try:
+                    state.full_clean()
+                except ValidationError, e:
+                    return HttpResponseBadRequest(str(e))
                 element.state_set.add(state)
 
-                imageState = ImageState(childContent)
+                imageState = ImageState(image=request.POST['image'])
                 imageState.full_clean()
-                state.imageState_set.add(imageState)            
+                state.imagestate = imageState    
+
 
                 # Write the element_content, which should be an image
                 data['element_content'] = '<img src= "'+imageState.image.url+ '"'\
@@ -323,10 +324,11 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
         else:
             data['errors'] = 'Element data isn\'t valid: '
             data['errors'] += str(PBElementForm.errors)
+            logger.debug('Errors creating PBElement: '+ data['errors'])
             if format == 'html':
-                return HttpResponseBadRequest(data['errors'])
+                return HttpResponse(data['errors'], status=400)
             elif format == 'json':
-                return HttpResponseBadRequest(json.dumps(data), mimetype='application/json')
+                return HttpResponse(json.dumps(data), mimetype='application/json', status=400)
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}

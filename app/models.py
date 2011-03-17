@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import *
 
 from decimal import *
+import datetime
+
 from app.lib import *
 
 def reserved_keywords(value):
@@ -28,6 +30,14 @@ def reserved_keywords(value):
 class CommonInfo(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.pk:
+            self.created_at = datetime.datetime.today()
+        self.updated_at = datetime.datetime.today()
+        super(CommonInfo, self).save(*args, **kwargs)
+
 
     class Meta:
         abstract = True
@@ -114,21 +124,17 @@ class Posterboard(CommonInfo):
                     'posterboard': self.title_path,
                     'format':'html'})
 
-ELEMENT_TYPE_CHOICES = (('I','image'),('A','audio'),('V','video'),('T','text'))
+ELEMENT_TYPE_CHOICES = (('image','image'),('audio','audio'),('video','video'),('text','text'))
 class PBElement(CommonInfo):
     # title = models.CharField('title', max_length=250, blank = True)
-    type = models.CharField(max_length=1, choices=ELEMENT_TYPE_CHOICES, editable=False)
+    type = models.CharField(max_length=5, choices=ELEMENT_TYPE_CHOICES)
     posterboard = models.ForeignKey(Posterboard, editable=False)
 
-    def clean(self):
-        if self.state_set.count() == 0:
-            raise ValidationError('A posterboard element must be associated'+
-                                  'with a state.')
     def __unicode__(self):
        return self.title
 
 class State(CommonInfo):
-    pb_element = models.ForeignKey(PBElement, verbose_name='posterboard element')
+    pb_element = models.ForeignKey(PBElement, verbose_name='posterboard element', editable=False)
     # Specify the type of the state
     # Position WxH is a factor of grid size.
     position_width = models.IntegerField(default=1)
@@ -167,6 +173,6 @@ class State(CommonInfo):
         if self.position_height is None: self.position_height = 1 
         
 class ImageState(CommonInfo):
-    state = models.OneToOneField(State, primary_key=True)
+    state = models.OneToOneField(State, editable=False, primary_key=True)
     alt = models.CharField('alt', max_length=250, blank = True)
     image = models.ImageField(upload_to='images', max_length=255)
