@@ -119,7 +119,7 @@ def people_handler(request, blogger=None, format='html'):
         if blogger.id == user.id:
             pbs = blogger.posterboard_set.all()    
         else:
-            pbs = blogger.posterboard_set.filter(is_private=False).all()
+            pbs = blogger.posterboard_set.filter(private=False).all()
         data['posterboards'] = pbs
         if format == 'html':
             if blogger.id == user.id:
@@ -180,7 +180,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         if blogger.id == user.id:
             pbs = blogger.posterboard_set.all()    
         else:
-            pbs = blogger.posterboard_set.filter(is_private=False).all()
+            pbs = blogger.posterboard_set.filter(private=False).all()
 
         if format == 'html':
             return render_to_response('posterboards/index.html',
@@ -194,7 +194,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
 
     # show
     elif request.method == 'GET' and posterboard is not None:
-        if blogger.id != user.id and posterboard.is_private:
+        if blogger.id != user.id and posterboard.private:
             return HttpResponseForbidden('Private Posterboard.')
 
         element_data = []
@@ -349,6 +349,14 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 return HttpResponse(data['errors'], status=400)
             elif format == 'json':
                 return HttpResponse(json.dumps(data), mimetype='application/json', status=400)
+    # destroy
+    elif request.method == 'DELETE' and element is not None \
+            and blogger.id == user.id and element.posterboard_id == posterboard.id:
+        if format == 'html':
+            return redirect(blogger)
+        elif format == 'json':
+            data['message'] = 'Successfully removed element '+ element.id
+            return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
