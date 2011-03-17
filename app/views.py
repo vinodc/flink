@@ -42,6 +42,30 @@ def index(request):
         }, context_instance=RequestContext(request))
 
 @login_required
+@get_blogger
+@csrf_exempt
+def new_form_handler(request, modelname=None, blogger=None, format=None):
+    """
+    Render the forms required to create new objects.
+    blogger and format arguments not required.
+    """
+    model_mapping = {
+        'posterboards': Posterboard,
+        }
+    fields_mapping = {
+        'posterboards': ('title', 'private'),
+        }
+
+    data = {}
+    if model_mapping.has_key(modelname):
+        fs = modelformset_factory(model_mapping[modelname], fields=fields_mapping[modelname], max_num = 1)
+        data['formset'] = fs()
+        return render_to_response(modelname +'/new.html', data,
+                                  context_instance=RequestContext(request))
+    else:
+        return HttpResponseBadRequest()
+
+@login_required
 def profile_handler(request):
     user = request.user
     
@@ -91,10 +115,14 @@ def people_handler(request, blogger=None, format='html'):
                  'full_name': blogger.get_full_name()
                  }                
                 }
+        if blogger.id == user.id:
+            pbs = blogger.posterboard_set.all()    
+        else:
+            pbs = blogger.posterboard_set.filter(is_private=False).all()
+        data['posterboards'] = pbs
         if format == 'html':
             if blogger.id == user.id:
-                PosterboardFormSet = modelformset_factory(Posterboard,
-                                                          exclude=('title_path'))
+                PosterboardFormSet = modelformset_factory(Posterboard)
                 data['posterboard_formset'] = PosterboardFormSet()
             return render_to_response('people/show.html', data,
                                       context_instance=RequestContext(request))
@@ -131,6 +159,7 @@ def sets_handler(request, blogger=None, set=None, format='html'):
     user = request.user
     # TODO
     return HttpResponseNotFound()
+
 
 @handle_handlers
 @get_blogger
@@ -181,30 +210,35 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         
     # create
     elif request.method == 'POST':
-        form = PosterboardForm(request.POST)
-        if form.is_valid():
+        PosterboardFormSet =  modelformset_factory(Posterboard)
+        formset = PosterboardFormSet(request.POST)
+        if formset.is_valid():
             # commit=False creates and returns the model object but doesn't save it.
-            posterboard = form.save(commit=False)
+            # Remove it if unnecessary.
+            posterboards = formset.save(commit=False)
             # Do some stuff if necessary.
             # ...
             # Just demonstrating here how we can separately save the PB.
-            posterboard.save()
-            user.posterboard_set.add(posterboard)
+            for posterboard in posterboards:
+                user.posterboard_set.add(posterboard)
+                posterboard.save()
             
             if format == 'html':
                 # A redirect with this object will redirect to the url 
                 # specified as the permalink in that model.
                 # More info:
                 # http://docs.djangoproject.com/en/dev/topics/http/shortcuts/#redirect
-                return redirect(posterboard)
+                return redirect('/people/'+user.username+'/posterboards/'+posterboard.title_path+'/')
             elif format == 'json':
                 data['message'] = 'Posterboard created successfully.'
                 data['posterboard'] = serializers.serialize('json', posterboard)
                 return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
-            data['errors'] = 'Posterboard data isn\'t valid.'
+            data['errors'] = 'Posterboard data isn\'t valid: '
+            data['errors'] += str(formset.errors)
+            
             if format == 'html':
-                return redirect(user, data)
+                return HttpResponseBadRequest(data['errors'])
             elif format == 'json':
                 return HttpResponseBadRequest(json.dumps(data), mimetype='application/json')
 

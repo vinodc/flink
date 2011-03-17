@@ -6,6 +6,16 @@ from django.core.validators import *
 from decimal import *
 from app.lib import *
 
+def reserved_keywords(value):
+    """
+    Makes sure the value isn't a reserved word such as 'new',
+    which is used in our REST setup.
+    """
+    reserved = ['new']
+    if value in reserved:
+        raise ValidationError(u'The identifier cannot be' +
+                              u'the reserved word %s' % value)
+ 
 #-------------------------------
 #
 # Defaults will have to be imported from some kind of settings model later.
@@ -60,35 +70,49 @@ class BlogSettings(CommonInfo):
 
 class Posterboard(CommonInfo):
     title = models.CharField('title', unique=True, max_length=125,
-                             validators=[MinLengthValidator(5)])
-    title_path = models.CharField('title', unique=True, max_length=250)
-    is_private = models.BooleanField('private', default=False)
+                             validators=[
+                                 MinLengthValidator(5),
+                                 reserved_keywords])
+    # Gets created during validation in clean()
+    title_path = models.CharField('title', unique=True, max_length=250,
+                                  editable=False)
+    private = models.BooleanField('private?', default=False)
     user = models.ForeignKey(User, editable=False)
     
     # Regarding display on the User Home Page (UHP).
     # Each set is a set of posterboards starting from 1 onwards and control
     # which posterboards are displayed on the home page at any given time.
-    display_set = models.IntegerField(blank=True, null=True, default=1)
+    display_set = models.IntegerField(blank=True, null=True, default=0)
     # Display position of posterboard in set.
-    display_position = models.IntegerField(blank=True, null=True, default=None)
+    display_position = models.IntegerField(blank=True, null=True, default=0)
     # Get size of snapshot (in grid blocks AxB). Don't store this
     # in snapshot ImageField. This is the grid blocks spanned by the image of this
     # posterboard in the User Home Page.
-    snapshot_width = models.IntegerField(default=1)
-    snapshot_height = models.IntegerField(default=1)
+    snapshot_width = models.IntegerField(blank=True, default=1)
+    snapshot_height = models.IntegerField(blank=True, default=1)
     # Eventually use "from django.core.files.storage import default_storage"
     # at https://bitbucket.org/david/django-storages/wiki/Home
-    snapshot = models.ImageField(upload_to='pbsnapshots', max_length=255, blank=True, null=True)
+    snapshot = models.ImageField(upload_to='pbsnapshots', max_length=255, 
+                                 blank=True, null=True)
 
     def clean(self):
-        if self.title is None or len(self.title) < 5:
-            self.title_path = title_to_path(self.title)
+        self.title_path = title_to_path(self.title)
         if len(self.title_path) < 5:
             raise ValidationError('Please enter a longer posterboard title', 
                                    'min_value')
+        reserved_keywords(self.title_path)
+        if self.snapshot_width is None: self.snapshot_width = 1
+        if self.snapshot_height is None: self.snapshot_height = 1 
 
     def __unicode__(self):
         return self.title
+    
+    @models.permalink
+    def get_absolute_url(self):
+        return ('posterboard_url', (), {
+                    'blogger': self.user.username, 
+                    'posterboard': self.title_path,
+                    'format':'html'})
 
 class PBElement(CommonInfo):
     title = models.CharField('title', max_length=250)
@@ -130,7 +154,15 @@ class State(CommonInfo):
                                     MinValueValidator(1),
                                     MaxValueValidator(10000)
                                 ])
-
+    
+    def clean(self):
+        if self.delay is None: self.delay = 0.0
+        if self.speed is None: self.speed = 400
+        if self.opacity is None: self.opacity = 1.00
+        if self.orientation is None: self.orientation = 0
+        if self.position_width is None: self.position_width = 1
+        if self.position_height is None: self.position_height = 1 
+        
 class ImageState(CommonInfo):
     state = models.OneToOneField(State, primary_key=True)
     path = models.ImageField(upload_to='images', max_length=255)

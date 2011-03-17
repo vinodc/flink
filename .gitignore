@@ -5,3 +5,4 @@ logs/*
 *.*#
 .project
 .pydevproject
+.tmp_*~

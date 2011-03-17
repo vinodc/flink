@@ -16,11 +16,14 @@ elementpatterns = patterns(
 posterboardpatterns = patterns(
     'app.views',
     url(r'^$', 'posterboards_handler', name='posterboards_url'),
+    url(r'^new[/$]', 'new_form_handler', {'modelname': 'posterboards'}),
+    
     # Get a particular set of posterboards.
     url(r'^sets/?(\.(?P<format>(json|html)))?$', 'sets_handler',
         name='sets_url'),
     url(r'^sets/(?P<set>\d+)/?(\.(?P<format>(json|html)))?$', 
         'sets_handler', name='set_url'),
+    
     url(r'^(?P<posterboard>[^./]+)/?(\.(?P<format>(json|html)))?$',
         'posterboards_handler', name='posterboard_url'),
     (r'^(?P<posterboard>[^./]+)/elements(/|/?\.(?P<format>(json|html))$)',
@@ -44,7 +47,7 @@ profilepatterns = patterns(
 urlpatterns = patterns(
     '',
     (r'^$', 'app.views.index'),
-    (r'^people[/$]', include(peoplepatterns)),
+    (r'^(people|users)[/$]', include(peoplepatterns)),
     (r'^admin[/$]', include(admin.site.urls)),
     (r'^profile[/$]', include(profilepatterns)),
     (r'^accounts[/$]', include('allauth.urls')),

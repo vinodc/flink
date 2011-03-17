@@ -17,7 +17,12 @@ body {
 
 #logo {
   color: red;
-  font-size: 35px; }
+  font-size: 35px; 
+}
+  
+#logo-link {
+  text-decoration: none;    
+}
 
 #content {
   text-align: left; }

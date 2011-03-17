@@ -10,7 +10,7 @@
     <div id='content'>
       <ul>
       {% for p in posterboards %}
-         <li><a href="{% url posterboard_url p.title %}">{{ p.title }}</a></li>
+         <li><a href="/people/{{ blogger.username }}/posterboards/{{ p.title_path }}/">{{ p.title }}</a></li>
       {% endfor %}
       </ul>
     </div>
