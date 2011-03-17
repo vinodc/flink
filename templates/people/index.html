@@ -10,7 +10,7 @@
     <div id='content'>
       <ul>
       {% for blogger in bloggers %}
-         <li><a href="{% url person_url blogger.username %}">{{ blogger.username # blogger.full_name }}</a></li>
+         <li><a href="/people/{{blogger.username}}">{{ blogger.username }}</a></li>
       {% endfor %}
       </ul>
     </div>

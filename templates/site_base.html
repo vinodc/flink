@@ -57,15 +57,18 @@
                         <a href="/" id="logo-link"><span id='logo'>flink</span></a>
                         {% if user.is_authenticated %}
                             <a href='/people/{{user.username}}'>
-                                Blog
+                                Your Blog
+                            </a>
+                            <a href='/people/'>
+                                People
                             </a>
                             <a href='/profile/'>
-                                settings
+                                Settings
                             </a>
                             <a href='/accounts/logout/'>
                                 Logout
                             </a>
-                            <span id='nav_bar_right' align='right'>
+                            <span id='nav_bar_right' align='right' style='text-align: right'>
                                 <a class="openmodalbox" id="new-posterboards-link" href="javascript:void(0);">
                                     New Posterboard
                                 </a>
@@ -76,6 +79,9 @@
                             </a>
                             <a href='/accounts/signup/'>
                                 Sign Up
+                            </a>
+                            <a href='/people/'>
+                                People
                             </a>
                         {% endif %}
                         <hr />
