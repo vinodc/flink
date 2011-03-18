@@ -206,8 +206,6 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                                       context_instance=RequestContext(request))
         elif format == 'json':
             # Serialize object .. then get actual data structure out of serialized string
-            data['posterboards'] = pbs
-            data = serializers.serialize('json', data)
             return HttpResponse(data, mimetype='application/json')
 
     # show
@@ -248,18 +246,14 @@ def posterboards_handler(request, blogger=None, posterboard=None,
 
     # create
     elif request.method == 'POST':
-        PosterboardFormSet =  modelformset_factory(Posterboard)
-        formset = PosterboardFormSet(request.POST)
-        if formset.is_valid():
+        pbForm = PosterboardForm(request.POST)
+        if pbForm.is_valid():
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
-            posterboards = formset.save(commit=False)
-            # Do some stuff if necessary.
-            # ...
-            # Just demonstrating here how we can separately save the PB.
-            for posterboard in posterboards:
-                user.posterboard_set.add(posterboard)
-                posterboard.save()
+            posterboard = pbForm.save(commit=False)
+            user.posterboard_set.add(posterboard)
+            posterboard.save()
+            
             if format == 'html':
                 # A redirect with this object will redirect to the url
                 # specified as the permalink in that model.
@@ -268,22 +262,22 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                 return redirect('/people/'+user.username+'/posterboards/'+posterboard.title_path+'/')
             elif format == 'json':
                 data['message'] = 'Posterboard created successfully.'
-                data['posterboard'] = posterboard
-                data = serializers.serialize('json', data)
-                return HttpResponse(data, mimetype='application/json')
+                data['posterboard-id'] = posterboard.id
+                return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
             data['errors'] = 'Posterboard data isn\'t valid: '
-            data['errors'] += str(formset.errors)
+            data['errors'] += str(pbForm.errors)
             return ErrorResponse(data['errors'], format)
 
 
     # destroy
     elif request.method == 'DELETE' and posterboard is not None and \
             blogger.id == user.id:
+        data['message'] = 'Successfully removed posterboard '+ posterboard.id
+        posterboard.delete()
         if format == 'html':
             return redirect(blogger)
         elif format == 'json':
-            data['message'] = 'Successfully removed posterboard '+ posterboard.id
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # All other types of requests are invalid for this specific scenario.

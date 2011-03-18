@@ -56,6 +56,30 @@ class PosterboardHandlerTest (TestCase):
     def setUp(self):        
         [self.c, self.user] = login_user('test','test')
         self.homepath = '/people/'+self.user.username+'/posterboards/'
+    
+    def create_posterboard(self, title, private):
+        data = {
+            'title': title,
+            'private': private
+        }
+        response = self.c.post(self.homepath[:-1]+'.json',data)
+        return response
+
+    def delete_posterboard(self, id):
+        response = self.c.delete(self.homepath+str(id)+'/.json')
+        return response
+    
+    def test_create_delete_one_posterboard(self):
+        title = 'testPosterBoardPost'
+        response = self.create_posterboard(title, False)
+        container = eval(response._container[0])
+        self.assertEqual(response.status_code, 200)
+        pb_id = container['posterboard-id']
+        
+        self.assertEqual(title,Posterboard.objects.get(pk=pb_id).title)
+        self.assertEqual(self.delete_posterboard(pb_id).status_code, 200)
+        self.assertEqual(len(Posterboard.objects.filter(pk=pb_id)), 0)
+    
              
 """
 List of Tests for Element Handler
