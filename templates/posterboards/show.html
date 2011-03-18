@@ -99,6 +99,18 @@
                                        "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
                                     "' title='" + state.pk +
                                     "' class='element-class'>";
+                        domstring = "<div id='element" + element.pk +
+                                    "' style='" + elementstyles +
+                                       "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                                       "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
+                                       "width:" + (state.fields.position_width * gridArray[0]) +";"+
+                                       "height:" + (state.fields.position_height * gridArray[1]) +";"+
+                                    "' title='" + state.pk +
+                                    "' class='element-class'>"+
+                                    "<img src='{{ MEDIA_URL }}"+ typestate.fields.image +
+                                    "' style='width:100%;height:100%;"+
+                                    "' alt='"+ typestate.fields.alt +
+                                    "'></div>";
                         $(pbid).append(domstring);
                         make_element_interactive("#element"+ element.pk);
                     }
@@ -175,22 +187,24 @@
             }
             
             function make_element_interactive(selector) {
-                $(selector).draggable({ 
+               $(selector).draggable({ 
                     containment: pbid, 
                     scroll: false,
                     grid: gridArray,
-                    stack: pbid +" div",
+                    stack: pbid +" div,img",
                     stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
+                }).resizable({
+                    grid: gridArray,
+                    containment: pbid,
+                    stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
+                    //animate: true,
                 });
+                
                 $(selector).mousedown(function(){
                     selectedelementid = $(this).attr('id');
                     validselect = true; 
                 });
-                /*$(selector).resizable({
-                    grid: gridArray,
-                    containment: pbid,
-                    animate: true,
-                });*/
+                
                /*
                $(selector).mouseup(function(){
                    //For now, also call the update element method right here.
