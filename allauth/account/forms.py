@@ -107,12 +107,12 @@ class BaseSignupForm(forms.Form):
     if NAME_REQUIRED:
         first_name = forms.CharField(
             label = _("First name"),
-            max_length = 30,
+            max_length = 50,
             widget = forms.TextInput()
         )
         last_name = forms.CharField(
             label = _("Last name"),
-            max_length = 30,
+            max_length = 50,
             widget = forms.TextInput()
         )
     email = forms.EmailField(widget=forms.TextInput())
