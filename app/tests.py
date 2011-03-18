@@ -118,6 +118,14 @@ class ElementHandlerTest (TestCase):
         }
         response = self.c.post(self.pbpath+'.json',data)
         self.assertEqual(response.status_code, 400)
+    
+    def test_create_good_type_invalid_parameter(self):
+        data = {
+            'element-type':'image',
+            'image':'Not_a_path'
+        }
+        response = self.c.post(self.pbpath+'.json',data)
+        self.assertEqual(response.status_code, 400)
 
     def tearDown(self):
         os.remove(self.imagepath)
