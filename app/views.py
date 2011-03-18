@@ -297,25 +297,24 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
         
         elementform =  ElementForm(request.POST, prefix='element')
         if elementform.is_valid():
-
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
             element = elementform.save(commit=False)
             data['element_id'] = element.id
-
+                        
             if element.type == 'image':
                 state = State()
                 try:
                     state.full_clean()
                 except ValidationError, e:
                     return HttpResponseBadRequest(str(e))
-                posterboard.element_set.add(element) # only add the element to posterboard after success
+
+                posterboard.element_set.add(element)
                 element.state_set.add(state)
 
                 imageState = ImageState(image=request.FILES['image'])
                 imageState.full_clean()
                 state.imagestate = imageState    
-
 
                 # Write the element_content, which should be an image
                 data['element_content'] = '<img src= "'+imageState.image.url+ '"'\
@@ -327,7 +326,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     return HttpResponseBadRequest(data['errors'])
                 elif format == 'json':
                     return HttpResponseBadRequest(json.dumps(data), mimetype='application/json')
-                
+
             element.save()
             state.save()
             imageState.save()
