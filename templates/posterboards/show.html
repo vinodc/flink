@@ -80,7 +80,7 @@
                 jsonstring = jsonstring.replace(/'/g,'"');
                 var elementsToAdd = JSON.parse(jsonstring);
                 
-                var elementstyles =  'display:block;cursor:pointer';
+                var elementstyles =  'display:block;cursor:pointer;';
                 
                 var element, state, typestate, domstring;
                 $.each(elementsToAdd, function(index, elementdata) {
@@ -95,6 +95,8 @@
                                     "' height='" + (state.fields.position_height * gridArray[1]) +
                                     "' id='element" + element.pk +
                                     "' style='" + elementstyles +
+                                       "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                                       "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
                                     "' title='" + state.pk +
                                     "' class='element-class'>";
                         $(pbid).append(domstring);
@@ -216,8 +218,8 @@
                        'state-id': $(selector).attr('title'),
                        'state-position_width': parseInt($(selector).width() / gridArray[0]),
                        'state-position_height': parseInt($(selector).height() / gridArray[1]),
-                       'state-position_x': parseInt($(selector).position().left / gridArray[0]),
-                       'state-position_y': parseInt($(selector).position().top / gridArray[1]),
+                       'state-position_x': parseInt(($(selector).position().left - $(pbid).position().left) / gridArray[0]),
+                       'state-position_y': parseInt(($(selector).position().top - $(pbid).position().top) / gridArray[1]),
                    },
                    dataType: 'json',
                    success: function() { $(selector).effect("highlight", {}, 1000); },
