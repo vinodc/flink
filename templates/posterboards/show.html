@@ -27,7 +27,7 @@
                 //ctx = canvas.getContext("2d");
                 
                 $(sidebartab_id).click(function(){
-                    $(sidebarcontent_id).animate({ "width":"toggle"},{duration:1000,queue:false});
+                    $(sidebarcontent_id).animate({ "width":"toggle"},{duration:400,queue:false});
      
                     if(sidebar_out == 0){
                         $(sidebartab_id).html($(sidebartab_id).html().replace(/(\.[^.]+)$/, '-active$1'));
@@ -59,7 +59,6 @@
             });
             
             function image_upload_callback(responseText, statusText, xhr) {
-                console.log('WOOHOOO');
                 if(xhr.status < 200 || xhr.status > 299) {
                     $("#image_upload_form .form-submit-errors")
                         .html('An error occured while uploading the file: ' + responseText.errors);
@@ -75,18 +74,58 @@
             function add_image_to_posterboard(responseText) {
                 var id = responseText.element_id;
                 $(pbid).append(responseText.content);
-                $("#element"+id).draggable({ 
+                make_element_interactive("#element"+id)
+            }
+            
+            function make_element_interactive(selector) {
+                $(selector).draggable({ 
                     containment: pbid, 
                     scroll: false,
                     grid: gridArray,
                     stack: pbid +" div",
                 });
-                $("#element"+id).resizeable({
+                $(selector).resizeable({
                     grid: gridArray,
                     containment: pbid,
                     animate: true,
-                })
+                });
             }
+            
+            /*-----------------------
+              Changing elements
+              ----------------------- */
+            
+            
+            var jsonstring = "{% autoescape off %}{{ element_data }}{%  endautoescape %}";
+            jsonstring = jsonstring.replace(/'/g,'"');
+            var elementsToAdd = JSON.parse(jsonstring);
+            
+            var elementstyles =  'display:block;';
+            
+            var element, state, typestate, domstring;
+            $.each(elementsToAdd, function(index, elementdata) {
+                element = elementdata[0];
+                state = elementdata[1];
+                typestate = elementdata[2];
+                
+                if(element.fields.type == 'image') {
+                    domstring = "<img src='{{ MEDIA_URL }}"+ typestate.fields.image +
+                                "' alt='"+ typestate.fields.alt +
+                                "' width='" + (state.fields.position_width * gridArray[0]) +
+                                "' height='" + (state.fields.position_height * gridArray[1]) +
+                                "' id='element" + element.fields.pk +
+                                "' style='" + elementstyles +
+                                "' >";
+                    $(pbid).append(domstring);
+                    make_element_interactive("#element"+ element.fields.pk);
+                }
+            });
+            
+            var elementsthatchanged= [];
+            
+            $("#save-changes").click(function(){
+                
+            });
         </script>
     {% endif %}
     <div id='content'>
@@ -98,6 +137,7 @@
                    <div id="scrollbar_container">
                        <div id="scrollbar_content">
                            <a href="javascript:void(0);" id="image_upload">Add Image</a>
+                           <button id="save-changes"> Save Changes to Posterboard </button>
                        </div>
                    </div>
                </div>
