@@ -1,0 +1,5 @@
+{% load i18n %}{% blocktrans with current_site.name as site_name %}
+
+The owner of this email has just signed up for a {{ site_name }} account, which can be activated by this link{{ activate_url }}
+
+{% endblocktrans %}

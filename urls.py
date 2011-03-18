@@ -10,6 +10,7 @@ admin.autodiscover()
 elementpatterns = patterns(
     'app.views',
     url(r'^$', 'elements_handler', name='elements_url'),
+    #url(r'^(\.(?P<format>(json|html)))?$', 'elements_handler', name='elements_url'),
     url(r'^(?P<element>\d+)/?(\.(?P<format>(json|html)))?$',
         'elements_handler', name='element_url'),
     )
@@ -42,7 +43,7 @@ peoplepatterns = patterns(
 
 profilepatterns = patterns(
     'app.views',
-    url(r'^$', 'profile_handler', name='profile_url'),                       
+    url(r'^(\.(?P<format>(json|html)))?$', 'profile_handler', name='profile_url'),                       
     )
 
 urlpatterns = patterns(
