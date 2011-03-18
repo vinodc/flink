@@ -8,6 +8,7 @@ Replace these with more appropriate tests for your application.
 from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import User
+from app.decorators import test_concurrently
 from app.models import *
 from app.forms import *
 import os
@@ -74,8 +75,8 @@ List of Tests for Element Handler
 - Create an state with speed
 
 # Small Stress Test
-- Create 10 Element on a Posterboard
-- Update 10 Element on a Posterboard
+- Simultaneously Create 15 Element on a Posterboard
+- Simultaneously Update 15 Element on a Posterboard
 """
 class ElementHandlerTest (TestCase):
     fixtures = ['test_fixture.json']
@@ -104,7 +105,7 @@ class ElementHandlerTest (TestCase):
         response = self.c.delete(self.pbpath+str(id)+'/.json')
         return response
     
-    def test_create_good_image(self):
+    def test_create_delete_one_image(self):
         response = self.create_image()
         container = eval(response._container[0])
         self.assertEqual(response.status_code, 200)
@@ -113,7 +114,11 @@ class ElementHandlerTest (TestCase):
         self.assertEqual(self.delete_element(element_id).status_code, 200)
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0)
 
-    def update_image(self, state_id, xPos, yPos, alt):
+    def update_image_wrapper(self, state_id, xPos, yPos, alt):
+        state = State.objects.get(pk=state_id)
+        image = ImageState.objects.get(pk=state_id)
+        beforeUpdateURL = image.image.url
+        
         data = {
             'PUT':'put',
             'element-type':'image',
@@ -124,43 +129,43 @@ class ElementHandlerTest (TestCase):
             'image-alt': alt
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
-        return response
-
-    def test_update_image(self):
+        
+        state = State.objects.get(pk=state_id)
+        image = ImageState.objects.get(pk=state_id)
+        self.assertEqual(beforeUpdateURL,image.image.url)
+        self.assertEqual(alt,image.alt)
+        self.assertEqual(xPos,state.position_x)
+        self.assertEqual(yPos,state.position_y)
+    
+    def test_update_one_image(self):
         response = self.create_image()
         container = eval(response._container[0])
         self.assertEqual(response.status_code, 200)
         element_id = container['element-id']
         state_id = container['state-id']
         self.assertEqual(self.pb.title,Element.objects.get(pk=element_id).posterboard.title)
-
-        # Update Test Begin
-        state = State.objects.get(pk=state_id)
-        image = ImageState.objects.get(pk=state_id)
-        beforeUpdateXPos = state.position_x
-        beforeUpdateYPos = state.position_y
-        beforeUpdateAlt = image.alt
-        beforeUpdateURL = image.image.url
         
-        self.update_image(state_id,beforeUpdateXPos+10,beforeUpdateYPos,'new_'+beforeUpdateAlt)
+        self.update_image_wrapper(state_id,50,0,'test alt')
         
-        state = State.objects.get(pk=state_id)
-        image = ImageState.objects.get(pk=state_id)
-        afterUpdateXPos = state.position_x
-        afterUpdateYPos = state.position_y
-        afterUpdateAlt = image.alt
-        afterUpdateURL = image.image.url
-        
-        self.assertEqual(beforeUpdateURL,afterUpdateURL)
-        self.assertEqual('new_'+beforeUpdateAlt,afterUpdateAlt)
-        self.assertEqual(beforeUpdateXPos+10, afterUpdateXPos)
-        self.assertEqual(beforeUpdateYPos, afterUpdateYPos)
-        
-        # Update Test End
-
         self.assertEqual(self.delete_element(element_id).status_code, 200)
-        self.assertEqual(len(Element.objects.filter(pk=element_id)), 0)
-        
+        self.assertEqual(len(Element.objects.filter(pk=element_id)), 0) 
+    
+    def test_stress_simultaneous_same_user_create_delete(self, n=15):
+        @test_concurrently(n)
+        def concurrent_create_delete():
+            self.test_create_delete_one_image()
+        numStates = ImageState.objects.count()
+        concurrent_create_delete()
+        self.assertEqual(ImageState.objects.count(), numStates)
+
+    def test_stress_simultaneous_same_user_create_update_delete(self, n=15):
+        @test_concurrently(n)
+        def concurrent_create_delete():
+            self.test_update_one_image
+        numStates = ImageState.objects.count()
+        concurrent_create_delete()
+        self.assertEqual(ImageState.objects.count(), numStates)
+    
     def test_create_element_invalid_type(self):
         data = {
             'element-type':'invalid-type',
