@@ -7,8 +7,9 @@
 
 {% endblock %}
 {% block content %}
-    {% if blog_owner %}
+        {% if blog_owner %}
         <link href="{{ STATIC_URL }}css/editbar.css" type='text/css' rel='stylesheet' />
+        {% endif %}
         <script type="text/javascript">
             var pbid = "#posterboard{{posterboard.id}}";
             var canvas;
@@ -16,26 +17,37 @@
             //var gridArray = [{{gridwidth}}, {{gridheight}}];
             var gridArray = [40,40];
             
+            {% if blog_owner %}
             var sidebar_out = 0;
             
             // Changing this will break css.
             var sidebartab_id = "#edit_toggle";
             var sidebarcontent_id = "#editbar_contents";
             
+            var elementsthatchanged= [];
+            var eid = -1;
+            {% endif %}
+            
             $(document).ready(function(){
                 //canvas = document.getElementById("posterboard{{posterboard.id}}");
                 //ctx = canvas.getContext("2d");
                 
+                {% if blog_owner %}
                 $(sidebartab_id).click(function(){
                     $(sidebarcontent_id).animate({ "width":"toggle"},{duration:400,queue:false});
      
                     if(sidebar_out == 0){
                         $(sidebartab_id).html($(sidebartab_id).html().replace(/(\.[^.]+)$/, '-active$1'));
-                        $
+                        $( ".element-class" ).draggable( "option", "disabled", false );
+                        $( ".element-class" ).resizable( "option", "disabled", false );
+                        $( '#edit-status' ).text('Editing Mode');
                         sidebar_out = 1;
                     }
                     else{
                         $(sidebartab_id).html($(sidebartab_id).html().replace(/-active(\.[^.]+)$/, '$1'));
+                        $( ".element-class" ).draggable( "option", "disabled", true );
+                        $( ".element-class" ).resizable( "option", "disabled", true );
+                        $( '#edit-status' ).text('Viewing Mode');
                         sidebar_out = 0;
                     }
                 });
@@ -56,8 +68,61 @@
                    type: 'post',
                 });*/
                 
+                {% endif %}
+                
+                /*-----------------------
+                  Populating elements
+                ----------------------- */
+                var jsonstring = "{% autoescape off %}{{ element_data }}{%  endautoescape %}";
+                jsonstring = jsonstring.replace(/'/g,'"');
+                var elementsToAdd = JSON.parse(jsonstring);
+                
+                var elementstyles =  'display:block;cursor:pointer';
+                
+                var element, state, typestate, domstring;
+                $.each(elementsToAdd, function(index, elementdata) {
+                    element = elementdata[0];
+                    state = elementdata[1];
+                    typestate = elementdata[2];
+                    
+                    if(element.fields.type == 'image') {
+                        domstring = "<img src='{{ MEDIA_URL }}"+ typestate.fields.image +
+                                    "' alt='"+ typestate.fields.alt +
+                                    "' width='" + (state.fields.position_width * gridArray[0]) +
+                                    "' height='" + (state.fields.position_height * gridArray[1]) +
+                                    "' id='element" + element.pk +
+                                    "' style='" + elementstyles +
+                                    "' title='" + state.pk +
+                                    "' class='element-class'>";
+                        $(pbid).append(domstring);
+                        make_element_interactive("#element"+ element.pk);
+                    }
+                });
+                
+                {% if blog_owner %}
+                $("#save-changes").click(function(){
+                    // Assumes eid is set to some value.
+                    if(eid == -1) {
+                        return;
+                    }
+                    
+                    $.ajax({
+                       url: 'elements/'+eid+'.json',
+                       dataType: 'json',
+                       data: {
+                           'opacity': 1,
+                           'position_width': $("#element"+eid).width(),
+                           'position_height': $("#element"+eid).height(),
+                       }                        
+                    });
+                    
+                    eid = -1;
+                });
+                {% endif %}
+                
             });
             
+            {% if blog_owner %}
             function image_upload_callback(responseText, statusText, xhr) {
                 if(xhr.status < 200 || xhr.status > 299) {
                     $("#image_upload_form .form-submit-errors")
@@ -74,7 +139,8 @@
             function add_image_to_posterboard(responseText) {
                 var id = responseText.element_id;
                 $(pbid).append(responseText.content);
-                make_element_interactive("#element"+id)
+                make_element_interactive("#element"+id);
+                update_element("#element"+id);
             }
             
             function make_element_interactive(selector) {
@@ -83,51 +149,50 @@
                     scroll: false,
                     grid: gridArray,
                     stack: pbid +" div",
+                    stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
                 });
-                $(selector).resizeable({
+                /*$(selector).resizable({
                     grid: gridArray,
                     containment: pbid,
                     animate: true,
+                });*/
+               /*
+               $(selector).mouseup(function(){
+                   //For now, also call the update element method right here.
+                   update_element(selector);       
+                   return;
+                   
+                   for(var i=0; i<elementsthatchanged.length; i++) {
+                       if(a[i] == selector.substr(1)) {
+                           return;
+                       }
+                   }
+                   elementsthatchanged.push(selector.substr(1));
+               });
+               */
+            }
+            
+            function update_element(selector) {
+                $.ajax({
+                   url: 'elements/'+selector.substr(8)+'.json',
+                   data: {
+                       'csrfmiddlewaretoken': '{{csrf_token}}',
+                       'element-type': 'image',
+                       'element-id': parseInt(selector.substr(8)),
+                       'state-id': $(selector).attr('title'),
+                       'state-position_width': parseInt($(selector).width() / gridArray[0]),
+                       'state-position_height': parseInt($(selector).height() / gridArray[1]),
+                       'state-position_x': parseInt($(selector).position().left / gridArray[0]),
+                       'state-position_y': parseInt($(selector).position().top / gridArray[1]),
+                   },
+                   dataType: 'json',
+                   success: function() { $(selector).effect("highlight", {}, 1000); },
+                   type: 'post'
                 });
             }
             
-            /*-----------------------
-              Changing elements
-              ----------------------- */
-            
-            
-            var jsonstring = "{% autoescape off %}{{ element_data }}{%  endautoescape %}";
-            jsonstring = jsonstring.replace(/'/g,'"');
-            var elementsToAdd = JSON.parse(jsonstring);
-            
-            var elementstyles =  'display:block;';
-            
-            var element, state, typestate, domstring;
-            $.each(elementsToAdd, function(index, elementdata) {
-                element = elementdata[0];
-                state = elementdata[1];
-                typestate = elementdata[2];
-                
-                if(element.fields.type == 'image') {
-                    domstring = "<img src='{{ MEDIA_URL }}"+ typestate.fields.image +
-                                "' alt='"+ typestate.fields.alt +
-                                "' width='" + (state.fields.position_width * gridArray[0]) +
-                                "' height='" + (state.fields.position_height * gridArray[1]) +
-                                "' id='element" + element.fields.pk +
-                                "' style='" + elementstyles +
-                                "' >";
-                    $(pbid).append(domstring);
-                    make_element_interactive("#element"+ element.fields.pk);
-                }
-            });
-            
-            var elementsthatchanged= [];
-            
-            $("#save-changes").click(function(){
-                
-            });
+            {% endif %}
         </script>
-    {% endif %}
     <div id='content'>
        {% if blog_owner %}
        <div id="editbar">
@@ -136,8 +201,8 @@
                <div id="editbar_contents_inner">
                    <div id="scrollbar_container">
                        <div id="scrollbar_content">
-                           <a href="javascript:void(0);" id="image_upload">Add Image</a>
-                           <button id="save-changes"> Save Changes to Posterboard </button>
+                           <button id="image_upload">Add Image</button>
+                           <!--<button id="save-changes">Save Changes to Posterboard</button>-->
                        </div>
                    </div>
                </div>
@@ -156,6 +221,10 @@
        {% endif %}
       <!--<canvas id="posterboard{{posterboard.id}}" width="960px" height="900px" class='grid pbgrid'>
       </canvas>-->
+      {% if blog_owner %}
+      <p align='center' style="text-align:center" id="edit-status">Viewing Mode</p>
+      <p align='center' style="text-align:center; font-size:smaller; color: gray">Use left sidebar to switch modes.</p>
+      {% endif %}
       <div id="posterboard{{posterboard.id}}" class='grid pbgrid'>
 	<!-- 
 	     There shouldn't be any hardcoded elements here.

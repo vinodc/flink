@@ -107,7 +107,9 @@ def get_element(func):
                             ' for pb '+ str(pb.id))
                 return HttpResponseBadRequest('Element should be an id, '+
                                               'which is a number.')
+            logger.debug('Trying to find element with id'+ str(element))
             element = pb.element_set.get(id=element)
+            logger.debug('Found element!')
 
         kwargs['element'] = element
         return func(*args, **kwargs)

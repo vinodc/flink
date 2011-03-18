@@ -230,7 +230,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                 else:
                     logger.debug(u"Can't get type state for type %s" % type)
             element_data.append(eval(serializers.serialize('json', [e, s, ts])))
-        data['element_data'] = element_data
+        data['element_data'] = element_data                    
 
         #logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
         #logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
@@ -307,7 +307,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
     if request.method == 'GET':
         return HttpResponseBadRequest()
     # create
-    elif request.method == 'POST':
+    elif request.method == 'POST' and posterboard is None:
         # Testing json response:
         #return HttpResponse(json.dumps({'test':1, 'again':2}), mimetype='application/json')
 
@@ -333,7 +333,11 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     return ErrorResponse(data['errors'], format)
                     
                 imageState = ImageState(image=request.FILES['image'])
-                imageState.full_clean()
+                try:
+                    imageState.full_clean()
+                except ValidationError, e:
+                    return HttpResponseBadRequest(str(e))
+                    
                 state.imagestate = imageState
 
                 # Write the element_content, which should be an image
@@ -363,33 +367,43 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             logger.debug('Errors creating Element: '+ data['errors'])
             return ErrorResponse(data['errors'], format)
     # Batch update elements
-    elif request.method == 'PUT':
-        elementForm = ElementForm(request.PUT, prefix='element')
+    elif request.method == 'POST' and posterboard is not None and blogger.id == user.id:
+        elementForm = ElementForm(request.POST, prefix='element')
         temp_element = elementForm.save(commit=False)
-        stateForm = StateForm(request.PUT, prefix='state')
-        childStateForm = StateForm(request.PUT, prefix=str(temp_element.type))
+        stateForm = StateForm(request.POST, prefix='state')
+        childStateForm = StateForm(request.POST, prefix=str(temp_element.type))
 
         # Thinking of separately all three check so that we can choose to update one
 
+        logger.debug('chkpt1')
         if elementForm.is_valid():
+            logger.debug('chkpt1a. id is '+ str(request.POST['element-id']))
             # Retrieve the actual element in the database and update
-            actual_element = Element.objects.get(pk=temp_element.id)
-            edit_form = ElementForm(request.PUT, prefix='element', instance=actual_element)
+            actual_element = Element.objects.get(pk=request.POST['element-id'])
+            logger.debug('chkpt1b')
+            edit_form = ElementForm(request.POST, prefix='element', instance=actual_element)
+            logger.debug('chkpt1c')
             edit_form.is_valid() # don't check as we checked above
             edit_form.save()
 
+        logger.debug('chkpt2')
         if stateForm.is_valid():
+            logger.debug('chkpt2a')
             temp_state = stateForm.save(commit=False)
-            actual_state = State.objects.get(pk=temp_state.id)
-            edit_form = StateForm(request.PUT, prefix='state', instance=actual_state)
+            actual_state = State.objects.get(pk=request.POST['state-id'])
+            edit_form = StateForm(request.POST, prefix='state', instance=actual_state)
+            logger.debug('chkpt2b')
             edit_form.is_valid()
             edit_form.save()
 
+        logger.debug('chkpt3')
         if childStateForm.is_valid():
             if temp_element.type == 'image':
+                logger.debug('chkpt3a')
                 temp_image = ImageStateForm.save(commit=False)
-                actual_image = ImageState.objects.get(pk=temp_image.id)
-                edit_form = StateForm(request.PUT, prefix='image', instance=actual_image)
+                actual_image = ImageState.objects.get(pk=request.POST[type+'-id'])
+                edit_form = StateForm(request.POST, prefix='image', instance=actual_image)
+                logger.debug('chkpt3b')
                 edit_form.is_valid()
                 edit_form.save()
                 actual_image.image = request.FILES['image']

@@ -138,6 +138,8 @@ class State(CommonInfo):
     pb_element = models.ForeignKey(Element, verbose_name='posterboard element', editable=False)
     # Specify the type of the state
     # Position WxH is a factor of grid size.
+    position_x = models.IntegerField(default=1)
+    position_y = models.IntegerField(default=1)
     position_width = models.IntegerField(default=1, blank=True)
     position_height = models.IntegerField(default=1, blank=True)
     #Orientation is between 0 and 359 degrees.
@@ -170,6 +172,8 @@ class State(CommonInfo):
         if self.speed is None: self.speed = 400
         if self.opacity is None: self.opacity = Decimal('1.00')
         if self.orientation is None: self.orientation = 0
+        if self.position_x is None: self.position_x = 1
+        if self.position_y is None: self.position_y = 1
         if self.position_width is None: self.position_width = 1
         if self.position_height is None: self.position_height = 1 
         

@@ -95,7 +95,7 @@ class ElementHandlerTest (TestCase):
             'element-type':'image',
             'image':img
         }
-        response = self.c.post(self.pbpath+'.json',data)
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
         img.close()
         return response
     
@@ -116,7 +116,7 @@ class ElementHandlerTest (TestCase):
         data = {
             'element-type':'invalid-type',
         }
-        response = self.c.post(self.pbpath+'.json',data)
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
         self.assertEqual(response.status_code, 400)
     
     def test_create_good_type_invalid_parameter(self):

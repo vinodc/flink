@@ -9,7 +9,8 @@ admin.autodiscover()
 
 elementpatterns = patterns(
     'app.views',
-    url(r'^(\.(?P<format>(json|html)))?$', 'elements_handler', name='elements_url'),
+    url(r'^$', 'elements_handler', name='elements_url'),
+    #url(r'^(\.(?P<format>(json|html)))?$', 'elements_handler', name='elements_url'),
     url(r'^(?P<element>\d+)/?(\.(?P<format>(json|html)))?$',
         'elements_handler', name='element_url'),
     )
