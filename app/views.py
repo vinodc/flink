@@ -301,7 +301,6 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
             element = elementform.save(commit=False)
-            posterboard.element_set.add(element)
             data['element_id'] = element.id
 
             if element.type == 'image':
@@ -310,6 +309,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     state.full_clean()
                 except ValidationError, e:
                     return HttpResponseBadRequest(str(e))
+                posterboard.element_set.add(element) # only add the element to posterboard after success
                 element.state_set.add(state)
 
                 imageState = ImageState(image=request.FILES['image'])

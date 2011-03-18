@@ -132,7 +132,7 @@ class Element(CommonInfo):
     posterboard = models.ForeignKey(Posterboard, editable=False)
 
     def __unicode__(self):
-       return self.title
+       return self.posterboard.title + ' element' + str(self.id)
 
 class State(CommonInfo):
     pb_element = models.ForeignKey(Element, verbose_name='posterboard element', editable=False)
@@ -148,7 +148,7 @@ class State(CommonInfo):
                                       ])
     opacity = models.DecimalField(max_digits=3, 
                                   decimal_places=2, 
-                                  default=1.00, 
+                                  default=Decimal('1.00'), 
                                   validators=[
                                       MaxValueValidator(Decimal('1.00')),
                                       MinValueValidator(Decimal('0.00'))
