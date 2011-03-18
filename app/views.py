@@ -37,7 +37,7 @@ from app.lib import title_to_path
 # Error
 def ErrorResponse(data, format):
     if format == 'html':
-        return HttpResponse(data, status=400)
+        return HttpResponse(str(data), status=400)
     elif format == 'json':
         return HttpResponse(json.dumps(data), mimetype='application/json', status=400)
 
@@ -278,8 +278,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
 
 
     # destroy
-    elif request.method == 'DELETE' and posterboard is not None and \
-            blogger.id == user.id:
+    elif request.method == 'GET' and request.GET.has_key('_action') and \
+    request.GET['_action'] == 'delete' and posterboard is not None and blogger.id == user.id:
         if format == 'html':
             return redirect(blogger)
         elif format == 'json':
@@ -304,10 +304,10 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
 
     data = {'message':''}
 
-    if request.method == 'GET' and request.GET['_action'] != 'delete':
+    if request.method == 'GET' and not request.GET.has_key('_action'):
         return HttpResponseBadRequest()
     # create
-    elif request.method == 'POST' and not 'PUT' in request.POST:
+    elif request.method == 'POST' and element is None:
         # Testing json response:
         #return HttpResponse(json.dumps({'test':1, 'again':2}), mimetype='application/json')
 
@@ -369,7 +369,8 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             logger.debug('Errors creating Element: '+ data['errors'])
             return ErrorResponse(data['errors'], format)
     # Batch update elements
-    elif request.method == 'POST' and 'PUT' in request.POST and blogger.id == user.id:
+    elif request.method == 'POST' and request.POST.has_key('_action') and request.POST['_action'] == 'put' and \
+    blogger.id == user.id:        
         elementForm = ElementForm(request.POST, prefix='element')
         temp_element = elementForm.save(commit=False)
         stateForm = StateForm(request.POST, prefix='state')
@@ -414,8 +415,8 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # destroy
-    elif request.method == 'GET' and request.GET['_action']=='delete' and element is not None \
-            and blogger.id == user.id and element.posterboard_id == posterboard.id:
+    elif request.method == 'GET' and request.GET.has_key('_action') and request.GET['_action']=='delete' and \
+    element is not None and blogger.id == user.id and element.posterboard_id == posterboard.id:
         data['message'] = 'Successfully removed element '+ str(element.id)
         element.delete()
         
