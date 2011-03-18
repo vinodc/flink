@@ -181,3 +181,6 @@ class ImageState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)
     alt = models.CharField('alt', max_length=250, blank = True)
     image = models.ImageField(upload_to='images', max_length=255, editable=False)
+    
+    def predelete(self, sender, instance):
+        self.image.delete() # Automatically remove the image.

@@ -26,6 +26,9 @@
             
             var elementsthatchanged= [];
             var eid = -1;
+            
+            var selectedelementid = '';
+            var validselect = false;
             {% endif %}
             
             $(document).ready(function(){
@@ -100,6 +103,32 @@
                 });
                 
                 {% if blog_owner %}
+                /*-----------------------
+                  Changing elements
+                ----------------------- */
+               
+                $(document).mousedown(function(){
+                   if(!validselect) {
+                       selectedelementid = '';
+                   }
+                   validselect = false; 
+                });
+               
+                $(document).keydown(function(event) {
+                    // DEL
+                    if (event.keyCode == 46 && selectedelementid != '') {
+                        $.ajax({
+                            url: 'elements/'+selectedelementid.substr(7)+'.json',
+                            data: {
+                                'csrfmiddlewaretoken': '{{csrf_token}}',
+                                '_action': 'delete'
+                            },
+                            method: 'get',
+                            success: function() { $("#"+selectedelementid).remove(); },
+                        }); 
+                    } 
+                });
+               
                 $("#save-changes").click(function(){
                     // Assumes eid is set to some value.
                     if(eid == -1) {
@@ -151,6 +180,10 @@
                     stack: pbid +" div",
                     stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
                 });
+                $(selector).mousedown(function(){
+                    selectedelementid = $(this).attr('id');
+                    validselect = true; 
+                });
                 /*$(selector).resizable({
                     grid: gridArray,
                     containment: pbid,
@@ -177,6 +210,7 @@
                    url: 'elements/'+selector.substr(8)+'.json',
                    data: {
                        'csrfmiddlewaretoken': '{{csrf_token}}',
+                       '_action': 'put',
                        'element-type': 'image',
                        'element-id': parseInt(selector.substr(8)),
                        'state-id': $(selector).attr('title'),
