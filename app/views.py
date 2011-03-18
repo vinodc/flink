@@ -304,7 +304,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
 
     data = {}
 
-    if request.method == 'GET':
+    if request.method == 'GET' and request.GET['_action'] != 'delete':
         return HttpResponseBadRequest()
     # create
     elif request.method == 'POST' and posterboard is None:
@@ -410,7 +410,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # destroy
-    elif request.method == 'DELETE' and element is not None \
+    elif request.method == 'GET' and request.GET['_action']=='delete' and element is not None \
             and blogger.id == user.id and element.posterboard_id == posterboard.id:
         data['message'] = 'Successfully removed element '+ str(element.id)
         element.delete()
