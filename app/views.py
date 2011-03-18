@@ -73,8 +73,9 @@ def new_form_handler(request, modelname=None, blogger=None, format=None):
     else:
         return HttpResponseBadRequest()
 
+@handle_handlers
 @login_required
-def profile_handler(request):
+def profile_handler(request, format='html'):
     user = request.user
     
     data = {'profile':
@@ -82,8 +83,12 @@ def profile_handler(request):
              'email': user.email
              }
             }
-    return render_to_response('profile/index.html',data,
+    
+    if format=='html':
+        return render_to_response('profile/index.html',data,
                               context_instance=RequestContext(request))
+    elif format=='json':
+        return HttpResponse(json.dumps(data), mimetype='application/json')
 
 # Follow the REST philosophy that:
 # GET /posterboards - index of all PBs (for that user)
@@ -220,8 +225,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                     logger.debug(u"Can't get type state for type %s" % type)
             element_data.append(eval(serializers.serialize('json', [e, s, ts])))
         data['element_data'] = element_data
-        logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
-        logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
+        #logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
+        #logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
         if format == 'html':
             return render_to_response('posterboards/show.html',
                                       {'blogger': blogger, 
