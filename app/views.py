@@ -318,13 +318,13 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             # Remove it if unnecessary.
             element = elementform.save(commit=False)
 
-            if element.type == 'image':
-                state = State()
-                try:
-                    state.full_clean()
-                except ValidationError, e:
-                    return HttpResponseBadRequest(str(e))
+            stateform = StateForm(request.POST, prefix='state')
+            if not stateform.is_valid():
+                data['errors'] = 'State data isn\'t valid: ' + str(stateform.errors)
+                return ErrorResponse(data['errors'], format)
+            state = stateform.save(commit=False)
 
+            if element.type == 'image':
                 posterboard.element_set.add(element)
                 element.state_set.add(state)
 
@@ -359,7 +359,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 data['content'] = response.content
                 return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
-            data['errors'] = 'Element data isn\'t valid: '
+            data['errors'] = 'Element data isn\'t valid: ' + str(elementform.errors)
             logger.debug('Errors creating Element: '+ data['errors'])
             return ErrorResponse(data['errors'], format)
     # Batch update elements
