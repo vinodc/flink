@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.shortcuts import render_to_response, redirect, render
 from django.core.cache import cache
 from django.core.mail import send_mail
@@ -194,7 +194,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         return HttpResponseForbidden('Please specify a blogger first.')
 
     # index
-    if request.method == 'GET' and posterboard is None:
+    if request.method == 'GET' and not request.GET.has_key('_action') and posterboard is None:
         if blogger.id == user.id:
             pbs = blogger.posterboard_set.all()
         else:
@@ -205,11 +205,14 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                                       {'blogger': blogger, 'posterboards': pbs},
                                       context_instance=RequestContext(request))
         elif format == 'json':
+            data['pb_ids'] = []
+            for pb in pbs:
+                data['pb_ids'].append(pb.id)
             # Serialize object .. then get actual data structure out of serialized string
             return HttpResponse(data, mimetype='application/json')
 
     # show
-    elif request.method == 'GET' and posterboard is not None:
+    elif request.method == 'GET' and not request.GET.has_key('_action') and posterboard is not None:
         if blogger.id != user.id and posterboard.private:
             return HttpResponseForbidden('Private Posterboard.')
 
@@ -241,16 +244,16 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                                         'blog_owner': blogger.id == user.id},
                                       context_instance=RequestContext(request))
         elif format == 'json':
-            data['posterboard'] = posterboard
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
-    # create
-    elif request.method == 'POST':
+    # create, make sure to check user.id as only logged in user can create new posterboard
+    elif user.id and request.method == 'POST':
         pbForm = PosterboardForm(request.POST)
         if pbForm.is_valid():
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
             posterboard = pbForm.save(commit=False)
+            posterboard.full_clean()
             user.posterboard_set.add(posterboard)
             posterboard.save()
             
@@ -263,6 +266,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             elif format == 'json':
                 data['message'] = 'Posterboard created successfully.'
                 data['posterboard-id'] = posterboard.id
+                data['posterboard-path'] = posterboard.title_path
                 return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
             data['errors'] = 'Posterboard data isn\'t valid: '
@@ -273,6 +277,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
     # destroy
     elif request.method == 'GET' and request.GET.has_key('_action') and \
     request.GET['_action'] == 'delete' and posterboard is not None and blogger.id == user.id:
+        posterboard.delete()
         if format == 'html':
             return redirect(blogger)
         elif format == 'json':
@@ -295,6 +300,9 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
     user = request.user
 
     data = {'message':''}
+
+    if not user.id == blogger.id and user and blogger:
+        return HttpResponseForbidden('Posterboard Only Available for Blogger to Edit')
 
     if request.method == 'GET' and not request.GET.has_key('_action'):
         return HttpResponseBadRequest()

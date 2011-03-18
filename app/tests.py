@@ -39,15 +39,10 @@ List of Tests for Posterboard Handler
 
 # Bad Behavior Test
 - Create a new Posterboard with bad parameter (Invalid Title Length)
-- Create a new Posterboard with bad parameter (Invalid private field)
 - Create two new Posterboard with the same title
 - Delete a non-existing Posterboard
-- Modify a non-existing PosterBoard
+- Access a non-existing PosterBoard
 - Create a new Posterbaord without a blogger
-
-# Small Stress Test
-- Simultaneously create 10 good Posterboard 
-- Simultaneously create 10 bad Posterboard with same title
 """
 
 class PosterboardHandlerTest (TestCase):
@@ -55,7 +50,9 @@ class PosterboardHandlerTest (TestCase):
     
     def setUp(self):        
         [self.c, self.user] = login_user('test','test')
+        [self.c1, self.user1] = login_user('ted','ted')
         self.homepath = '/people/'+self.user.username+'/posterboards/'
+        self.title = 'testposterboardpost'
     
     def create_posterboard(self, title, private):
         data = {
@@ -65,21 +62,88 @@ class PosterboardHandlerTest (TestCase):
         response = self.c.post(self.homepath[:-1]+'.json',data)
         return response
 
-    def delete_posterboard(self, id):
-        response = self.c.delete(self.homepath+str(id)+'/.json')
+    def delete_posterboard(self, path):
+        data = {
+            '_action':'delete'
+        }
+        response = self.c.get(self.homepath+str(path)+'/.json',data)
         return response
     
     def test_create_delete_one_posterboard(self):
-        title = 'testPosterBoardPost'
-        response = self.create_posterboard(title, False)
+        response = self.create_posterboard(self.title, False)
         container = eval(response._container[0])
         self.assertEqual(response.status_code, 200)
         pb_id = container['posterboard-id']
+        pb_path = container['posterboard-path']
         
-        self.assertEqual(title,Posterboard.objects.get(pk=pb_id).title)
-        self.assertEqual(self.delete_posterboard(pb_id).status_code, 200)
+        self.assertEqual(self.title,Posterboard.objects.get(pk=pb_id).title)
+        self.assertEqual(self.delete_posterboard(pb_path).status_code, 200)
         self.assertEqual(len(Posterboard.objects.filter(pk=pb_id)), 0)
     
+    def test_create_posterboard_bad_title(self):
+        title = 'four'
+        response = self.create_posterboard(title, False)
+        self.assertEqual(response.status_code, 400)
+    
+    def test_create_two_posterboard(self):
+        response = self.create_posterboard(self.title, False)
+        self.assertEqual(response.status_code, 200)
+        # Second one should fail
+        response = self.create_posterboard(self.title, False)
+        self.assertEqual(response.status_code, 400)
+    
+    def test_delete_void_posterboard(self):
+        response = self.delete_posterboard('void_no_posterboard')
+        self.assertEqual(response.status_code, 400)
+
+    def test_access_void_posterboard(self):
+        response = self.c.get(self.homepath+'void_posterboard/.json')
+        self.assertEqual(response.status_code, 400)
+    
+    def test_create_posterboard_without_log_in(self):
+        self.c.logout()
+        response = self.create_posterboard(self.title, False)
+        self.assertEqual(response.status_code, 400)
+       
+    def test_public_posterboard(self):
+        response = self.create_posterboard(self.title, False)
+        container = eval(response._container[0])
+        self.assertEqual(response.status_code, 200)
+        pb_id = container['posterboard-id']
+        pb_path = container['posterboard-path']
+        
+        # Everyone can see the posterboard on the home page
+        home_page_pbs = self.c.get(self.homepath[:-1]+'.json')._container['pb_ids']
+        self.assertTrue(pb_id in home_page_pbs)
+        home_page_pbs = self.c1.get(self.homepath[:-1]+'.json')._container['pb_ids']
+        self.assertTrue(pb_id in home_page_pbs)
+        
+        # Everyone can look at the posterboard page
+        pb_page = self.c.get(self.homepath+str(pb_path)+'/.json')
+        self.assertEqual(pb_page.status_code, 200)
+        pb_page = self.c1.get(self.homepath+str(pb_path)+'/.json')
+        self.assertEqual(pb_page.status_code, 200)
+    
+    def test_private_posterboard(self):
+        response = self.create_posterboard(self.title, True)
+        container = eval(response._container[0])
+        self.assertEqual(response.status_code, 200)
+        pb_id = container['posterboard-id']
+        pb_path = container['posterboard-path']
+        
+        # Only I can see the posterboard on the home page
+        home_page_pbs = self.c.get(self.homepath[:-1]+'.json')._container['pb_ids']
+        self.assertTrue(pb_id in home_page_pbs)        
+        # Other people cannot see it
+        home_page_pbs = self.c1.get(self.homepath[:-1]+'.json')._container['pb_ids']
+        self.assertTrue(not pb_id in home_page_pbs)
+        
+        # Only I can look at the posterboard page
+        pb_page = self.c.get(self.homepath+str(pb_path)+'/.json')
+        self.assertEqual(pb_page.status_code, 200)
+        # Access Denied
+        pb_page = self.c1.get(self.homepath+str(pb_path)+'/.json')
+        self.assertEqual(pb_page.status_code, 403)
              
 """
 List of Tests for Element Handler
@@ -91,6 +155,7 @@ List of Tests for Element Handler
 # Bad Behavior Test
 - Create an element object with invalid type
 - Create an element with type='image' but do not provide correct image parameter
+- Create and store an image object without logging in
 
 # Good and Bad Behavior Test
 - Create an state with orientation

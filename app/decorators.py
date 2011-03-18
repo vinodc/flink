@@ -55,7 +55,7 @@ def handle_handlers(func):
             kwargs['format'] = 'html'
         return func(*args, **kwargs)
     return _dec
-    
+
 def get_blogger(func):
     """
     Get the user whose blog it is based on the username.
@@ -64,7 +64,10 @@ def get_blogger(func):
         blogger = kwargs.get('blogger')
 
         if blogger is not None:
-            blogger = User.objects.get(username=blogger)
+            try:
+                blogger = User.objects.get(username=blogger)
+            except:
+                return HttpResponseBadRequest('Blogger does not exist')
 
         # Superusers aren't allowed to be bloggers.
         if blogger is not None and blogger.is_superuser:
@@ -111,8 +114,11 @@ def get_posterboard(func):
 
         # Find the PB that corresponds to PB
         if pb is not None:
-            pb = blogger.posterboard_set.get(title_path=pb)
-
+            try:
+                pb = blogger.posterboard_set.get(title_path=pb)
+            except:
+                return HttpResponseBadRequest('Posterboard Path does not exist')
+                
         kwargs['posterboard'] = pb
         return func(*args, **kwargs)
     return _dec
@@ -139,7 +145,11 @@ def get_element(func):
                 return HttpResponseBadRequest('Element should be an id, '+
                                               'which is a number.')
             logger.debug('Trying to find element with id'+ str(element))
-            element = pb.element_set.get(id=element)
+            try:
+                element = pb.element_set.get(id=element)
+            except:
+                return HttpResponseBadRequest('Element does not exist')
+
             logger.debug('Found element!')
 
         kwargs['element'] = element
