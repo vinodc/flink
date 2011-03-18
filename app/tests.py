@@ -95,7 +95,7 @@ class ElementHandlerTest (TestCase):
             'element-type':'image',
             'image':img
         }
-        response = self.c.post(self.pbpath+'.json',data)
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
         container = eval(response._container[0])
         img.close()
         return container

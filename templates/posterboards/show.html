@@ -178,16 +178,16 @@
                    data: {
                        'csrfmiddlewaretoken': '{{csrf_token}}',
                        'element-type': 'image',
-                       'element-id': selector.substr(8),
+                       'element-id': parseInt(selector.substr(8)),
                        'state-id': $(selector).attr('title'),
-                       'state-position_width': $(selector).width() / gridArray[0],
-                       'state-position_height': $(selector).height() / gridArray[1],
-                       'state-position_x': $(selector).position().left / gridArray[0],
-                       'state-position_y': $(selector).position().top / gridArray[1],
+                       'state-position_width': parseInt($(selector).width() / gridArray[0]),
+                       'state-position_height': parseInt($(selector).height() / gridArray[1]),
+                       'state-position_x': parseInt($(selector).position().left / gridArray[0]),
+                       'state-position_y': parseInt($(selector).position().top / gridArray[1]),
                    },
                    dataType: 'json',
                    success: function() { $(selector).effect("highlight", {}, 1000); },
-                   type: 'put'
+                   type: 'post'
                 });
             }
             
