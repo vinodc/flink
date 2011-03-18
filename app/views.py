@@ -34,6 +34,13 @@ from app.lib import title_to_path
 # Debugger:
 # import ipdb
 
+# Error 
+def ErrorResponse(data, format):
+    if format == 'html':
+        return HttpResponse(data, status=400)
+    elif format == 'json':
+        return HttpResponse(json.dumps(data), mimetype='application/json', status=400)
+
 
 # The @login_required decorator makes it necessary for the user to have logged
 # in first.
@@ -254,11 +261,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         else:
             data['errors'] = 'Posterboard data isn\'t valid: '
             data['errors'] += str(formset.errors)
-            
-            if format == 'html':
-                return HttpResponseBadRequest(data['errors'])
-            elif format == 'json':
-                return HttpResponseBadRequest(json.dumps(data), mimetype='application/json')
+            return ErrorResponse(data['errors'], format)
+
 
     # destroy
     elif request.method == 'DELETE' and posterboard is not None and \
@@ -308,13 +312,13 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     state.full_clean()
                 except ValidationError, e:
                     return HttpResponseBadRequest(str(e))
-
+                
                 posterboard.element_set.add(element)
                 element.state_set.add(state)
 
                 imageState = ImageState(image=request.FILES['image'])
                 imageState.full_clean()
-                state.imagestate = imageState    
+                state.imagestate = imageState
 
                 # Write the element_content, which should be an image
                 data['element_content'] = '<img src= "'+imageState.image.url+ '"'\
@@ -322,10 +326,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 data['element_path'] = imageState.image.url
             else: # no matching type
                 data['errors'] = 'Element type isn\'t valid: ' + element.type
-                if format == 'html':
-                    return HttpResponseBadRequest(data['errors'])
-                elif format == 'json':
-                    return HttpResponseBadRequest(json.dumps(data), mimetype='application/json')
+                return ErrorResponse(data['errors'], format)
 
             element.save()
             state.save()
@@ -342,26 +343,54 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
             data['errors'] = 'Element data isn\'t valid: '
-            data['errors'] += str(ElementForm.errors)
             logger.debug('Errors creating Element: '+ data['errors'])
-            if format == 'html':
-                return HttpResponse(data['errors'], status=400)
-            elif format == 'json':
-                return HttpResponse(json.dumps(data), mimetype='application/json', status=400)
+            return ErrorResponse(data['errors'], format)
+    # Batch update elements
+    elif request.method == 'PUT':
+        elementForm = ElementForm(request.PUT, prefix='element') 
+        temp_element = elementForm.save(commit=False)
+        stateForm = StateForm(request.PUT, prefix='state')
+        childStateForm = StateForm(request.PUT, prefix=str(temp_element.type))
+
+        # Thinking of separately all three check so that we can choose to update one 
+        
+        if elementForm.is_valid():
+            # Retrieve the actual element in the database and update
+            actual_element = Element.objects.get(pk=temp_element.id)
+            edit_form = ElementForm(request.PUT, prefix='element', instance=actual_element)
+            edit_form.is_valid() # don't check as we checked above
+            edit_form.save()
+        
+        if stateForm.is_valid():
+            temp_state = stateForm.save(commit=False)
+            actual_state = State.objects.get(pk=temp_state.id)
+            edit_form = StateForm(request.PUT, prefix='state', instance=actual_state)
+            edit_form.is_valid()
+            edit_form.save()
+        
+        if childStateForm.is_valid():
+            if temp_element.type == 'image':
+                temp_image = ImageStateForm.save(commit=False)
+                actual_image = ImageState.objects.get(pk=temp_image.id)
+                edit_form = StateForm(request.PUT, prefix='image', instance=actual_image)
+                edit_form.is_valid()
+                edit_form.save()
+                actual_image.image = request.FILES['image']
+
+        if format == 'html':
+            return redirect(posterboard)
+        elif format == 'json':
+            return HttpResponse(json.dumps(data), mimetype='application/json')
+
     # destroy
     elif request.method == 'DELETE' and element is not None \
             and blogger.id == user.id and element.posterboard_id == posterboard.id:
         if format == 'html':
-            return redirect(blogger)
+            return redirect(posterboard)
         elif format == 'json':
             data['message'] = 'Successfully removed element '+ element.id
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
-    if format == 'html':
-        return redirect(posterboard)
-    elif format == 'json':
-        return HttpResponse(json.dumps(error), mimetype='application/json',
-                            status=400)
-
+    return ErrorResponse(data['errors'], format)
