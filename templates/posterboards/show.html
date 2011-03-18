@@ -258,7 +258,7 @@
     <div id='content'>
        {% if blog_owner %}
        <div id="editbar">
-           <a href="javascript:void(0);" id="edit_toggle"><img src="{{ STATIC_URL }}images/spacer.gif"></a>
+           <a href="javascript:void(0);" id="edit_toggle"><span id="edit_toggle_text">Edit Bar</span></a>
            <div id="editbar_contents" style="display: none">
                <div id="editbar_contents_inner">
                    <div id="scrollbar_container">
@@ -286,12 +286,12 @@
       {% if blog_owner %}
       <p align='center' style="text-align:center" id="edit-status">Viewing Mode</p>
       <p align='center' class="editing-mode-info" style="display:block;">
-          Use left sidebar to switch modes.The elements cannot be edited while in Viewing Mode.<br>
+          Use left sidebar to switch modes.The elements <strong>cannot</strong> be edited while in <strong>Viewing Mode</strong>.<br>
           This is to prevent accidental editing. Elements appear lighter in viewing mode.
        </p>
        <p align='center' class="editing-mode-info" style="display:block;">
            Select an element by clicking on it. You can delete an element by hitting the Delete key after you select it. <br>
-           Feel free to drag and drop elements about. They will be saved automatically.
+           Feel free to drag and drop elements about. They can also be resized. They will be saved automatically.
       </p>
       {% endif %}
       <div id="posterboard{{posterboard.id}}" class='grid pbgrid'>
