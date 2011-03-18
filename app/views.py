@@ -328,6 +328,10 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 posterboard.element_set.add(element)
                 element.state_set.add(state)
 
+                if not 'image' in request.FILES:
+                    data['errors'] = 'No Image File is Provided. '
+                    return ErrorResponse(data['errors'], format)
+                    
                 imageState = ImageState(image=request.FILES['image'])
                 imageState.full_clean()
                 state.imagestate = imageState
