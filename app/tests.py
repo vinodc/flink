@@ -8,6 +8,7 @@ Replace these with more appropriate tests for your application.
 from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import User
+from app.decorators import test_concurrently
 from app.models import *
 from app.forms import *
 import os
@@ -61,20 +62,21 @@ List of Tests for Element Handler
 # Normal Behavior Test
 - Create and store an image object with good parameters,
     verify that it is placed in the Posterboard's Element set, then Delete it
-- Update an element (by "saving")
+- Create an image object, update the alt text, and verify that the change took place
 
 # Bad Behavior Test
 - Create an element object with invalid type
 - Create an element with type='image' but do not provide correct image parameter
-- Create an state with bad position     (out of range)
-- Create an state with bad orientation  (out of range)
-- Create an state with bad opacity      (out of range)
-- Create an state with bad delay time   (out of range)
-- Create an state with bad speed        (out of range)
+
+# Good and Bad Behavior Test
+- Create an state with orientation
+- Create an state with opacity
+- Create an state with delay time
+- Create an state with speed
 
 # Small Stress Test
-- Create 10 Element on a Posterboard
-- Update 10 Element on a Posterboard
+- Simultaneously Create 15 Element on a Posterboard
+- Simultaneously Update 15 Element on a Posterboard
 """
 class ElementHandlerTest (TestCase):
     fixtures = ['test_fixture.json']
@@ -103,20 +105,129 @@ class ElementHandlerTest (TestCase):
         response = self.c.delete(self.pbpath+str(id)+'/.json')
         return response
     
-    def test_create_good_image(self):
+    def test_create_delete_one_image(self):
         response = self.create_image()
         container = eval(response._container[0])
         self.assertEqual(response.status_code, 200)
-        element_id = container['element_id']
+        element_id = container['element-id']
         self.assertEqual(self.pb.title,Element.objects.get(pk=element_id).posterboard.title)
         self.assertEqual(self.delete_element(element_id).status_code, 200)
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0)
 
-    def test_create_invalid_type(self):
+    def update_image_wrapper(self, state_id, xPos, yPos, alt):
+        state = State.objects.get(pk=state_id)
+        image = ImageState.objects.get(pk=state_id)
+        beforeUpdateURL = image.image.url
+        
+        data = {
+            'PUT':'put',
+            'element-type':'image',
+            'state-id': state_id,
+            'state-position_x': xPos,
+            'state-position_y': yPos,
+            'child-id': state_id,
+            'image-alt': alt
+        }
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
+        
+        state = State.objects.get(pk=state_id)
+        image = ImageState.objects.get(pk=state_id)
+        self.assertEqual(beforeUpdateURL,image.image.url)
+        self.assertEqual(alt,image.alt)
+        self.assertEqual(xPos,state.position_x)
+        self.assertEqual(yPos,state.position_y)
+    
+    def test_update_one_image(self):
+        response = self.create_image()
+        container = eval(response._container[0])
+        self.assertEqual(response.status_code, 200)
+        element_id = container['element-id']
+        state_id = container['state-id']
+        self.assertEqual(self.pb.title,Element.objects.get(pk=element_id).posterboard.title)
+        
+        self.update_image_wrapper(state_id,50,0,'test alt')
+        
+        self.assertEqual(self.delete_element(element_id).status_code, 200)
+        self.assertEqual(len(Element.objects.filter(pk=element_id)), 0) 
+    
+    def test_stress_simultaneous_same_user_create_delete(self, n=15):
+        @test_concurrently(n)
+        def concurrent_create_delete():
+            self.test_create_delete_one_image()
+        numStates = ImageState.objects.count()
+        concurrent_create_delete()
+        self.assertEqual(ImageState.objects.count(), numStates)
+
+    def test_stress_simultaneous_same_user_create_update_delete(self, n=15):
+        @test_concurrently(n)
+        def concurrent_create_delete():
+            self.test_update_one_image
+        numStates = ImageState.objects.count()
+        concurrent_create_delete()
+        self.assertEqual(ImageState.objects.count(), numStates)
+    
+    def test_create_element_invalid_type(self):
         data = {
             'element-type':'invalid-type',
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
+        self.assertEqual(response.status_code, 400)
+    
+    def test_create_element_good_type_invalid_parameter(self):
+        data = {
+            'element-type':'image',
+            'image':'Not_a_path'
+        }
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
+        self.assertEqual(response.status_code, 400)
+
+    def create_state(self, x_pos = None, y_pos = None, orientation = None,
+                            opacity = None, delay = None, speed = None):
+        img = open(self.imagepath,'rb')
+        data = {
+            'element-type':'image',
+            'image':img
+        }
+        
+        if not x_pos == None:
+            data['state-position_x'] = x_pos
+        if not y_pos == None:
+            data['state-position_y'] = y_pos
+        if not orientation == None:
+            data['state-orientation'] = orientation
+        if not opacity == None:
+            data['state-opacity'] = opacity
+        if not delay == None:
+            data['state-delay'] = delay
+        if not speed == None:
+            data['state-speed'] = speed
+
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
+        img.close()
+        return response
+
+    def test_create_state_good_bad_orientation(self):
+        response = self.create_state(orientation=180)
+        self.assertEqual(response.status_code, 200)
+        response = self.create_state(orientation=360)
+        self.assertEqual(response.status_code, 400)
+    
+    def test_create_state_good_bad_opacity(self):
+        response = self.create_state(opacity=0.5)
+        self.assertEqual(response.status_code, 200)
+        response = self.create_state(opacity=2.0)
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_state_good_bad_delay_time(self):
+        response = self.create_state(delay=1.0)
+        self.assertEqual(response.status_code, 200)
+        response = self.create_state(delay=-1.0)
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_state_good_bad_speed(self):    
+        response = self.create_state(speed=5000)
+        self.assertEqual(response.status_code, 200)
+        response = self.create_state(speed=-5000)
         self.assertEqual(response.status_code, 400)
 
     def tearDown(self):

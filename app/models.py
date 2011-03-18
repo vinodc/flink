@@ -138,8 +138,8 @@ class State(CommonInfo):
     pb_element = models.ForeignKey(Element, verbose_name='posterboard element', editable=False)
     # Specify the type of the state
     # Position WxH is a factor of grid size.
-    position_x = models.IntegerField(default=1)
-    position_y = models.IntegerField(default=1)
+    position_x = models.IntegerField(default=1, blank=True)
+    position_y = models.IntegerField(default=1, blank=True)
     position_width = models.IntegerField(default=1, blank=True)
     position_height = models.IntegerField(default=1, blank=True)
     #Orientation is between 0 and 359 degrees.
@@ -180,7 +180,7 @@ class State(CommonInfo):
 class ImageState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)
     alt = models.CharField('alt', max_length=250, blank = True)
-    image = models.ImageField(upload_to='images', max_length=255)
+    image = models.ImageField(upload_to='images', max_length=255, editable=False)
     
     def predelete(self, sender, instance):
         self.image.delete() # Automatically remove the image.
