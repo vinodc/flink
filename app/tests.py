@@ -124,7 +124,7 @@ class ElementHandlerTest (TestCase):
             'element-type':'image',
             'image':'Not_a_path'
         }
-        response = self.c.post(self.pbpath+'.json',data)
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
         self.assertEqual(response.status_code, 400)
 
     def tearDown(self):

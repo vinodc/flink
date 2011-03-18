@@ -307,7 +307,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
     if request.method == 'GET':
         return HttpResponseBadRequest()
     # create
-    elif request.method == 'POST' and posterboard is None:
+    elif request.method == 'POST' and posterboard is not None:
         # Testing json response:
         #return HttpResponse(json.dumps({'test':1, 'again':2}), mimetype='application/json')
 
@@ -367,7 +367,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             logger.debug('Errors creating Element: '+ data['errors'])
             return ErrorResponse(data['errors'], format)
     # Batch update elements
-    elif request.method == 'POST' and posterboard is not None and blogger.id == user.id:
+    elif request.method == 'POST' and 'PUT' in request.POST and blogger.id == user.id:
         elementForm = ElementForm(request.POST, prefix='element')
         temp_element = elementForm.save(commit=False)
         stateForm = StateForm(request.POST, prefix='state')
