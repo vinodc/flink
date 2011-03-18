@@ -213,7 +213,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                     logger.debug(u"Can't get type state for type %s" % type)
             element_data.append(eval(serializers.serialize('json', [e, s, ts])))
         data['element_data'] = element_data
-        logger.debug('Element data passed to posterboard/show: '+ str(data['element_data']))                    
+        logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
+        logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
         if format == 'html':
             return render_to_response('posterboards/show.html',
                                       {'blogger': blogger, 
