@@ -53,3 +53,4 @@ body {
 }
 
 .ui-resizable-helper { border: 1px dotted gray; }
+.ui-state-disabled { opacity: 0.75; }

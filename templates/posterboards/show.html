@@ -98,7 +98,7 @@
                                        "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
                                        "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
                                     "' title='" + state.pk +
-                                    "' class='element-class'>";
+                                    "' class='element-class ui-state-disabled '>";
                         domstring = "<div id='element" + element.pk +
                                     "' style='" + elementstyles +
                                        "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
@@ -106,7 +106,7 @@
                                        "width:" + (state.fields.position_width * gridArray[0]) +";"+
                                        "height:" + (state.fields.position_height * gridArray[1]) +";"+
                                     "' title='" + state.pk +
-                                    "' class='element-class'>"+
+                                    "' class='element-class ui-state-disabled'>"+
                                     "<img src='{{ MEDIA_URL }}"+ typestate.fields.image +
                                     "' style='width:100%;height:100%;"+
                                     "' alt='"+ typestate.fields.alt +
@@ -189,6 +189,7 @@
             function make_element_interactive(selector) {
                $(selector).draggable({ 
                     containment: pbid, 
+                    disabled: true,
                     scroll: false,
                     grid: gridArray,
                     stack: pbid +" div,img",
@@ -196,6 +197,7 @@
                 }).resizable({
                     grid: gridArray,
                     containment: pbid,
+                    disabled: true,
                     stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
                     //animate: true,
                 });
@@ -273,11 +275,13 @@
       </canvas>-->
       {% if blog_owner %}
       <p align='center' style="text-align:center" id="edit-status">Viewing Mode</p>
-      <p align='center' class="editing-mode-info" style="display:block;">Use left sidebar to switch modes.</p>
       <p align='center' class="editing-mode-info" style="display:block;">
-         Select an element by clicking on it. 
-         You can delete an element by hitting the Delete key after you select it.
-         Feel free to drag and drop elements about. They will be saved automatically.
+          Use left sidebar to switch modes.The elements cannot be edited while in Viewing Mode.<br>
+          This is to prevent accidental editing. Elements appear lighter in viewing mode.
+       </p>
+       <p align='center' class="editing-mode-info" style="display:block;">
+           Select an element by clicking on it. You can delete an element by hitting the Delete key after you select it. <br>
+           Feel free to drag and drop elements about. They will be saved automatically.
       </p>
       {% endif %}
       <div id="posterboard{{posterboard.id}}" class='grid pbgrid'>
