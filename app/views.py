@@ -32,9 +32,9 @@ from app.lib import title_to_path
 # http://docs.djangoproject.com/en/dev/topics/logging/
 
 # Debugger:
-# import ipdb
+import ipdb
 
-# Error 
+# Error
 def ErrorResponse(data, format):
     if format == 'html':
         return HttpResponse(data, status=400)
@@ -77,7 +77,7 @@ def new_form_handler(request, modelname=None, blogger=None, format=None):
 @login_required
 def profile_handler(request, format='html'):
     user = request.user
-    
+
     data = {'profile':
             {'username': user.username,
              'email': user.email
@@ -111,8 +111,8 @@ def people_handler(request, blogger=None, format='html'):
     # GET request with no specific user, so what is needed is a list of users.
     if request.method == 'GET' and blogger is None:
         bloggers = User.objects.filter(is_superuser__exact=False)
-        data = {'bloggers': map(lambda b: 
-                                {'username': b.username, 
+        data = {'bloggers': map(lambda b:
+                                {'username': b.username,
                                  'full_name': b.get_full_name()},
                                 bloggers)}
         if format == 'html':
@@ -123,13 +123,13 @@ def people_handler(request, blogger=None, format='html'):
 
     # GET request with a specific user, so show that user's blog.
     elif request.method == 'GET' and blogger is not None:
-        data = {'blogger': 
-                {'username': blogger.username, 
+        data = {'blogger':
+                {'username': blogger.username,
                  'full_name': blogger.get_full_name()
-                 }                
+                 }
                 }
         if blogger.id == user.id:
-            pbs = blogger.posterboard_set.all()    
+            pbs = blogger.posterboard_set.all()
         else:
             pbs = blogger.posterboard_set.filter(private=False).all()
         data['posterboards'] = pbs
@@ -146,7 +146,7 @@ def people_handler(request, blogger=None, format='html'):
     elif request.method == 'DELETE' and blogger is not None and \
             (blogger.id == user.id and blogger.username == user.username):
         # Trying to delete themselves? Not handling it for now.
-        data = {'blogger': 
+        data = {'blogger':
                 {'username': blogger.username,
                  'full_name': blogger.get_full_name()},
                 'errors': 'User deletion not supported this way.'}
@@ -181,7 +181,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                          format='html'):
     user = request.user
     data = {}
-    
+
     # Extra check for redundancy. This is already handled in the decorator.
     if blogger is None:
         logger.info("Attempt to access PB without blogger o.O")
@@ -190,13 +190,13 @@ def posterboards_handler(request, blogger=None, posterboard=None,
     # index
     if request.method == 'GET' and posterboard is None:
         if blogger.id == user.id:
-            pbs = blogger.posterboard_set.all()    
+            pbs = blogger.posterboard_set.all()
         else:
             pbs = blogger.posterboard_set.filter(private=False).all()
 
         if format == 'html':
             return render_to_response('posterboards/index.html',
-                                      {'blogger': blogger, 'posterboards': pbs}, 
+                                      {'blogger': blogger, 'posterboards': pbs},
                                       context_instance=RequestContext(request))
         elif format == 'json':
             # Serialize object .. then get actual data structure out of serialized string
@@ -225,11 +225,13 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                     logger.debug(u"Can't get type state for type %s" % type)
             element_data.append(eval(serializers.serialize('json', [e, s, ts])))
         data['element_data'] = element_data
+
         #logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
         #logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
+
         if format == 'html':
             return render_to_response('posterboards/show.html',
-                                      {'blogger': blogger, 
+                                      {'blogger': blogger,
                                         'posterboard': posterboard,
                                         'element_data': data['element_data'],
                                         'blog_owner': blogger.id == user.id},
@@ -237,7 +239,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         elif format == 'json':
             data['posterboard'] = posterboard
             return HttpResponse(json.dumps(data), mimetype='application/json')
-        
+
     # create
     elif request.method == 'POST':
         PosterboardFormSet =  modelformset_factory(Posterboard)
@@ -252,9 +254,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             for posterboard in posterboards:
                 user.posterboard_set.add(posterboard)
                 posterboard.save()
-            
             if format == 'html':
-                # A redirect with this object will redirect to the url 
+                # A redirect with this object will redirect to the url
                 # specified as the permalink in that model.
                 # More info:
                 # http://docs.djangoproject.com/en/dev/topics/http/shortcuts/#redirect
@@ -301,24 +302,24 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
         return HttpResponseBadRequest()
     # create
     elif request.method == 'POST':
-        
+
         # Testing json response:
         #return HttpResponse(json.dumps({'test':1, 'again':2}), mimetype='application/json')
-        
+
         elementform =  ElementForm(request.POST, prefix='element')
         if elementform.is_valid():
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
             element = elementform.save(commit=False)
             data['element_id'] = element.id
-                        
+
             if element.type == 'image':
                 state = State()
                 try:
                     state.full_clean()
                 except ValidationError, e:
                     return HttpResponseBadRequest(str(e))
-                
+
                 posterboard.element_set.add(element)
                 element.state_set.add(state)
 
@@ -337,7 +338,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             element.save()
             state.save()
             imageState.save()
-            
+
             response = render_to_response('elements/wrapper.html', data,
                                           context_instance=RequestContext(request))
 
@@ -353,27 +354,27 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             return ErrorResponse(data['errors'], format)
     # Batch update elements
     elif request.method == 'PUT':
-        elementForm = ElementForm(request.PUT, prefix='element') 
+        elementForm = ElementForm(request.PUT, prefix='element')
         temp_element = elementForm.save(commit=False)
         stateForm = StateForm(request.PUT, prefix='state')
         childStateForm = StateForm(request.PUT, prefix=str(temp_element.type))
 
-        # Thinking of separately all three check so that we can choose to update one 
-        
+        # Thinking of separately all three check so that we can choose to update one
+
         if elementForm.is_valid():
             # Retrieve the actual element in the database and update
             actual_element = Element.objects.get(pk=temp_element.id)
             edit_form = ElementForm(request.PUT, prefix='element', instance=actual_element)
             edit_form.is_valid() # don't check as we checked above
             edit_form.save()
-        
+
         if stateForm.is_valid():
             temp_state = stateForm.save(commit=False)
             actual_state = State.objects.get(pk=temp_state.id)
             edit_form = StateForm(request.PUT, prefix='state', instance=actual_state)
             edit_form.is_valid()
             edit_form.save()
-        
+
         if childStateForm.is_valid():
             if temp_element.type == 'image':
                 temp_image = ImageStateForm.save(commit=False)
