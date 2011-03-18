@@ -96,24 +96,28 @@ class ElementHandlerTest (TestCase):
             'image':img
         }
         response = self.c.post(self.pbpath+'.json',data)
-        container = eval(response._container[0])
         img.close()
-        return container
+        return response
     
     def delete_element(self, id):
         response = self.c.delete(self.pbpath+str(id)+'/.json')
-        container = eval(response._container[0])
-        return container['message'] == 'Successfully removed element '+ str(id)
+        return response
     
     def test_create_good_image(self):
-        container = self.create_image()
-        message = container['message']
+        response = self.create_image()
+        container = eval(response._container[0])
+        self.assertEqual(response.status_code, 200)
         element_id = container['element_id']
-        self.assertEqual(message,'Element created successfully.')
         self.assertEqual(self.pb.title,Element.objects.get(pk=element_id).posterboard.title)
+        self.assertEqual(self.delete_element(element_id).status_code, 200)
+        self.assertEqual(len(Element.objects.filter(pk=element_id)), 0)
 
-        self.assertTrue(self.delete_element(element_id))
-        self.assertTrue(len(Element.objects.filter(pk=element_id)) == 0)
+    def test_create_invalid_type(self):
+        data = {
+            'element-type':'invalid-type',
+        }
+        response = self.c.post(self.pbpath+'.json',data)
+        self.assertEqual(response.status_code, 400)
 
     def tearDown(self):
         os.remove(self.imagepath)

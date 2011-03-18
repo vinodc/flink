@@ -138,37 +138,37 @@ class State(CommonInfo):
     pb_element = models.ForeignKey(Element, verbose_name='posterboard element', editable=False)
     # Specify the type of the state
     # Position WxH is a factor of grid size.
-    position_width = models.IntegerField(default=1)
-    position_height = models.IntegerField(default=1)
+    position_width = models.IntegerField(default=1, blank=True)
+    position_height = models.IntegerField(default=1, blank=True)
     #Orientation is between 0 and 359 degrees.
     orientation = models.IntegerField(default=0, 
                                       validators = [
                                           MaxValueValidator(359),
                                           MinValueValidator(0)
-                                      ])
+                                      ], blank=True)
     opacity = models.DecimalField(max_digits=3, 
                                   decimal_places=2, 
                                   default=Decimal('1.00'), 
                                   validators=[
                                       MaxValueValidator(Decimal('1.00')),
                                       MinValueValidator(Decimal('0.00'))
-                                  ])
+                                  ], blank=True)
     # Time before this state occurs.
     delay = models.FloatField(default=0.0, 
                               validators = [
                                   MinValueValidator(0.0)
-                              ])
+                              ], blank=True)
     # Speed of transition into this state in milliseconds.
     speed = models.IntegerField(default=400,
                                 validators = [
                                     MinValueValidator(1),
                                     MaxValueValidator(10000)
-                                ])
+                                ], blank=True)
     
     def clean(self):
         if self.delay is None: self.delay = 0.0
         if self.speed is None: self.speed = 400
-        if self.opacity is None: self.opacity = 1.00
+        if self.opacity is None: self.opacity = Decimal('1.00')
         if self.orientation is None: self.orientation = 0
         if self.position_width is None: self.position_width = 1
         if self.position_height is None: self.position_height = 1 
