@@ -302,12 +302,12 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                      format='html'):
     user = request.user
 
-    data = {}
+    data = {'message':''}
 
     if request.method == 'GET':
         return HttpResponseBadRequest()
     # create
-    elif request.method == 'POST' and posterboard is not None:
+    elif request.method == 'POST' and not 'PUT' in request.POST:
         # Testing json response:
         #return HttpResponse(json.dumps({'test':1, 'again':2}), mimetype='application/json')
 
@@ -332,26 +332,28 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     data['errors'] = 'No Image File is Provided. '
                     return ErrorResponse(data['errors'], format)
                     
-                imageState = ImageState(image=request.FILES['image'])
+                childState = ImageState()
+                childState.image=request.FILES['image']
                 try:
-                    imageState.full_clean()
+                    childState.full_clean()
                 except ValidationError, e:
                     return HttpResponseBadRequest(str(e))
-                    
-                state.imagestate = imageState
+
+                state.imagestate = childState
 
                 # Write the element_content, which should be an image
-                data['element_content'] = '<img src= "'+imageState.image.url+ '"'\
-                                            'alt="'+imageState.alt+'"'+'>'
-                data['element_path'] = imageState.image.url
+                data['element_content'] = '<img src= "'+childState.image.url+ '"'\
+                                            'alt="'+childState.alt+'"'+'>'
+                data['element_path'] = childState.image.url
             else: # no matching type
                 data['errors'] = 'Element type isn\'t valid: ' + element.type
                 return ErrorResponse(data['errors'], format)
 
             element.save()
-            data['element_id'] = element.id
             state.save()
-            imageState.save()
+            childState.save()
+            data['element-id'] = element.id
+            data['state-id'] = state.id
 
             response = render_to_response('elements/wrapper.html', data,
                                           context_instance=RequestContext(request))
@@ -371,42 +373,40 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
         elementForm = ElementForm(request.POST, prefix='element')
         temp_element = elementForm.save(commit=False)
         stateForm = StateForm(request.POST, prefix='state')
-        childStateForm = StateForm(request.POST, prefix=str(temp_element.type))
-
-        # Thinking of separately all three check so that we can choose to update one
-
-        logger.debug('chkpt1')
-        if elementForm.is_valid():
-            logger.debug('chkpt1a. id is '+ str(request.POST['element-id']))
+        
+        if elementForm.is_valid() and 'element-id' in request.POST:
             # Retrieve the actual element in the database and update
             actual_element = Element.objects.get(pk=request.POST['element-id'])
-            logger.debug('chkpt1b')
             edit_form = ElementForm(request.POST, prefix='element', instance=actual_element)
-            logger.debug('chkpt1c')
             edit_form.is_valid() # don't check as we checked above
             edit_form.save()
+        else:
+            data['message'] += ' Did not update element.'
 
-        logger.debug('chkpt2')
-        if stateForm.is_valid():
-            logger.debug('chkpt2a')
+        if stateForm.is_valid() and 'state-id' in request.POST:
             temp_state = stateForm.save(commit=False)
             actual_state = State.objects.get(pk=request.POST['state-id'])
             edit_form = StateForm(request.POST, prefix='state', instance=actual_state)
-            logger.debug('chkpt2b')
             edit_form.is_valid()
             edit_form.save()
+        else:
+            data['message'] += ' Did not update state'
 
-        logger.debug('chkpt3')
-        if childStateForm.is_valid():
-            if temp_element.type == 'image':
-                logger.debug('chkpt3a')
-                temp_image = ImageStateForm.save(commit=False)
-                actual_image = ImageState.objects.get(pk=request.POST[type+'-id'])
-                edit_form = StateForm(request.POST, prefix='image', instance=actual_image)
-                logger.debug('chkpt3b')
+        if 'element-type' in request.POST and 'child-id' in request.POST:
+            if request.POST['element-type'] == 'image':
+                childStateForm = ImageStateForm(request.POST, prefix='image')
+                if not childStateForm.is_valid():
+                    data['errors'] = 'Image data isn\'t valid: ' + str(stateform.errors)
+                    return ErrorResponse(data['errors'], format)
+            
+                actual_image = ImageState.objects.get(pk=request.POST['child-id'])
+                edit_form = ImageStateForm(request.POST, prefix='image', instance=actual_image)
                 edit_form.is_valid()
                 edit_form.save()
-                actual_image.image = request.FILES['image']
+                if 'image' in request.FILES:
+                    actual_image.image = request.FILES['image']
+        else:
+            data['message'] += ' Did not update any [type]State'
 
         if format == 'html':
             return redirect(posterboard)
