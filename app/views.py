@@ -118,7 +118,9 @@ def people_handler(request, blogger=None, format='html'):
     if request.method == 'GET' and blogger is None:
         bloggers = User.objects.filter(is_superuser__exact=False)
         data = {'bloggers': map(lambda b:
-                                {'username': b.username,
+                                {'first_name': b.first_name,
+                                 'last_name': b.last_name,
+                                 'username': b.username,
                                  'full_name': b.get_full_name()},
                                 bloggers)}
         if format == 'html':
@@ -130,7 +132,9 @@ def people_handler(request, blogger=None, format='html'):
     # GET request with a specific user, so show that user's blog.
     elif request.method == 'GET' and blogger is not None:
         data = {'blogger':
-                {'username': blogger.username,
+                {'first_name': blogger.first_name,
+                 'last_name': blogger.last_name,
+                 'username': blogger.username,
                  'full_name': blogger.get_full_name()
                  }
                 }
