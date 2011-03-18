@@ -198,8 +198,12 @@ class SignupForm(BaseSignupForm):
     def __init__(self, *args, **kwargs):
         super(SignupForm, self).__init__(*args, **kwargs)
         if USERNAME_REQUIRED:
-            self.fields.keyOrder = ["username", "password1", "password2",
-                                    "email"]
+            if NAME_REQUIRED:
+                self.fields.keyOrder = ["first_name", "last_name", "username",
+                                        "email", "password1", "password2"]
+            else:
+                self.fields.keyOrder = ["username", "password1", "password2",
+                                        "email"]
         else:
             if NAME_REQUIRED:
                 self.fields.keyOrder = ["first_name", "last_name", "email",
