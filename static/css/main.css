@@ -51,3 +51,5 @@ body {
     font-size:smaller; 
     color: gray;
 }
+
+.ui-resizable-helper { border: 1px dotted gray; }
