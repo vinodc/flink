@@ -110,7 +110,6 @@
                 $(document).mousedown(function(){
                    if(!validselect) {
                        selectedelementid = '';
-                       console.log('unselecting element.');
                    }
                    validselect = false; 
                 });
@@ -184,7 +183,6 @@
                 $(selector).mousedown(function(){
                     selectedelementid = $(this).attr('id');
                     validselect = true; 
-                    console.log('selecting element.');
                 });
                 /*$(selector).resizable({
                     grid: gridArray,
