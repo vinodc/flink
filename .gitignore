@@ -2,6 +2,9 @@
 *.db
 *.sw[po]
 logs/*
+media/*
 *.*#
 .project
 .pydevproject
+.settings
+.tmp_*~

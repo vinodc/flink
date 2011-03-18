@@ -13,7 +13,7 @@ class PosterboardForm(ModelForm):
 
 class ElementForm(ModelForm):
     class Meta:
-        model = PBElement
+        model = Element
 
 class StateForm(ModelForm):
     class Meta:

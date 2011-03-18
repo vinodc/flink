@@ -2,6 +2,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib.auth.views import login, logout
 from django.conf.urls.defaults import *
 from django.conf import settings
+from django.conf.urls.static import static
 
 from django.contrib import admin
 admin.autodiscover()
@@ -16,11 +17,14 @@ elementpatterns = patterns(
 posterboardpatterns = patterns(
     'app.views',
     url(r'^$', 'posterboards_handler', name='posterboards_url'),
+    url(r'^new[/$]', 'new_form_handler', {'modelname': 'posterboards'}),
+    
     # Get a particular set of posterboards.
     url(r'^sets/?(\.(?P<format>(json|html)))?$', 'sets_handler',
         name='sets_url'),
     url(r'^sets/(?P<set>\d+)/?(\.(?P<format>(json|html)))?$', 
         'sets_handler', name='set_url'),
+    
     url(r'^(?P<posterboard>[^./]+)/?(\.(?P<format>(json|html)))?$',
         'posterboards_handler', name='posterboard_url'),
     (r'^(?P<posterboard>[^./]+)/elements(/|/?\.(?P<format>(json|html))$)',
@@ -38,13 +42,13 @@ peoplepatterns = patterns(
 
 profilepatterns = patterns(
     'app.views',
-    url(r'^$', 'profile_handler', name='user_settings'),                       
+    url(r'^$', 'profile_handler', name='profile_url'),                       
     )
 
 urlpatterns = patterns(
     '',
     (r'^$', 'app.views.index'),
-    (r'^people[/$]', include(peoplepatterns)),
+    (r'^(people|users)[/$]', include(peoplepatterns)),
     (r'^admin[/$]', include(admin.site.urls)),
     (r'^profile[/$]', include(profilepatterns)),
     (r'^accounts[/$]', include('allauth.urls')),
@@ -54,3 +58,7 @@ urlpatterns = patterns(
 
 # this allows you to access static file when DEBUG=True
 urlpatterns += staticfiles_urlpatterns()
+
+# media files
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

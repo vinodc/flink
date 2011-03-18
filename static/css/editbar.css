@@ -1,0 +1,74 @@
+#editbar{
+    color:#FFFFFF;
+    font-family:arial;
+    font-size:12px;
+    text-align:left;
+}
+
+#editbar h2{
+    color:#FFFFFF;
+    font-size:110%;
+    margin:10px 10px 10px 10px;
+    font-weight:bold !important;
+}
+
+#editbar a{
+    color:#FFFFFF;
+    text-decoration:none;
+}
+
+#editbar h2 span{
+    font-size:125%;
+    font-weight:normal !important;
+}
+
+#editbar{
+    position: absolute;
+    width: auto;
+    height: 300px;
+    top: 100px;
+    left:0px;
+    z-index: 200;
+    background:#000;
+}
+
+#edit_toggle{
+    float:right;
+    height:300px;
+    width:50px;
+    border:0;
+}
+
+#edit_toggle_img{
+    padding-top:200px;
+    border:0;
+}
+
+#editbar_contents{
+    float:right;
+    width:100px;
+    height:300px;
+}
+
+#editbar_conntents_inner{
+    float:right;
+    width:auto;
+    height:300px;
+}
+
+#scrollbar_container {
+    float:right;
+    width:auto;
+    height:auto;
+    padding: 41px 0 25px 0px;
+    _margin-right:-3px;
+} 
+  
+#scrollbar_content {
+    float:right;
+    overflow:hidden;  
+    width:auto;
+    height:300px;
+    margin-left:0px;
+    overflow-y: auto;
+}  
