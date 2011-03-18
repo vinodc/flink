@@ -18,9 +18,10 @@ To start:
     $ python manage.py syncdb
     $ sudo python manage.py runserver
 
+	Then go to http://localhost:8000 in your browser.	
+	Not a bug: when you signup, the app tries to send a confirmation email.
+	if your laptop isnt running a mailserver, it will fail, but just ignore it:
+	your account has been successfully created
 
-Then go to http://localhost:8000 in your browser.
-
-Not a bug: when you signup, the app tries to send a confirmation email.
-if your laptop isnt running a mailserver, it will fail, but just ignore it:
-your account has been successfully created
+To run the unit test:
+	python manager.py test app
