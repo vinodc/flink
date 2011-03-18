@@ -32,7 +32,7 @@ from app.lib import title_to_path
 # http://docs.djangoproject.com/en/dev/topics/logging/
 
 # Debugger:
-import ipdb
+#import ipdb
 
 # Error
 def ErrorResponse(data, format):
@@ -77,18 +77,24 @@ def new_form_handler(request, modelname=None, blogger=None, format=None):
 @login_required
 def profile_handler(request, format='html'):
     user = request.user
-
-    data = {'profile':
-            {'username': user.username,
-             'email': user.email
-             }
-            }
+    data = {}
     
-    if format=='html':
-        return render_to_response('profile/index.html',data,
-                              context_instance=RequestContext(request))
-    elif format=='json':
-        return HttpResponse(json.dumps(data), mimetype='application/json')
+    if request.method == 'GET':
+        data = {'profile':
+                {'username': user.username,
+                 'email': user.email
+                 }
+                }
+        
+        if format=='html':
+            return render_to_response('profile/index.html',data,
+                                  context_instance=RequestContext(request))
+        elif format=='json':
+            return HttpResponse(json.dumps(data), mimetype='application/json')
+
+    error = {'errors': 'Invalid request'}
+    return ErrorResponse(error, format)
+    
 
 # Follow the REST philosophy that:
 # GET /posterboards - index of all PBs (for that user)
@@ -302,16 +308,15 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
         return HttpResponseBadRequest()
     # create
     elif request.method == 'POST':
-
         # Testing json response:
         #return HttpResponse(json.dumps({'test':1, 'again':2}), mimetype='application/json')
 
         elementform =  ElementForm(request.POST, prefix='element')
+        
         if elementform.is_valid():
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
             element = elementform.save(commit=False)
-            data['element_id'] = element.id
 
             if element.type == 'image':
                 state = State()
@@ -336,6 +341,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 return ErrorResponse(data['errors'], format)
 
             element.save()
+            data['element_id'] = element.id
             state.save()
             imageState.save()
 
@@ -392,12 +398,14 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
     # destroy
     elif request.method == 'DELETE' and element is not None \
             and blogger.id == user.id and element.posterboard_id == posterboard.id:
+        data['message'] = 'Successfully removed element '+ str(element.id)
+        element.delete()
+        
         if format == 'html':
             return redirect(posterboard)
         elif format == 'json':
-            data['message'] = 'Successfully removed element '+ element.id
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
-    return ErrorResponse(data['errors'], format)
+    return ErrorResponse(error, format)
