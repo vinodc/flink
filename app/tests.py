@@ -126,7 +126,10 @@ class ElementHandlerTest (TestCase):
         return response
     
     def delete_element(self, id):
-        response = self.c.delete(self.pbpath+str(id)+'/.json')
+        data = {
+            '_action':'delete'
+        }
+        response = self.c.get(self.pbpath+str(id)+'/.json',data)
         return response
     
     def test_create_delete_one_image(self):
@@ -144,7 +147,7 @@ class ElementHandlerTest (TestCase):
         beforeUpdateURL = image.image.url
         
         data = {
-            'PUT':'put',
+            '_action':'put',
             'element-type':'image',
             'state-id': state_id,
             'state-position_x': xPos,
