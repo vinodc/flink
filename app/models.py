@@ -184,3 +184,9 @@ class ImageState(CommonInfo):
     
     def predelete(self, sender, instance):
         self.image.delete() # Automatically remove the image.
+
+# TODO: create the rest of the <Type>State models.
+# Use the same format as above. If you have defaults for anything, be sure to include
+# it in a clean() method too, as above.
+
+

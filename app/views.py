@@ -349,6 +349,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 data['element_content'] = '<img src= "'+childState.image.url+ '"'\
                                             'alt="'+childState.alt+'"'+'>'
                 data['element_path'] = childState.image.url
+            # TODO: Handle other types of states.
             else: # no matching type
                 data['errors'] = 'Element type isn\'t valid: ' + element.type
                 return ErrorResponse(data['errors'], format)

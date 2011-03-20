@@ -1,0 +1,32 @@
+Modify this list with updated information.
+
+* Make rest of the models and forms.
+* Add in functionality for orientation of images.
+* Add functionality supporting addition of text elements.
+* Defaults! And adjusting defaults and settings.
+    * Grid size (gridArray variable in posterboards/show should not be hardcoded
+      but should comprise template variables that are pulled from the DB).
+    * Default layout
+* User Home Page
+    * On PB Creation, user adds it to a location on the home page.
+    * Adjusting the content of the user home page (draggable, resizable).
+        * Pretty much just dragging and resizing images.
+    * One way would be to have a button on the PB that says 'render home page
+      image' and this would generate the html of the page, create an image
+      (dunno how lol, there are utilities that will generate an image though,
+      google it).
+    * Each posterboard is in a 'set'. A set is basically a posterboard of
+      posterboards. On posterboard creation, it should be put in an appropriate
+      set. If a set is full, it should go to the next set. The blogger can change
+      which set posterboards appear in. 
+* Comments    
+* Details
+   * Timestamps for posterboards
+   * LOTS of validation... what if a user tries adding 50 objects to a posterboard?
+     We should limit that right? Refer to the design doc and spec. What if the user
+     tries making the grid size 1x1 pixels... that's not good, neither is 500x500 pixels.
+* Web page styling
+   * Right now, the website looks pretty ugly. It needs to look much better.
+   * Make posterboard page shinier. Editing toolbar needs to look better.
+   * Header and footer especially.
+* Tests.

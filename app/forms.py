@@ -22,3 +22,5 @@ class StateForm(ModelForm):
 class ImageStateForm(ModelForm):
     class Meta:
         model = ImageState
+        
+# TODO: create rest of the forms.
