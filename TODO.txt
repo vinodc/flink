@@ -25,6 +25,12 @@ Modify this list with updated information.
    * LOTS of validation... what if a user tries adding 50 objects to a posterboard?
      We should limit that right? Refer to the design doc and spec. What if the user
      tries making the grid size 1x1 pixels... that's not good, neither is 500x500 pixels.
+   * Handle deletion of uploaded images and stuff properly. Right now it tries to nuke images
+     when the imagestate is deleted, but I dont think it works correctly for some reason.
+   * Use Amazon S3 to store content such as images, audio, video and retrieve the content properly.
+      * Use django plugins to help with this, or their native implementation that helps interface with
+        S3 and stuff.
+   * Handle pointing to 3rd party URLs for content, rather than actually uploading it.
 * Web page styling
    * Right now, the website looks pretty ugly. It needs to look much better.
    * Make posterboard page shinier. Editing toolbar needs to look better.
