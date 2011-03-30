@@ -52,6 +52,13 @@ def index(request):
 @login_required
 @get_blogger
 @csrf_exempt
+def new_posterboards_handler(request, blogger=None, format=None):
+    return render_to_response('posterboards/new.html',{},
+                              context_instance=RequestContext(request))
+                              
+@login_required
+@get_blogger
+@csrf_exempt
 def new_form_handler(request, modelname=None, blogger=None, format=None):
     """
     Render the forms required to create new objects.
@@ -72,7 +79,7 @@ def new_form_handler(request, modelname=None, blogger=None, format=None):
                                   context_instance=RequestContext(request))
     else:
         return HttpResponseBadRequest()
-
+    
 @handle_handlers
 @login_required
 def profile_handler(request, format='html'):
@@ -174,6 +181,7 @@ def people_handler(request, blogger=None, format='html'):
     elif format == 'json':
         return HttpResponse(json.dumps(error), mimetype='application/json',
                             status=400)
+
 
 @handle_handlers
 @get_blogger
