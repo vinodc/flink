@@ -18,7 +18,7 @@ elementpatterns = patterns(
 posterboardpatterns = patterns(
     'app.views',
     url(r'^$', 'posterboards_handler', name='posterboards_url'),
-    url(r'^new[/$]', 'new_form_handler', {'modelname': 'posterboards'}),
+    url(r'^new[/$]', 'new_posterboards_handler'),
     
     # Get a particular set of posterboards.
     url(r'^sets/?(\.(?P<format>(json|html)))?$', 'sets_handler',
