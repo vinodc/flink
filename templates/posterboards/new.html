@@ -1,7 +1,8 @@
 <div id="new-posterboards-form">
     <form action="/people/{{ user.username }}/posterboards/" method="post">
         {% csrf_token %}
-        {{ formset }}
+        Title <input type="text" name="title" id="title"> <br>
+        <input type="checkbox" name="private" id="private"> Private? <br>
         <input type="submit" value="Create it!">
     </form>
 </div>
