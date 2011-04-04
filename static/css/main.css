@@ -35,14 +35,64 @@ body {
   margin-right: auto; 
 }
 
-.grid {
+.grid_1{
     -moz-box-shadow: 0 0 1em grey;
     -webkit-box-shadow: 0 0 1em grey;
     box-shadow: 0 0 1em grey; 
     margin-left: auto;
     margin-right: auto;
-    width: 960px;
-    height: 900px;
+    width: 500px;
+    height: 560px;
+}
+
+.grid_2{
+    -moz-box-shadow: 0 0 1em grey;
+    -webkit-box-shadow: 0 0 1em grey;
+    box-shadow: 0 0 1em grey; 
+    margin-left: auto;
+    margin-right: auto;
+    width: 600px;
+    height: 660px;
+}
+
+.grid_3{
+    -moz-box-shadow: 0 0 1em grey;
+    -webkit-box-shadow: 0 0 1em grey;
+    box-shadow: 0 0 1em grey; 
+    margin-left: auto;
+    margin-right: auto;
+    width: 700px;
+    height: 760px;
+}
+
+.grid_4{
+    -moz-box-shadow: 0 0 1em grey;
+    -webkit-box-shadow: 0 0 1em grey;
+    box-shadow: 0 0 1em grey; 
+    margin-left: auto;
+    margin-right: auto;
+    width: 800px;
+    height: 860px;
+}
+
+.grid_5{
+    -moz-box-shadow: 0 0 1em grey;
+    -webkit-box-shadow: 0 0 1em grey;
+    box-shadow: 0 0 1em grey; 
+    margin-left: auto;
+    margin-right: auto;
+    width: 900px;
+    height: 960px;
+}
+
+.grid{
+    -moz-box-shadow: 0 0 1em grey;
+    -webkit-box-shadow: 0 0 1em grey;
+    box-shadow: 0 0 1em grey; 
+    margin-left: auto;
+    margin-right: auto;
+    width: 900px;
+    height: 960px;
 }
 
 .editing-mode-info {

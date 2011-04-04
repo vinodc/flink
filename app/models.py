@@ -48,7 +48,7 @@ class CommonInfo(models.Model):
 # This represents a blog.
 class Profile(CommonInfo):
     user = models.OneToOneField(User, primary_key=True)
-
+    
     @models.permalink
     def get_absolute_url(self):
         return ('profile', (self.user))
@@ -62,6 +62,14 @@ class Profile(CommonInfo):
 class BlogSettings(CommonInfo):
     user = models.OneToOneField(User, primary_key=True, verbose_name='user')
     blog_title = models.CharField(max_length=250, default='My Blog')
+    
+    # The size of the grid
+    grid_size = models.IntegerField(default=5, 
+    					validators = [
+    						MaxValueValidator(5),
+    						MinValueValidator(1)
+    					])
+    					
     # On blog home page, for each set of posterboards:
     # Number of grid blocks wide the set is.
     set_width = models.IntegerField(default=4, 

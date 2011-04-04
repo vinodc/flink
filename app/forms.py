@@ -1,4 +1,5 @@
 import datetime
+from django import forms
 from django.forms import ModelForm
 from app.models import *
 
@@ -6,6 +7,11 @@ from app.models import *
 class ProfileForm(ModelForm):
     class Meta:
         model = Profile
+        
+class BlogSettingsForm(forms.Form):
+    grid_size = models.IntegerField()
+    class Meta:
+        model = BlogSettings
 
 class PosterboardForm(ModelForm):
     class Meta:

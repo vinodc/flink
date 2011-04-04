@@ -43,7 +43,8 @@ peoplepatterns = patterns(
 
 profilepatterns = patterns(
     'app.views',
-    url(r'^(\.(?P<format>(json|html)))?$', 'profile_handler', name='profile_url'),                       
+    url(r'^(\.(?P<format>(json|html)))?$', 'profile_handler', name='profile_url'),
+    url(r'^settings/?(\.(?P<format>(json|html)))?$', 'profile_handler', name='profile_url'),
     )
 
 urlpatterns = patterns(

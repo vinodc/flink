@@ -76,7 +76,27 @@ def get_blogger(func):
         kwargs['blogger'] = blogger
         return func(*args, **kwargs)
     return _dec
-
+    
+def get_blogger_settings(func):
+    """
+    Get the settings object for the giveen blogger
+    """
+    def _dec(*args, **kwargs):
+        blogger = kwargs.get('blogger')
+        settings = None
+        if blogger is not None:
+		# Find the corresponding settings object for blogger
+		try:
+			#settings = user.blogsettings
+			settings = BlogSettings.objects.get(user=blogger)
+		except:
+			settings = BlogSettings(user=blogger)
+			settings.save()
+                
+        kwargs['settings'] = settings
+        return func(*args, **kwargs)
+    return _dec
+        
 def get_set(func):
     """
     Get the posterboard that the 'posterboard' refers to.
