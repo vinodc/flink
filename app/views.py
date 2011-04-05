@@ -14,9 +14,9 @@ from django.views.decorators.csrf import csrf_exempt
 
 import json
 
-from app.forms import PosterboardForm, ImageStateForm, StateForm, ProfileForm, \
+from app.forms import PosterboardForm, ImageStateForm, StateForm, BlogSettingsForm, \
     ElementForm, TextStateForm, AudioStateForm, VideoStateForm
-from app.models import Profile, Posterboard, BlogSettings, Element, State, \
+from app.models import Posterboard, BlogSettings, Element, State, \
     ImageState, TextState, AudioState, VideoState
 from app.decorators import get_blogger, get_element, get_posterboard, \
     get_set, handle_handlers, get_blogger_settings
@@ -79,6 +79,29 @@ def new_form_handler(request, modelname=None, blogger=None, format=None):
                                   context_instance=RequestContext(request))
     else:
         return HttpResponseBadRequest()
+
+@handle_handlers
+@login_required
+def settings_handler(request, format='html'):
+    user = request.user
+    
+    if request.method == 'GET':
+        data = {'profile':
+                {'username': user.username,
+                 'email': user.email
+                 }
+                }
+                
+        #settingsForm = BloggerSettingsForm(request.POST)
+        
+        if format=='html':
+            return render_to_response('profile/edit_settings.html',data,
+                                  context_instance=RequestContext(request))
+        elif format=='json':
+            return HttpResponse(json.dumps(data), mimetype='application/json')
+
+    error = {'errors': 'Invalid request'}
+    return ErrorResponse(error, format)
     
 @handle_handlers
 @login_required
@@ -98,9 +121,6 @@ def profile_handler(request, format='html'):
                                   context_instance=RequestContext(request))
         elif format=='json':
             return HttpResponse(json.dumps(data), mimetype='application/json')
-    # change settings
-    elif request.method == 'POST':
-    	settingsForm = BloggerSettingsForm(request.POST)
 
     error = {'errors': 'Invalid request'}
     return ErrorResponse(error, format)
