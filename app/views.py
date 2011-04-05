@@ -121,7 +121,20 @@ def profile_handler(request, format='html'):
                                   context_instance=RequestContext(request))
         elif format=='json':
             return HttpResponse(json.dumps(data), mimetype='application/json')
-
+    
+    elif request.method == 'POST':
+        data = {'profile':
+                {'username': user.username,
+                 'email': user.email,
+                 }
+                }
+                    
+        if format=='html':
+            return render_to_response('profile/index.html',data,
+                                  context_instance=RequestContext(request))
+        elif format=='json':
+            return HttpResponse(json.dumps(data), mimetype='application/json')
+            
     error = {'errors': 'Invalid request'}
     return ErrorResponse(error, format)
     
