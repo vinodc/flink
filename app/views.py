@@ -14,12 +14,12 @@ from django.views.decorators.csrf import csrf_exempt
 
 import json
 
-from app.forms import PosterboardForm, ImageStateForm, StateForm, ProfileForm, \
+from app.forms import PosterboardForm, ImageStateForm, StateForm, \
     ElementForm
-from app.models import Profile, Posterboard, BlogSettings, Element, State, \
+from app.models import Posterboard, BlogSettings, Element, State, \
     ImageState
 from app.decorators import get_blogger, get_element, get_posterboard, \
-    get_set, handle_handlers
+    get_set, handle_handlers, get_blogger_settings
 
 # Logger:
 from settings import logger
@@ -98,6 +98,9 @@ def profile_handler(request, format='html'):
                                   context_instance=RequestContext(request))
         elif format=='json':
             return HttpResponse(json.dumps(data), mimetype='application/json')
+    # change settings
+    elif request.method == 'POST':
+    	settingsForm = BloggerSettingsForm(request.POST)
 
     error = {'errors': 'Invalid request'}
     return ErrorResponse(error, format)
@@ -118,9 +121,9 @@ def profile_handler(request, format='html'):
 # This is defined in decorators.py
 @handle_handlers
 @get_blogger
-def people_handler(request, blogger=None, format='html'):
+@get_blogger_settings
+def people_handler(request, blogger=None, format='html', settings=None):
     user = request.user
-
     # GET request with no specific user, so what is needed is a list of users.
     if request.method == 'GET' and blogger is None:
         bloggers = User.objects.filter(is_superuser__exact=False)
@@ -143,7 +146,10 @@ def people_handler(request, blogger=None, format='html'):
                  'last_name': blogger.last_name,
                  'username': blogger.username,
                  'full_name': blogger.get_full_name()
-                 }
+                 },
+                'settings':
+                {'grid_size': settings.grid_size
+                 },
                 }
         if blogger.id == user.id:
             pbs = blogger.posterboard_set.all()

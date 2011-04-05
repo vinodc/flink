@@ -5,7 +5,6 @@ from django.core.validators import *
 
 from decimal import *
 import datetime
-
 from app.lib import *
 
 def reserved_keywords(value):
@@ -42,26 +41,18 @@ class CommonInfo(models.Model):
     class Meta:
         abstract = True
 
-# This is the profile for users. Use the get_profile() method provided by
-# the User model to get this.
-# http://docs.djangoproject.com/en/dev/topics/auth/#storing-additional-information-about-users
-# This represents a blog.
-class Profile(CommonInfo):
-    user = models.OneToOneField(User, primary_key=True)
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('profile', (self.user))
-
-    def __unicode__(self):
-        if self.user_set.count() == 0:
-            return ''
-        else:
-            return self.user
-
+# This is the blog settings object for a given user...so basically just user settings
 class BlogSettings(CommonInfo):
     user = models.OneToOneField(User, primary_key=True, verbose_name='user')
     blog_title = models.CharField(max_length=250, default='My Blog')
+    
+    # The size of the grid
+    grid_size = models.IntegerField(default=5, 
+    					validators = [
+    						MaxValueValidator(5),
+    						MinValueValidator(1)
+    					])
+    					
     # On blog home page, for each set of posterboards:
     # Number of grid blocks wide the set is.
     set_width = models.IntegerField(default=4, 
@@ -133,6 +124,11 @@ class Element(CommonInfo):
 
     def __unicode__(self):
        return self.posterboard.title + ' element' + str(self.id)
+   
+    def delete(self):
+        for state in State.objects.filter(pb_element=self):
+            state.delete()
+        super(Element,self).delete()
 
 class State(CommonInfo):
     pb_element = models.ForeignKey(Element, verbose_name='posterboard element', editable=False)
@@ -166,6 +162,16 @@ class State(CommonInfo):
                                     MinValueValidator(1),
                                     MaxValueValidator(10000)
                                 ], blank=True)
+    def delete(self):
+        for state in ImageState.objects.filter(state=self):
+            state.delete()
+        for state in TextState.objects.filter(state=self):
+            state.delete()
+        for state in AudioState.objects.filter(state=self):
+            state.delete()
+        for state in VideoState.objects.filter(state=self):
+            state.delete()
+        super(State,self).delete()
     
     def clean(self):
         if self.delay is None: self.delay = 0.0
@@ -181,12 +187,22 @@ class ImageState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)
     alt = models.CharField('alt', max_length=250, blank = True)
     image = models.ImageField(upload_to='images', max_length=255, editable=False)
-    
-    def predelete(self, sender, instance):
-        self.image.delete() # Automatically remove the image.
+       
+    def delete(self):
+        self.image.delete()
+        super(ImageState,self).delete()
+        
+class TextState(CommonInfo):
+    state = models.OneToOneField(State, editable=False, primary_key=True)
+    content = models.TextField(blank = True)
+       
 
 # TODO: create the rest of the <Type>State models.
 # Use the same format as above. If you have defaults for anything, be sure to include
 # it in a clean() method too, as above.
 
+class VideoState(CommonInfo):
+    state = models.OneToOneField(State, editable=False, primary_key=True)
 
+class AudioState(CommonInfo):
+    state = models.OneToOneField(State, editable=False, primary_key=True)

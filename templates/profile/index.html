@@ -10,6 +10,10 @@
     {% for key, value in profile.items %}
         <div id='{{key}}'> {{key}} : {{ value }}</div>
     {% endfor %}
+    
+    <form action="javascript:void(0);" method="get">
+	<input type="submit" value="Edit Settings" />
+    </form>
 </div>
 </p>
 

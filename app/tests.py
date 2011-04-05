@@ -8,7 +8,6 @@ Replace these with more appropriate tests for your application.
 from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import User
-from app.decorators import test_concurrently
 from app.models import *
 from app.forms import *
 import os
@@ -163,9 +162,6 @@ List of Tests for Element Handler
 - Create an state with delay time
 - Create an state with speed
 
-# Small Stress Test
-- Simultaneously Create 15 Element on a Posterboard
-- Simultaneously Update 15 Element on a Posterboard
 """
 class ElementHandlerTest (TestCase):
     fixtures = ['test_fixture.json']
@@ -242,22 +238,6 @@ class ElementHandlerTest (TestCase):
         self.assertEqual(self.delete_element(element_id).status_code, 200)
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0) 
     
-    def test_stress_simultaneous_same_user_create_delete(self, n=15):
-        @test_concurrently(n)
-        def concurrent_create_delete():
-            self.test_create_delete_one_image()
-        numStates = ImageState.objects.count()
-        concurrent_create_delete()
-        self.assertEqual(ImageState.objects.count(), numStates)
-
-    def test_stress_simultaneous_same_user_create_update_delete(self, n=15):
-        @test_concurrently(n)
-        def concurrent_create_delete():
-            self.test_update_one_image
-        numStates = ImageState.objects.count()
-        concurrent_create_delete()
-        self.assertEqual(ImageState.objects.count(), numStates)
-    
     def test_create_element_invalid_type(self):
         data = {
             'element-type':'invalid-type',
@@ -297,28 +277,36 @@ class ElementHandlerTest (TestCase):
         response = self.c.post(self.pbpath[:-1]+'.json',data)
         img.close()
         return response
-
+    
+    def delete_state(self,response):
+        id = eval(response._container[0])['element-id']
+        self.delete_element(id)
+    
     def test_create_state_good_bad_orientation(self):
         response = self.create_state(orientation=180)
         self.assertEqual(response.status_code, 200)
+        self.delete_state(response)
         response = self.create_state(orientation=360)
         self.assertEqual(response.status_code, 400)
-    
+            
     def test_create_state_good_bad_opacity(self):
         response = self.create_state(opacity=0.5)
         self.assertEqual(response.status_code, 200)
+        self.delete_state(response)
         response = self.create_state(opacity=2.0)
         self.assertEqual(response.status_code, 400)
 
     def test_create_state_good_bad_delay_time(self):
         response = self.create_state(delay=1.0)
         self.assertEqual(response.status_code, 200)
+        self.delete_state(response)
         response = self.create_state(delay=-1.0)
         self.assertEqual(response.status_code, 400)
 
     def test_create_state_good_bad_speed(self):    
         response = self.create_state(speed=5000)
         self.assertEqual(response.status_code, 200)
+        self.delete_state(response)
         response = self.create_state(speed=-5000)
         self.assertEqual(response.status_code, 400)
 

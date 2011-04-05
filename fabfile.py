@@ -1,4 +1,4 @@
-from fabric.api import *
+fabfrom fabric.api import *
 from fabric.colors import red, green, yellow
 from fabric.contrib import django
 
