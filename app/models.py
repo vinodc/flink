@@ -5,7 +5,7 @@ from django.core.validators import *
 
 from decimal import *
 import datetime
-
+import os
 from app.lib import *
 
 def reserved_keywords(value):
@@ -141,6 +141,11 @@ class Element(CommonInfo):
 
     def __unicode__(self):
        return self.posterboard.title + ' element' + str(self.id)
+   
+    def delete(self):
+        for state in State.objects.filter(pb_element=self):
+            state.delete()
+        super(Element,self).delete()
 
 class State(CommonInfo):
     pb_element = models.ForeignKey(Element, verbose_name='posterboard element', editable=False)
@@ -174,6 +179,10 @@ class State(CommonInfo):
                                     MinValueValidator(1),
                                     MaxValueValidator(10000)
                                 ], blank=True)
+    def delete(self):
+        for state in ImageState.objects.filter(state=self):
+            state.delete()
+        super(State,self).delete()
     
     def clean(self):
         if self.delay is None: self.delay = 0.0
@@ -189,10 +198,11 @@ class ImageState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)
     alt = models.CharField('alt', max_length=250, blank = True)
     image = models.ImageField(upload_to='images', max_length=255, editable=False)
-    
-    def predelete(self, sender, instance):
-        self.image.delete() # Automatically remove the image.
-
+       
+    def delete(self):
+        os.remove(str(self.image.file.name))
+        super(ImageState,self).delete()
+        
 # TODO: create the rest of the <Type>State models.
 # Use the same format as above. If you have defaults for anything, be sure to include
 # it in a clean() method too, as above.
