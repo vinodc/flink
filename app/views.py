@@ -14,9 +14,9 @@ from django.views.decorators.csrf import csrf_exempt
 
 import json
 
-from app.forms import PosterboardForm, ImageStateForm, StateForm, ProfileForm, \
+from app.forms import PosterboardForm, ImageStateForm, StateForm, \
     ElementForm
-from app.models import Profile, Posterboard, BlogSettings, Element, State, \
+from app.models import Posterboard, BlogSettings, Element, State, \
     ImageState
 from app.decorators import get_blogger, get_element, get_posterboard, \
     get_set, handle_handlers, get_blogger_settings

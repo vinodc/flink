@@ -41,23 +41,7 @@ class CommonInfo(models.Model):
     class Meta:
         abstract = True
 
-# This is the profile for users. Use the get_profile() method provided by
-# the User model to get this.
-# http://docs.djangoproject.com/en/dev/topics/auth/#storing-additional-information-about-users
-# This represents a blog.
-class Profile(CommonInfo):
-    user = models.OneToOneField(User, primary_key=True)
-    
-    @models.permalink
-    def get_absolute_url(self):
-        return ('profile', (self.user))
-
-    def __unicode__(self):
-        if self.user_set.count() == 0:
-            return ''
-        else:
-            return self.user
-
+# This is the blog settings object for a given user...so basically just user settings
 class BlogSettings(CommonInfo):
     user = models.OneToOneField(User, primary_key=True, verbose_name='user')
     blog_title = models.CharField(max_length=250, default='My Blog')
