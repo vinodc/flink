@@ -8,7 +8,6 @@ Replace these with more appropriate tests for your application.
 from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import User
-from app.decorators import test_concurrently
 from app.models import *
 from app.forms import *
 import os

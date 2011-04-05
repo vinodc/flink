@@ -5,7 +5,6 @@ from django.core.validators import *
 
 from decimal import *
 import datetime
-import os
 from app.lib import *
 
 def reserved_keywords(value):
@@ -182,6 +181,12 @@ class State(CommonInfo):
     def delete(self):
         for state in ImageState.objects.filter(state=self):
             state.delete()
+        for state in TextState.objects.filter(state=self):
+            state.delete()
+        for state in AudioState.objects.filter(state=self):
+            state.delete()
+        for state in VideoState.objects.filter(state=self):
+            state.delete()
         super(State,self).delete()
     
     def clean(self):
@@ -200,11 +205,20 @@ class ImageState(CommonInfo):
     image = models.ImageField(upload_to='images', max_length=255, editable=False)
        
     def delete(self):
-        os.remove(str(self.image.file.name))
+        self.image.delete()
         super(ImageState,self).delete()
         
+class TextState(CommonInfo):
+    state = models.OneToOneField(State, editable=False, primary_key=True)
+    content = models.TextField(blank = True)
+       
+
 # TODO: create the rest of the <Type>State models.
 # Use the same format as above. If you have defaults for anything, be sure to include
 # it in a clean() method too, as above.
 
+class VideoState(CommonInfo):
+    state = models.OneToOneField(State, editable=False, primary_key=True)
 
+class AudioState(CommonInfo):
+    state = models.OneToOneField(State, editable=False, primary_key=True)
