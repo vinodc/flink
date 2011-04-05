@@ -14,10 +14,10 @@ from django.views.decorators.csrf import csrf_exempt
 
 import json
 
-from app.forms import PosterboardForm, ImageStateForm, StateForm, \
-    ElementForm
+from app.forms import PosterboardForm, ImageStateForm, StateForm, BlogSettingsForm, \
+    ElementForm, TextStateForm, AudioStateForm, VideoStateForm
 from app.models import Posterboard, BlogSettings, Element, State, \
-    ImageState
+    ImageState, TextState, AudioState, VideoState
 from app.decorators import get_blogger, get_element, get_posterboard, \
     get_set, handle_handlers, get_blogger_settings
 
@@ -368,34 +368,37 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
             element = elementform.save(commit=False)
+            posterboard.element_set.add(element)
 
             stateform = StateForm(request.POST, prefix='state')
             if not stateform.is_valid():
                 data['errors'] = 'State data isn\'t valid: ' + str(stateform.errors)
                 return ErrorResponse(data['errors'], format)
             state = stateform.save(commit=False)
+            element.state_set.add(state)
 
             if element.type == 'image':
-                posterboard.element_set.add(element)
-                element.state_set.add(state)
-
                 if not 'image' in request.FILES:
                     data['errors'] = 'No Image File is Provided. '
                     return ErrorResponse(data['errors'], format)
                     
                 childState = ImageState()
                 childState.image=request.FILES['image']
-                try:
-                    childState.full_clean()
-                except ValidationError, e:
-                    return HttpResponseBadRequest(str(e))
-
+                childState.full_clean()
                 state.imagestate = childState
 
                 # Write the element_content, which should be an image
                 data['element_content'] = '<img src= "'+childState.image.url+ '"'\
                                             'alt="'+childState.alt+'"'+'>'
                 data['element_path'] = childState.image.url
+            elif element.type == 'text':
+                childStateForm = TextStateForm(request.POST, prefix='text')
+                if not childStateForm.is_valid():
+                    data['errors'] = 'TextState data isn\'t valid: ' + str(childStateForm.errors)
+                    return ErrorResponse(data['errors'], format)
+                childState = childStateForm.save(commit=False)
+                data['element_content'] = childState.content
+                
             # TODO: Handle other types of states.
             else: # no matching type
                 data['errors'] = 'Element type isn\'t valid: ' + element.type
@@ -420,11 +423,11 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             data['errors'] = 'Element data isn\'t valid: ' + str(elementform.errors)
             logger.debug('Errors creating Element: '+ data['errors'])
             return ErrorResponse(data['errors'], format)
+
     # Batch update elements
     elif request.method == 'POST' and request.POST.has_key('_action') and request.POST['_action'] == 'put' and \
     blogger.id == user.id:        
         elementForm = ElementForm(request.POST, prefix='element')
-        temp_element = elementForm.save(commit=False)
         stateForm = StateForm(request.POST, prefix='state')
         
         if elementForm.is_valid() and 'element-id' in request.POST:
@@ -437,7 +440,6 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             data['message'] += ' Did not update element.'
 
         if stateForm.is_valid() and 'state-id' in request.POST:
-            temp_state = stateForm.save(commit=False)
             actual_state = State.objects.get(pk=request.POST['state-id'])
             edit_form = StateForm(request.POST, prefix='state', instance=actual_state)
             edit_form.is_valid()
@@ -449,7 +451,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             if request.POST['element-type'] == 'image':
                 childStateForm = ImageStateForm(request.POST, prefix='image')
                 if not childStateForm.is_valid():
-                    data['errors'] = 'Image data isn\'t valid: ' + str(stateform.errors)
+                    data['errors'] = 'Image data isn\'t valid: ' + str(childStateForm.errors)
                     return ErrorResponse(data['errors'], format)
             
                 actual_image = ImageState.objects.get(pk=request.POST['child-id'])
@@ -458,6 +460,15 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 edit_form.save()
                 if 'image' in request.FILES:
                     actual_image.image = request.FILES['image']
+            elif request.POST['element-type'] == 'text':
+                childStateForm = TextStateForm(request.POST, prefix='text')
+                if not childStateForm.is_valid():
+                    data['errors'] = 'TextState data isn\'t valid: ' + str(childStateForm.errors)
+                    return ErrorResponse(data['errors'], format)
+                actual_text = TextState.objects.get(pk=request.POST['child-id'])
+                edit_form = TextStateForm(request.POST, prefix='text', instance=actual_text)
+                edit_form.is_valid()
+                edit_form.save()
         else:
             data['message'] += ' Did not update any [type]State'
 
