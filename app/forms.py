@@ -28,5 +28,15 @@ class StateForm(ModelForm):
 class ImageStateForm(ModelForm):
     class Meta:
         model = ImageState
+
+class TextStateForm(ModelForm):
+    class Meta:
+        model = TextState
         
-# TODO: create rest of the forms.
+class AudioStateForm(ModelForm):
+    class Meta:
+        model = AudioState
+
+class VideoStateForm(ModelForm):
+    class Meta:
+        model = VideoState
