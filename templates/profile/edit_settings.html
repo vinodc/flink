@@ -7,8 +7,7 @@
 
 <p>
 <div id='edit_settings'>
-	{% csrf_token %}
-	<form action="/" method="post">
+	<form action="/profile/" method="post">{% csrf_token %} 
 	<p><label for="id_grid_size">Size of grid: </label>
 	    <select id="id_grid_size" name="grid_size">
 	    	<option value="1"> Grid Size 1 </option>
