@@ -202,7 +202,16 @@ INSTALLED_APPS = (
     'uni_form',
     'oauth2',
 
-
+    # video
+    'photologue',
+    'videologue',
+    'batchadmin',
+    
+    # cron
+    'plugins',
+    'canarreos',
+    
+    
     'debug_toolbar',
     'django_extensions',
 )

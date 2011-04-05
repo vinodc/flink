@@ -19,3 +19,9 @@ def setup():
     local('mkdir -p logs')
     local('python manage.py syncdb')
     #local('python manage.py collectstatic')
+
+def deploy():
+    with settings(warn_only=True):
+        result = local('kill -HUP `cat /tmp/flink.pid`', capture=True)
+    local('python manage.py crond --pidfile=/tmp/flink.pid')
+    local('python manage.py runserver')
