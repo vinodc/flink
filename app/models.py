@@ -43,8 +43,8 @@ class CommonInfo(models.Model):
 
 # This is the blog settings object for a given user...so basically just user settings
 class BlogSettings(CommonInfo):
-    user = models.OneToOneField(User, primary_key=True, verbose_name='user')
-    blog_title = models.CharField(max_length=250, default='My Blog')
+    user = models.OneToOneField(User, primary_key=True, verbose_name='user', blank=True)
+    blog_title = models.CharField(max_length=250, default='My Blog', blank=True)
     
     # The size of the grid
     grid_size = models.IntegerField(default=5, 
@@ -52,20 +52,8 @@ class BlogSettings(CommonInfo):
     						MaxValueValidator(5),
     						MinValueValidator(1)
     					])
-    					
-    # On blog home page, for each set of posterboards:
-    # Number of grid blocks wide the set is.
-    set_width = models.IntegerField(default=4, 
-                                    validators = [
-                                         MaxValueValidator(8),
-                                         MinValueValidator(1)
-                                    ])
-    # Number of grid blocks high the set is.
-    set_height = models.IntegerField(default=4, 
-                                     validators = [
-                                          MaxValueValidator(6),
-                                          MinValueValidator(1)
-                                     ])
+
+                                     
     def __unicode__(self):
         return self.blog_title + ' settings'
 

@@ -84,15 +84,15 @@ def new_form_handler(request, modelname=None, blogger=None, format=None):
 @login_required
 def settings_handler(request, format='html'):
     user = request.user
+    blogsettingsform = BlogSettingsForm()
     
     if request.method == 'GET':
         data = {'profile':
                 {'username': user.username,
                  'email': user.email
-                 }
+                 },
+                'blogsettingsform': blogsettingsform,
                 }
-                
-        #settingsForm = BloggerSettingsForm(request.POST)
         
         if format=='html':
             return render_to_response('profile/edit_settings.html',data,
@@ -106,15 +106,22 @@ def settings_handler(request, format='html'):
 @handle_handlers
 @login_required
 def profile_handler(request, format='html'):
-    user = request.user
-    data = {}
+    current_user = request.user
     
-    if request.method == 'GET':
-        data = {'profile':
-                {'username': user.username,
-                 'email': user.email
-                 }
+    try:
+	blogsettings = current_user.blogsettings
+    except:
+	blogsettings = BlogSettings(user=current_user)
+	blogsettings.save()
+			
+    data = {'profile':
+                {'username': current_user.username,
+                 'email': current_user.email,
+                 'grid_size': blogsettings.grid_size,
+                 },
                 }
+                
+    if request.method == 'GET':
         
         if format=='html':
             return render_to_response('profile/index.html',data,
@@ -123,12 +130,17 @@ def profile_handler(request, format='html'):
             return HttpResponse(json.dumps(data), mimetype='application/json')
     
     elif request.method == 'POST':
-        data = {'profile':
-                {'username': user.username,
-                 'email': user.email,
-                 }
-                }
-                    
+        
+        #so at this point: we got the form from the edit_settings page and now we'll
+        #use it to save it to the user's settings object
+        settingsForm = BlogSettingsForm(request.POST, instance=blogsettings)
+        if settingsForm.is_valid():
+            settingsForm.save()
+            data['message'] = 'New grid size is: ' + str(blogsettings.grid_size)
+        else:
+            error = {'errors': 'BlogSettingsFrom did not validate!'}
+    	    return ErrorResponse(error, format)
+          
         if format=='html':
             return render_to_response('profile/index.html',data,
                                   context_instance=RequestContext(request))
@@ -181,7 +193,8 @@ def people_handler(request, blogger=None, format='html', settings=None):
                  'full_name': blogger.get_full_name()
                  },
                 'settings':
-                {'grid_size': settings.grid_size
+                {'grid_size': settings.grid_size,
+                 'blog_title': settings.blog_title
                  },
                 }
         if blogger.id == user.id:
