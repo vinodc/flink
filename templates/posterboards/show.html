@@ -45,7 +45,16 @@
                         $( ".element-class" ).resizable( "option", "disabled", false );
                         $( '#edit-status' ).text('Editing Mode');
                         sidebar_out = 1;
-                        $("textarea:enabled").removeAttr('readonly');
+                        $('div[type="text"]').replaceWith(
+							function() {
+								return "<textarea " +
+                        			"  type='text' "+
+                                    "  id='" + $(this).attr('id') +
+                                    "' child-id='" + $(this).attr('child-id') +
+                                    "' style='width:100%;height:100%;'>"+
+                                    $(this).html() +
+                                    "</textarea>";	
+							});
                     }
                     else{
                         $(sidebartab_id).html($(sidebartab_id).html().replace(/-active(\.[^.]+)$/, '$1'));
@@ -53,7 +62,16 @@
                         $( ".element-class" ).resizable( "option", "disabled", true );
                         $( '#edit-status' ).text('Viewing Mode');
                         sidebar_out = 0;
-                        $("textarea:enabled").attr('readonly','readonly');
+						$('textarea[type="text"]').replaceWith(
+							function() {
+								return "<div " +
+									"  type='text' "+
+									"  id='" + $(this).attr('id') +
+									"' child-id='" + $(this).attr('child-id') +
+									"' style='width:100%;height:100%;'>"+
+									$(this).val() +
+									"</div>";	
+						});
                     }
                 });
                 // http://www.kelvinluck.com/assets/jquery/jScrollPane/jScrollPane.html
@@ -75,6 +93,7 @@
                 /*-----------------------
                   Populating elements
                 ----------------------- */
+                $(pbid).empty();
                 var jsonstring = "{% autoescape off %}{{ element_data }}{%  endautoescape %}";
                 jsonstring = jsonstring.replace(/'/g,'"');
                 var elementsToAdd = JSON.parse(jsonstring);
@@ -109,13 +128,13 @@
                                     "'></div>";
                     }
                     else if(element.fields.type == 'text') {
-                        var domtext =   "<textarea " +
-                                    "  readonly='readonly' " +
+                        var domtext =   "<div " +
+                        			"  type='text' "+
                                     "  id='state" + state.pk +
                                     "' child-id='" + typestate.pk +
                                     "' style='width:100%;height:100%;'>"+
                                     typestate.fields.content +
-                                    "</textarea></div>";
+                                    "</div>";
                         
                         domstring = "<div id='element" + element.pk + "'" +
                                        " element-type='text'"+
@@ -129,7 +148,7 @@
                                     {% if blog_owner %}
                                     " ui-state-disabled " +
                                     {% endif %}
-                                    "'>"+domtext;
+                                    "'>"+domtext+"</div>";
                     }
 
                     $(pbid).append(domstring);
@@ -177,74 +196,74 @@
                     eid = -1;
                 });
                 {% endif %}
+   
+       		 	{% if blog_owner %}           
+                function make_element_interactive(selector) {
+                   $(selector).draggable({ 
+                        containment: pbid, 
+                        disabled: true,
+                        scroll: false,
+                        grid: gridArray,
+                        stack: pbid +" div,img,text",
+                        stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
+                    }).resizable({
+                        grid: gridArray,
+                        containment: pbid,
+                        disabled: true,
+                        stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
+                        //animate: true,
+                    });
+                    
+                    $(selector).mousedown(function(){
+                        if ($(selector).draggable("option","disabled") == false) {
+                        selectedelementid = $(this).attr('id');
+                        validselect = true; 
+                        }
+                    });
+                    
+                    $(selector).focusout(function(){
+                        if ($(selector).draggable("option","disabled") == false) {
+                            update_element(selector);
+                        }
+                    });               
+                }
+                
+                function update_element(selector) 
+                {
+                    // Populate Appropriate Fields
+                    var elementData = {};
+                    elementData['csrfmiddlewaretoken'] = '{{csrf_token}}';
+                    elementData['_action']='put';
+                    elementData['element-type']=$(selector).attr('element-type');
+                    elementData['element-id']=parseInt(selector.substr(8));
+                    elementData['state-id']=$(selector).attr('title');
+                    elementData['state-position_width']=parseInt($(selector).width() / gridArray[0]);
+                    elementData['state-position_height']=parseInt($(selector).height() / gridArray[1]);
+                    elementData['state-position_x']=parseInt(($(selector).position().left - $(pbid).position().left) / gridArray[0]);
+                    elementData['state-position_y']=parseInt(($(selector).position().top - $(pbid).position().top) / gridArray[1]);
+                    
+                    var child = $('#state'+$(selector).attr('title')); 
+                    if ($(selector).attr('element-type') == 'image') 
+                    {
+                        elementData['image-alt'] = child.attr('alt');
+                    }
+                    else if ($(selector).attr('element-type') == 'text')
+                    {
+                        elementData['text-content'] = child.val();
+                    }
+                    elementData['child-id']=child.attr('child-id');
+                    
+                    $.ajax({
+                       url: 'elements/'+selector.substr(8)+'.json',
+                       data: elementData,
+                       dataType: 'json',
+                       success: function() { $(selector).effect("highlight", {}, 1000); },
+                       type: 'post',
+                    });
+                }
                 
             });
-            
-            {% if blog_owner %}           
-            function make_element_interactive(selector) {
-               $(selector).draggable({ 
-                    containment: pbid, 
-                    disabled: true,
-                    scroll: false,
-                    grid: gridArray,
-                    stack: pbid +" div,img,text",
-                    stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
-                }).resizable({
-                    grid: gridArray,
-                    containment: pbid,
-                    disabled: true,
-                    stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
-                    //animate: true,
-                });
-                
-                $(selector).mousedown(function(){
-                    if ($(selector).draggable("option","disabled") == false) {
-                    selectedelementid = $(this).attr('id');
-                    validselect = true; 
-                    }
-                });
-                
-                $(selector).focusout(function(){
-                    if ($(selector).draggable("option","disabled") == false) {
-                        update_element(selector);
-                    }
-                });               
-            }
-            
-            function update_element(selector) 
-            {
-                // Populate Appropriate Fields
-                var elementData = {};
-                elementData['csrfmiddlewaretoken'] = '{{csrf_token}}';
-                elementData['_action']='put';
-                elementData['element-type']=$(selector).attr('element-type');
-                elementData['element-id']=parseInt(selector.substr(8));
-                elementData['state-id']=$(selector).attr('title');
-                elementData['state-position_width']=parseInt($(selector).width() / gridArray[0]);
-                elementData['state-position_height']=parseInt($(selector).height() / gridArray[1]);
-                elementData['state-position_x']=parseInt(($(selector).position().left - $(pbid).position().left) / gridArray[0]);
-                elementData['state-position_y']=parseInt(($(selector).position().top - $(pbid).position().top) / gridArray[1]);
-                
-                var child = $('#state'+$(selector).attr('title')); 
-                if ($(selector).attr('element-type') == 'image') 
-                {
-                    elementData['image-alt'] = child.attr('alt');
-                }
-                else if ($(selector).attr('element-type') == 'text')
-                {
-                    elementData['text-content'] = child.val();                    
-                }
-                elementData['child-id']=child.attr('child-id');
-                
-                $.ajax({
-                   url: 'elements/'+selector.substr(8)+'.json',
-                   data: elementData,
-                   dataType: 'json',
-                   success: function() { $(selector).effect("highlight", {}, 1000); },
-                   type: 'post',
-                });
-            }
-            
+   
             {% endif %}
         </script>
     <div id='content'>
