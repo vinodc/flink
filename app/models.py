@@ -43,8 +43,8 @@ class CommonInfo(models.Model):
 
 # This is the blog settings object for a given user...so basically just user settings
 class BlogSettings(CommonInfo):
-    user = models.OneToOneField(User, primary_key=True, verbose_name='user', blank=True)
-    blog_title = models.CharField(max_length=250, default='My Blog', blank=True)
+    user = models.OneToOneField(User, primary_key=True, verbose_name='user')
+    blog_title = models.CharField(max_length=250, default='My Blog')
     
     # The size of the grid
     grid_size = models.IntegerField(default=5, 

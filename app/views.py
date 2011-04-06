@@ -108,21 +108,21 @@ def settings_handler(request, format='html'):
 def profile_handler(request, format='html'):
     current_user = request.user
     
+    #check to make sure that a BlogSettings object has been crated for the user
     try:
 	blogsettings = current_user.blogsettings
     except:
 	blogsettings = BlogSettings(user=current_user)
 	blogsettings.save()
-			
-    data = {'profile':
+                
+    if request.method == 'GET':
+        data = {'profile':
                 {'username': current_user.username,
                  'email': current_user.email,
-                 'grid_size': blogsettings.grid_size,
+                 'gridsize': blogsettings.grid_size,
                  },
                 }
                 
-    if request.method == 'GET':
-        
         if format=='html':
             return render_to_response('profile/index.html',data,
                                   context_instance=RequestContext(request))
@@ -130,7 +130,12 @@ def profile_handler(request, format='html'):
             return HttpResponse(json.dumps(data), mimetype='application/json')
     
     elif request.method == 'POST':
-        
+        data = {'profile':
+                {'username': current_user.username,
+                 'email': current_user.email,
+                 'old gridsize': blogsettings.grid_size,
+                 },
+                }
         #so at this point: we got the form from the edit_settings page and now we'll
         #use it to save it to the user's settings object
         settingsForm = BlogSettingsForm(request.POST, instance=blogsettings)

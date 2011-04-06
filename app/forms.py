@@ -6,6 +6,7 @@ from app.models import *
 class BlogSettingsForm(ModelForm):
     class Meta:
         model = BlogSettings
+        fields = ('grid_size', )
 
 class PosterboardForm(ModelForm):
     class Meta:
