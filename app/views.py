@@ -23,7 +23,7 @@ from app.decorators import get_blogger, get_element, get_posterboard, \
 
 # Logger:
 from settings import logger
-from app.lib import title_to_path
+from app.lib import title_to_path, jsonload
 # To log, logger.debug('HELLO')
 # or, logger.info('just some info here')
 # or perhaps, logger.error('ERROR!!!')
@@ -279,10 +279,17 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                 type = e.type
                 if type == 'image':
                     ts = s.imagestate
+                elif type == 'video':
+                    ts = s.videostate
                 else:
                     logger.debug(u"Can't get type state for type %s" % type)
-            element_data.append(eval(serializers.serialize('json', [e, s, ts])))
-        data['element_data'] = element_data                    
+            if settings.DEBUG:
+                logger.info("\nSerializing: "+ str(s.__dict__) + str(e.__dict__) + str(ts.__dict__))
+                logger.info("\nSerialized: "+ serializers.serialize('json', [e, s, ts]))
+            element_data.append(jsonload(serializers.serialize('json', [e, s, ts])))
+        data['element_data'] = element_data
+        if settings.DEBUG:
+            logger.info("\nElement data: "+ str(element_data))                    
 
         #logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
         #logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
@@ -391,6 +398,16 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 data['element_content'] = '<img src= "'+childState.image.url+ '"'\
                                             'alt="'+childState.alt+'"'+'>'
                 data['element_path'] = childState.image.url
+            elif element.type == 'video':
+                if not 'video' in request.FILES:
+                    data['errors'] = 'No Video File is Provided. '
+                    return ErrorResponse(data['errors'], format)
+                    
+                childState = VideoState()
+                childState.original_video=request.FILES['video']
+                #childState.full_clean()
+                state.videostate = childState
+
             elif element.type == 'text':
                 childStateForm = TextStateForm(request.POST, prefix='text')
                 if not childStateForm.is_valid():
@@ -460,6 +477,18 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 edit_form.save()
                 if 'image' in request.FILES:
                     actual_image.image = request.FILES['image']
+            if request.POST['element-type'] == 'video':
+                childStateForm = VideoStateForm(request.POST, prefix='video')
+                if not childStateForm.is_valid():
+                    data['errors'] = 'Video data isn\'t valid: ' + str(childStateForm.errors)
+                    return ErrorResponse(data['errors'], format)
+            
+                actual_video = VideoState.objects.get(pk=request.POST['child-id'])
+                edit_form = ImageStateForm(request.POST, prefix='video', instance=actual_image)
+                edit_form.is_valid()
+                edit_form.save()
+                if 'video' in request.FILES:
+                    actual_video.original_video = request.FILES['video']
             elif request.POST['element-type'] == 'text':
                 childStateForm = TextStateForm(request.POST, prefix='text')
                 if not childStateForm.is_valid():

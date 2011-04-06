@@ -104,3 +104,9 @@ body {
 
 .ui-resizable-helper { border: 1px dotted gray; }
 .ui-state-disabled { opacity: 0.75; }
+
+.selected-element {
+    border-style: solid;
+    border-width: 2px;
+    border-color: orange;
+}

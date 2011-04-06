@@ -7,6 +7,8 @@ from decimal import *
 import datetime
 from app.lib import *
 
+from videologue.models import VideoModel
+
 def reserved_keywords(value):
     """
     Makes sure the value isn't a reserved word such as 'new',
@@ -201,8 +203,31 @@ class TextState(CommonInfo):
 # Use the same format as above. If you have defaults for anything, be sure to include
 # it in a clean() method too, as above.
 
-class VideoState(CommonInfo):
+class VideoState(VideoModel):
     state = models.OneToOneField(State, editable=False, primary_key=True)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False)
+    
+    def save(self, *args, **kwargs):
+      ''' On save, update timestamps '''
+      if not self.pk:
+          self.created_at = datetime.datetime.today()
+      self.updated_at = datetime.datetime.today()
+      super(VideoState, self).save(*args, **kwargs)
+      
+    def delete(self):
+      # Remove video files?
+      super(VideoState, self).delete()
+      
+    def clean(self):
+       return True 
+   
+    def __unicode__(self):
+       return "video"+ str(self.pk)
+   
+    def __str__(self):
+        return self.__unicode__()
+
 
 class AudioState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)

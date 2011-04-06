@@ -73,11 +73,13 @@
                             <a href='/profile/'>
                                 Settings
                             </a>
+                            {% if not user.is_staff %}
                             <span id='nav_bar_right' align='right' style='text-align: right'>
                                 <a class="openmodalbox" id="new-posterboards-link" href="javascript:void(0);">
                                     New Posterboard
                                 </a>
                             </span>
+                            {% endif %}
                             <a href='/accounts/logout/'>
                                 Logout
                             </a>

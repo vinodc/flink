@@ -1,4 +1,4 @@
-fabfrom fabric.api import *
+from fabric.api import *
 from fabric.colors import red, green, yellow
 from fabric.contrib import django
 
@@ -22,6 +22,9 @@ def setup():
 
 def deploy():
     with settings(warn_only=True):
-        result = local('kill -HUP `cat /tmp/flink.pid`', capture=True)
-    local('python manage.py crond --pidfile=/tmp/flink.pid')
+        result = local('kill -HUP `cat /tmp/flink-crond.pid`', capture=True)
+        result = local('kill `cat /tmp/flink-cherrypy.pid`', capture=True)
+    
+    local('python manage.py crond --pidfile=/tmp/flink-crond.pid')
+    local('python cherrypy_static_server.py')
     local('python manage.py runserver')

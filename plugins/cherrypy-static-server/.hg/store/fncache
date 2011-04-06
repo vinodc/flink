@@ -1,0 +1,4 @@
+data/.hgignore.i
+data/README.i
+data/cherrypy_static_erver.py.i
+data/src/cherrypy_static_server.py.i

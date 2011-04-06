@@ -18,7 +18,7 @@
             var gridArray = [40,40];
             
             {% if blog_owner %}
-            var sidebar_out = 0;
+            var sidebar_out = false;
             
             // Changing this will break css.
             var sidebartab_id = "#edit_toggle";
@@ -39,19 +39,19 @@
                 $(sidebartab_id).click(function(){
                     $(sidebarcontent_id).animate({ "width":"toggle"},{duration:400,queue:false});
      
-                    if(sidebar_out == 0){
+                    if(!sidebar_out){
                         $(sidebartab_id).html($(sidebartab_id).html().replace(/(\.[^.]+)$/, '-active$1'));
                         $( ".element-class" ).draggable( "option", "disabled", false );
                         $( ".element-class" ).resizable( "option", "disabled", false );
                         $( '#edit-status' ).text('Editing Mode');
-                        sidebar_out = 1;
+                        sidebar_out = true;
                     }
                     else{
                         $(sidebartab_id).html($(sidebartab_id).html().replace(/-active(\.[^.]+)$/, '$1'));
                         $( ".element-class" ).draggable( "option", "disabled", true );
                         $( ".element-class" ).resizable( "option", "disabled", true );
                         $( '#edit-status' ).text('Viewing Mode');
-                        sidebar_out = 0;
+                        sidebar_out = false;
                     }
                 });
                 // http://www.kelvinluck.com/assets/jquery/jScrollPane/jScrollPane.html
@@ -61,6 +61,13 @@
                     jQuery.fn.modalBox("close");
                     jQuery.fn.modalBox({
                         directCall : { element: '#image_upload_form_wrapper' }
+                    });
+                });
+                
+                $("#video_upload").click(function() {
+                    jQuery.fn.modalBox("close");
+                    jQuery.fn.modalBox({
+                        directCall : { element: '#video_upload_form_wrapper' }
                     });
                 });
                 
@@ -89,20 +96,6 @@
                     typestate = elementdata[2];
                     
                     if(element.fields.type == 'image') {
-                        domstring = "<img src='{{ MEDIA_URL }}"+ typestate.fields.image +
-                                    "' alt='"+ typestate.fields.alt +
-                                    "' width='" + (state.fields.position_width * gridArray[0]) +
-                                    "' height='" + (state.fields.position_height * gridArray[1]) +
-                                    "' id='element" + element.pk +
-                                    "' style='" + elementstyles +
-                                       "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                       "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
-                                    "' title='" + state.pk +
-                                    "' class='element-class " +
-                                    {% if blog_owner %}
-                                    " ui-state-disabled " +
-                                    {% endif %}
-                                    "'>";
                         domstring = "<div id='element" + element.pk +
                                     "' style='" + elementstyles +
                                        "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
@@ -119,11 +112,48 @@
                                     "' style='width:100%;height:100%;"+
                                     "' alt='"+ typestate.fields.alt +
                                     "'></div>";
-                        $(pbid).append(domstring);
-                        {% if blog_owner %}
-                        make_element_interactive("#element"+ element.pk);
-                        {% endif %}
                     }
+                    else if(element.fields.type == 'video') {
+                        domstring = "<div id='element" + element.pk +
+                                    "' style='" + elementstyles +
+                                       "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                                       "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
+                                       "width:" + (state.fields.position_width * gridArray[0]) +";"+
+                                       "height:" + (state.fields.position_height * gridArray[1]) +";"+
+                                    "' title='" + state.pk +
+                                    "' class='element-class " +
+                                    {% if blog_owner %}
+                                    " ui-state-disabled " +
+                                    {% endif %}
+                                    "'>"+
+                                    "<video height='"+ state.fields.position_height * gridArray[1] +
+                                    "' width='"+ state.fields.position_width * gridArray[0] +
+                                    "'  preload='auto' controls='video_controls'>";
+                                    if(typestate.fields.ogv_video != "") {
+                                        domstring +=
+                                        "<source src='"+ {{MEDIA_URL}} + typestate.fields.ogv_video +
+                                        "' type='video/ogg'>";
+                                    }
+                                    if(typestate.fields.mp4_video != "") {
+                                        domstring +=
+                                        "<source src='"+ {{MEDIA_URL}} + typestate.fields.mp4_video +
+                                        "' type='video/mp4'>";
+                                    }
+                                    if(typestate.fields.original_video != "") {
+                                        domstring +=
+                                        "<source src='"+ {{MEDIA_URL}} + typestate.fields.original_video +
+                                        "'>";
+                                    }
+                                        domstring +=
+                                        "Your browser does not support the <code>video</code> element."+
+                                    "</video>"+
+                                    "</div>";
+                    }
+                    
+                    $(pbid).append(domstring);
+                    {% if blog_owner %}
+                    make_element_interactive("#element"+ element.pk);
+                    {% endif %}
                 });
                 
                 {% if blog_owner %}
@@ -132,7 +162,11 @@
                 ----------------------- */
                
                 $(document).mousedown(function(){
+                   if(!sidebar_out) { return; }
                    if(!validselect) {
+                       if(selectedelementid != "") {
+                           $('#'+selectedelementid).removeClass('selected-element');
+                       }
                        selectedelementid = '';
                    }
                    validselect = false; 
@@ -140,7 +174,10 @@
                
                 $(document).keydown(function(event) {
                     // DEL
-                    if (event.keyCode == 46 && selectedelementid != '') {
+                    if (sidebar_out && event.keyCode == 46 && selectedelementid != '') {
+                        var answer = confirm('Are you sure you want to remove the element?')
+                        if(!answer) { return; }
+                        
                         $.ajax({
                             url: 'elements/'+selectedelementid.substr(7)+'.json',
                             data: {
@@ -176,6 +213,7 @@
             });
             
             {% if blog_owner %}
+            // Image
             function image_upload_callback(responseText, statusText, xhr) {
                 if(xhr.status < 200 || xhr.status > 299) {
                     $("#image_upload_form .form-submit-errors")
@@ -196,6 +234,8 @@
                 update_element("#element"+id);
             }
             
+            // Video
+            
             function make_element_interactive(selector) {
                $(selector).draggable({ 
                     containment: pbid, 
@@ -208,13 +248,28 @@
                     grid: gridArray,
                     containment: pbid,
                     disabled: true,
-                    stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
+                    stop: function(event, ui) {
+                        var selector = "#"+$(this).attr('id'); 
+                        // If there are video elements here, alter their width/height too.
+                        if($(selector +" video").length != 0) {
+                           // Only 1 element anyway.
+                           $(selector +" video").attr('height', parseInt($(this).css('height')));
+                           $(selector +" video").attr('width', parseInt($(this).css('width')));
+                        }
+                        update_element(selector); 
+                    },
                     //animate: true,
                 });
                 
                 $(selector).mousedown(function(){
+                    if(!sidebar_out) { return; }
+                    // If element with id exists and is not the element selected, change the class.
+                    if(selectedelementid != $(this).attr('id') && selectedelementid != "") {
+                        $('#'+selectedelementid).removeClass('selected-element');
+                    }
                     selectedelementid = $(this).attr('id');
-                    validselect = true; 
+                    validselect = true;
+                    $('#'+selectedelementid).addClass('selected-element');
                 });
                 
                /*
@@ -264,6 +319,7 @@
                    <div id="scrollbar_container">
                        <div id="scrollbar_content">
                            <button id="image_upload">Add Image</button>
+                           <button id="video_upload">Add Video</button>
                            <!--<button id="save-changes">Save Changes to Posterboard</button>-->
                        </div>
                    </div>
@@ -278,6 +334,16 @@
                <input type="hidden" name="element-type" value="image">
                Image: <input type="file" id="upload-image-field" name="image"><br>
                <input type="submit" id="image_upload_button" value="Upload Image">
+           </form>
+       </div>
+       <div style="display:none" id="video_upload_form_wrapper">
+           <form action='elements/' id="video_upload_form" name="video_upload_form" method="post"
+            enctype="multipart/form-data">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="element-type" value="video">
+               Video: <input type="file" id="upload-video-field" name="video"><br>
+               <input type="submit" id="video_upload_button" value="Upload Video">
            </form>
        </div>
        {% endif %}

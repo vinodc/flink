@@ -16,3 +16,5 @@ django-email-confirmation
 django-allauth
 PIL # Python Imaging Library
 djangorestframework
+cherrypy
+django-cpserver

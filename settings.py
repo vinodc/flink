@@ -27,6 +27,12 @@ DATABASES = {
     }
 }
 
+MEDIA_SERVER = {
+    'PROTOCOL': 'http',
+    'HOST': '127.0.0.1',
+    'PORT':  8086,
+}
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -49,6 +55,13 @@ logger = logging.getLogger()
 
 
 SITE_ID = 1
+#
+# Video
+VIDEOLOGUE_ENCODE_FLV = False
+VIDEOLOGUE_ENCODE_OGV = True
+VIDEOLOGUE_ENCODE_MP4 = True
+PHOTOLOGUE_DIR = 'videos'
+VIDEOLOGUE_DIR = 'videos'
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -206,6 +219,7 @@ INSTALLED_APPS = (
     'photologue',
     'videologue',
     'batchadmin',
+    'cpserver',
     
     # cron
     'plugins',
