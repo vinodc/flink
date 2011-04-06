@@ -95,11 +95,11 @@ def process_files():
                 video_data['letterboxing'] = ' '.join(
                     str(_)
                         for _ in
-                    ['-padbottom', video_data.get('padbottom', 0),
-                    '-padtop', video_data.get('padtop', 0),
-                    '-padright', video_data.get('padright', 0),
-                    '-padleft', video_data.get('padleft', 0),
-                    ('-aspect %s' % video_data.get('out_aspect'))
+                    #['-padbottom', video_data.get('padbottom', 0),
+                    #'-padtop', video_data.get('padtop', 0),
+                    #'-padright', video_data.get('padright', 0),
+                    #'-padleft', video_data.get('padleft', 0),
+                    [('-aspect %s' % video_data.get('out_aspect'))
                     if 'out_aspect' in video_data else '']
                 )
 
