@@ -45,6 +45,7 @@
                         $( ".element-class" ).resizable( "option", "disabled", false );
                         $( '#edit-status' ).text('Editing Mode');
                         sidebar_out = 1;
+                        $("textarea:enabled").removeAttr('readonly');
                     }
                     else{
                         $(sidebartab_id).html($(sidebartab_id).html().replace(/-active(\.[^.]+)$/, '$1'));
@@ -52,6 +53,7 @@
                         $( ".element-class" ).resizable( "option", "disabled", true );
                         $( '#edit-status' ).text('Viewing Mode');
                         sidebar_out = 0;
+                        $("textarea:enabled").attr('readonly','readonly');
                     }
                 });
                 // http://www.kelvinluck.com/assets/jquery/jScrollPane/jScrollPane.html
@@ -63,13 +65,10 @@
                         directCall : { element: '#image_upload_form_wrapper' }
                     });
                 });
-                
-                // AJAX REQUEST
-                /*$('#image_upload_form').ajaxForm({ 
-                   success: image_upload_callback, 
-                   dataType: 'json',
-                   type: 'post',
-                });*/
+    
+                $('#text_upload').click(function() {
+                    $('#text_upload_form').submit();
+                });
                 
                 {% endif %}
                 
@@ -89,41 +88,55 @@
                     typestate = elementdata[2];
                     
                     if(element.fields.type == 'image') {
-                        domstring = "<img src='{{ MEDIA_URL }}"+ typestate.fields.image +
-                                    "' alt='"+ typestate.fields.alt +
-                                    "' width='" + (state.fields.position_width * gridArray[0]) +
-                                    "' height='" + (state.fields.position_height * gridArray[1]) +
-                                    "' id='element" + element.pk +
-                                    "' style='" + elementstyles +
-                                       "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                       "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
-                                    "' title='" + state.pk +
-                                    "' class='element-class " +
-                                    {% if blog_owner %}
-                                    " ui-state-disabled " +
-                                    {% endif %}
-                                    "'>";
-                        domstring = "<div id='element" + element.pk +
-                                    "' style='" + elementstyles +
-                                       "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                       "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
-                                       "width:" + (state.fields.position_width * gridArray[0]) +";"+
-                                       "height:" + (state.fields.position_height * gridArray[1]) +";"+
+                        domstring = "<div id='element" + element.pk + "'" +
+                                       " element-type='image'"+
+                                       " style='" + elementstyles +
+                                       " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                                       " top:"+ (state.fields.position_y * gridArray[0]) + ";"+
+                                       " width:" + (state.fields.position_width * gridArray[0]) +";"+
+                                       " height:" + (state.fields.position_height * gridArray[1]) +";"+
                                     "' title='" + state.pk +
                                     "' class='element-class " +
                                     {% if blog_owner %}
                                     " ui-state-disabled " +
                                     {% endif %}
                                     "'>"+
-                                    "<img src='{{ MEDIA_URL }}"+ typestate.fields.image +
+                                    "<img id='state" + state.pk + 
+                                    "' child-id='" + typestate.pk + 
+                                    "' src='{{ MEDIA_URL }}"+ typestate.fields.image +
                                     "' style='width:100%;height:100%;"+
                                     "' alt='"+ typestate.fields.alt +
                                     "'></div>";
-                        $(pbid).append(domstring);
-                        {% if blog_owner %}
-                        make_element_interactive("#element"+ element.pk);
-                        {% endif %}
                     }
+                    else if(element.fields.type == 'text') {
+                        var domtext =   "<textarea " +  
+                                    "  class='text-class' " +
+                                    "  readonly='readonly' " +
+                                    "  id='state" + state.pk +
+                                    "' child-id='" + typestate.pk +
+                                    "' style='width:100%;height:100%;'>"+
+                                    typestate.fields.content +
+                                    "</textarea></div>";
+                        
+                        domstring = "<div id='element" + element.pk + "'" +
+                                       " element-type='text'"+
+                                       " style='" + elementstyles +
+                                       " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                                       " top:"+ (state.fields.position_y * gridArray[0]) + ";"+
+                                       " width:" + (state.fields.position_width * gridArray[0]) +";"+
+                                       " height:" + (state.fields.position_height * gridArray[1]) +";"+
+                                    "' title='" + state.pk +
+                                    "' class='element-class " +
+                                    {% if blog_owner %}
+                                    " ui-state-disabled " +
+                                    {% endif %}
+                                    "'>"+domtext;
+                    }
+
+                    $(pbid).append(domstring);
+                    {% if blog_owner %}
+                    make_element_interactive("#element"+ element.pk);
+                    {% endif %}
                 });
                 
                 {% if blog_owner %}
@@ -148,8 +161,8 @@
                                 '_action': 'delete'
                             },
                             method: 'get',
-                            success: function() { $("#"+selectedelementid).remove(); },
-                        }); 
+                            success: function() {$('#'+selectedelementid).remove(); },
+                        });
                     } 
                 });
                
@@ -175,34 +188,14 @@
                 
             });
             
-            {% if blog_owner %}
-            function image_upload_callback(responseText, statusText, xhr) {
-                if(xhr.status < 200 || xhr.status > 299) {
-                    $("#image_upload_form .form-submit-errors")
-                        .html('An error occured while uploading the file: ' + responseText.errors);
-                    $("#image_upload_form").effect("highlight", {}, 3000);
-                }
-                else {
-                    $("#image_upload_form_wrapper .form-submit-errors").html('');
-                    add_image_to_posterboard(responseText);
-                    jQuery.fn.modalBox("close");
-                }
-            }
-            
-            function add_image_to_posterboard(responseText) {
-                var id = responseText.element_id;
-                $(pbid).append(responseText.content);
-                make_element_interactive("#element"+id);
-                update_element("#element"+id);
-            }
-            
+            {% if blog_owner %}           
             function make_element_interactive(selector) {
                $(selector).draggable({ 
                     containment: pbid, 
                     disabled: true,
                     scroll: false,
                     grid: gridArray,
-                    stack: pbid +" div,img",
+                    stack: pbid +" div,img,text",
                     stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
                 }).resizable({
                     grid: gridArray,
@@ -215,6 +208,12 @@
                 $(selector).mousedown(function(){
                     selectedelementid = $(this).attr('id');
                     validselect = true; 
+                });
+                
+                $(selector).focusout(function(){
+                    if ($(selector).draggable("option","disabled") == false) {
+                        update_element(selector);
+                    }
                 });
                 
                /*
@@ -233,23 +232,37 @@
                */
             }
             
-            function update_element(selector) {
+            function update_element(selector) 
+            {
+                // Populate Appropriate Fields
+                var elementData = {};
+                elementData['csrfmiddlewaretoken'] = '{{csrf_token}}';
+                elementData['_action']='put';
+                elementData['element-type']=$(selector).attr('element-type');
+                elementData['element-id']=parseInt(selector.substr(8));
+                elementData['state-id']=$(selector).attr('title');
+                elementData['state-position_width']=parseInt($(selector).width() / gridArray[0]);
+                elementData['state-position_height']=parseInt($(selector).height() / gridArray[1]);
+                elementData['state-position_x']=parseInt(($(selector).position().left - $(pbid).position().left) / gridArray[0]);
+                elementData['state-position_y']=parseInt(($(selector).position().top - $(pbid).position().top) / gridArray[1]);
+                
+                var child = $('#state'+$(selector).attr('title')); 
+                if ($(selector).attr('element-type') == 'image') 
+                {
+                    elementData['image-alt'] = child.attr('alt');
+                }
+                else if ($(selector).attr('element-type') == 'text')
+                {
+                    elementData['text-content'] = child.val();                    
+                }
+                elementData['child-id']=child.attr('child-id');
+                
                 $.ajax({
                    url: 'elements/'+selector.substr(8)+'.json',
-                   data: {
-                       'csrfmiddlewaretoken': '{{csrf_token}}',
-                       '_action': 'put',
-                       'element-type': 'image',
-                       'element-id': parseInt(selector.substr(8)),
-                       'state-id': $(selector).attr('title'),
-                       'state-position_width': parseInt($(selector).width() / gridArray[0]),
-                       'state-position_height': parseInt($(selector).height() / gridArray[1]),
-                       'state-position_x': parseInt(($(selector).position().left - $(pbid).position().left) / gridArray[0]),
-                       'state-position_y': parseInt(($(selector).position().top - $(pbid).position().top) / gridArray[1]),
-                   },
+                   data: elementData,
                    dataType: 'json',
                    success: function() { $(selector).effect("highlight", {}, 1000); },
-                   type: 'post'
+                   type: 'post',
                 });
             }
             
@@ -264,6 +277,7 @@
                    <div id="scrollbar_container">
                        <div id="scrollbar_content">
                            <button id="image_upload">Add Image</button>
+                           <button id="text_upload">Add Text</button>
                            <!--<button id="save-changes">Save Changes to Posterboard</button>-->
                        </div>
                    </div>
@@ -278,6 +292,16 @@
                <input type="hidden" name="element-type" value="image">
                Image: <input type="file" id="upload-image-field" name="image"><br>
                <input type="submit" id="image_upload_button" value="Upload Image">
+           </form>
+       </div>
+       <div style="display:none" id="text_upload_form_wrapper">
+           <form action='elements/' id="text_upload_form" name="text_upload_form" method="post"
+            enctype="multipart/form-data">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="element-type" value="text">
+               <textarea name='text-content'>Enter Text Here.</textarea>
+               <input type="submit" id="text_upload_button" value="Upload Text">
            </form>
        </div>
        {% endif %}

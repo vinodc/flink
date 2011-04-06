@@ -279,6 +279,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                 type = e.type
                 if type == 'image':
                     ts = s.imagestate
+                elif type == 'text':
+                    ts = s.textstate
                 else:
                     logger.debug(u"Can't get type state for type %s" % type)
             element_data.append(eval(serializers.serialize('json', [e, s, ts])))
@@ -397,6 +399,8 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     data['errors'] = 'TextState data isn\'t valid: ' + str(childStateForm.errors)
                     return ErrorResponse(data['errors'], format)
                 childState = childStateForm.save(commit=False)
+                state.textstate = childState
+                
                 data['element_content'] = childState.content
                 
             # TODO: Handle other types of states.
@@ -409,6 +413,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             childState.save()
             data['element-id'] = element.id
             data['state-id'] = state.id
+            data['child-id'] = childState.pk
 
             response = render_to_response('elements/wrapper.html', data,
                                           context_instance=RequestContext(request))
@@ -426,7 +431,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
 
     # Batch update elements
     elif request.method == 'POST' and request.POST.has_key('_action') and request.POST['_action'] == 'put' and \
-    blogger.id == user.id:        
+    blogger.id == user.id:      
         elementForm = ElementForm(request.POST, prefix='element')
         stateForm = StateForm(request.POST, prefix='state')
         
