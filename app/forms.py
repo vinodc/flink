@@ -3,10 +3,10 @@ from django import forms
 from django.forms import ModelForm
 from app.models import *
         
-class BlogSettingsForm(forms.Form):
-    grid_size = models.IntegerField()
+class BlogSettingsForm(ModelForm):
     class Meta:
         model = BlogSettings
+        fields = ('grid_size', )
 
 class PosterboardForm(ModelForm):
     class Meta:

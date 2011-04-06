@@ -7,10 +7,13 @@
 
 <p>
 <div id='content'>
+    
     {% for key, value in profile.items %}
         <div id='{{key}}'> {{key}} : {{ value }}</div>
-    {% endfor %}
-    
+    {% endfor %}    	
+    <br>
+    <div id='message'> {{message}} </div>
+    <br>
     <form action="/profile/settings" method="get">
 	<input type="submit" value="Edit Settings" />
     </form>

@@ -52,20 +52,8 @@ class BlogSettings(CommonInfo):
     						MaxValueValidator(5),
     						MinValueValidator(1)
     					])
-    					
-    # On blog home page, for each set of posterboards:
-    # Number of grid blocks wide the set is.
-    set_width = models.IntegerField(default=4, 
-                                    validators = [
-                                         MaxValueValidator(8),
-                                         MinValueValidator(1)
-                                    ])
-    # Number of grid blocks high the set is.
-    set_height = models.IntegerField(default=4, 
-                                     validators = [
-                                          MaxValueValidator(6),
-                                          MinValueValidator(1)
-                                     ])
+
+                                     
     def __unicode__(self):
         return self.blog_title + ' settings'
 
