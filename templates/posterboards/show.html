@@ -109,8 +109,7 @@
                                     "'></div>";
                     }
                     else if(element.fields.type == 'text') {
-                        var domtext =   "<textarea " +  
-                                    "  class='text-class' " +
+                        var domtext =   "<textarea " +
                                     "  readonly='readonly' " +
                                     "  id='state" + state.pk +
                                     "' child-id='" + typestate.pk +
@@ -144,16 +143,9 @@
                   Changing elements
                 ----------------------- */
                
-                $(document).mousedown(function(){
-                   if(!validselect) {
-                       selectedelementid = '';
-                   }
-                   validselect = false; 
-                });
-               
                 $(document).keydown(function(event) {
-                    // DEL
-                    if (event.keyCode == 46 && selectedelementid != '') {
+                    // Shift + DEL
+                    if (event.shiftKey && event.keyCode == 46 && selectedelementid != '') {
                         $.ajax({
                             url: 'elements/'+selectedelementid.substr(7)+'.json',
                             data: {
@@ -206,30 +198,17 @@
                 });
                 
                 $(selector).mousedown(function(){
+                    if ($(selector).draggable("option","disabled") == false) {
                     selectedelementid = $(this).attr('id');
                     validselect = true; 
+                    }
                 });
                 
                 $(selector).focusout(function(){
                     if ($(selector).draggable("option","disabled") == false) {
                         update_element(selector);
                     }
-                });
-                
-               /*
-               $(selector).mouseup(function(){
-                   //For now, also call the update element method right here.
-                   update_element(selector);       
-                   return;
-                   
-                   for(var i=0; i<elementsthatchanged.length; i++) {
-                       if(a[i] == selector.substr(1)) {
-                           return;
-                       }
-                   }
-                   elementsthatchanged.push(selector.substr(1));
-               });
-               */
+                });               
             }
             
             function update_element(selector) 
@@ -314,7 +293,7 @@
           This is to prevent accidental editing. Elements appear lighter in viewing mode.
        </p>
        <p align='center' class="editing-mode-info" style="display:block;">
-           Select an element by clicking on it. You can delete an element by hitting the Delete key after you select it. <br>
+           Select an element by clicking on it. You can delete an element by hitting the Shift + Delete key after you select it. <br>
            Feel free to drag and drop elements about. They can also be resized. They will be saved automatically.
       </p>
       {% endif %}
