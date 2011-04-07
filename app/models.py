@@ -5,7 +5,7 @@ from django.core.validators import *
 
 from decimal import *
 import datetime
-from app.lib import *
+from app.lib import title_to_path, jsonload
 
 from videologue.models import VideoModel
 
@@ -214,9 +214,17 @@ class VideoState(VideoModel):
           self.created_at = datetime.datetime.today()
       self.updated_at = datetime.datetime.today()
       super(VideoState, self).save(*args, **kwargs)
-      
+        
     def delete(self):
       # Remove video files?
+      try:
+          if self.image is not None: self.image.delete()
+          if self.original_video is not None: self.original_video.delete()
+          if self.mp4_video is not None: self.mp4_video.delete()
+          if self.ogv_video is not None: self.ogv_video.delete()
+          if self.flv_video is not None: self.flv_video.delete()
+      except:
+          pass
       super(VideoState, self).delete()
       
     def clean(self):
@@ -231,3 +239,20 @@ class VideoState(VideoModel):
 
 class AudioState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)
+    original_audio = models.ImageField(upload_to='audios', editable=False)
+    
+    def delete(self):
+      try:
+          if self.original_audio is not None: self.original_audio.delete()
+      except:
+          pass
+      super(AudioState, self).delete()
+    
+    def clean(self):
+        return True
+   
+    def __unicode__(self):
+       return "audio"+ str(self.pk)
+   
+    def __str__(self):
+        return self.__unicode__()

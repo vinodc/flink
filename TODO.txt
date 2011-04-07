@@ -49,4 +49,6 @@ Modify this list with updated information.
    * Right now, the website looks pretty ugly. It needs to look much better.
    * Make posterboard page shinier. Editing toolbar needs to look better.
    * Header and footer especially.
+* Patch vlprocess for pad options.
+* Patch django_cron for syncdb errors.
 * ***********TESTS!!!!!****************

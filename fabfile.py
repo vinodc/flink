@@ -22,9 +22,9 @@ def setup():
 
 def deploy():
     with settings(warn_only=True):
-        result = local('kill -HUP `cat /tmp/flink-crond.pid`', capture=True)
+        #result = local('kill -HUP `cat /tmp/flink-crond.pid`', capture=True)
         result = local('kill `cat /tmp/flink-cherrypy.pid`', capture=True)
     
-    local('python manage.py crond --pidfile=/tmp/flink-crond.pid')
+    #local('python manage.py crond --pidfile=/tmp/flink-crond.pid 2>&1')
     local('python cherrypy_static_server.py')
     local('python manage.py runserver')

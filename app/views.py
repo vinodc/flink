@@ -23,13 +23,15 @@ from app.decorators import get_blogger, get_element, get_posterboard, \
 
 # Logger:
 from settings import logger
-from app.lib import title_to_path, jsonload
 # To log, logger.debug('HELLO')
 # or, logger.info('just some info here')
 # or perhaps, logger.error('ERROR!!!')
 # Logs are at logs/flink.log
 # More info:
 # http://docs.djangoproject.com/en/dev/topics/logging/
+
+from app.lib import title_to_path, jsonload
+from datetime import datetime 
 
 # Debugger:
 #import ipdb
@@ -281,6 +283,9 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                     ts = s.imagestate
                 elif type == 'video':
                     ts = s.videostate
+                    if((datetime.now() - ts.created_at).seconds < settings.CONVERSION_TIME):
+                        # Don't want to display the video before conversion safely over.
+                        continue
                 else:
                     logger.debug(u"Can't get type state for type %s" % type)
             if settings.DEBUG:
@@ -406,8 +411,28 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 childState = VideoState()
                 childState.original_video=request.FILES['video']
                 #childState.full_clean()
+                if(childState.original_video.size > settings.MAX_UPLOAD_SIZE):
+                    data['errors'] = 'File is too large. ' + \
+                                     'Max size allowed is '+ \
+                                     str(settings.MAX_UPLOAD_SIZE/1024.0/1024.0) + \
+                                     'MB'
+                    return ErrorResponse(data['errors'], format)
                 state.videostate = childState
-
+            elif element.type == 'audio':
+                if not 'audio' in request.FILES:
+                    data['errors'] = 'No Audio File is Provided. '
+                    return ErrorResponse(data['errors'], format)
+                    
+                childState = VideoState()
+                childState.original_audio=request.FILES['audio']
+                #childState.full_clean()
+                if(childState.original_audio.size > settings.MAX_UPLOAD_SIZE):
+                    data['errors'] = 'File is too large. ' + \
+                                     'Max size allowed is '+ \
+                                     str(settings.MAX_UPLOAD_SIZE/1024.0/1024.0) + \
+                                     'MB'
+                    return ErrorResponse(data['errors'], format)
+                state.videostate = childState
             elif element.type == 'text':
                 childStateForm = TextStateForm(request.POST, prefix='text')
                 if not childStateForm.is_valid():
@@ -424,6 +449,10 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             element.save()
             state.save()
             childState.save()
+            
+            if(element.type == "video"):
+                os.system('python '+ settings.PROJECT_ROOT + '/manage.py vlprocess& 2>&1 1>>'+ settings.LOG_FILENAME)
+            
             data['element-id'] = element.id
             data['state-id'] = state.id
 
@@ -484,11 +513,23 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     return ErrorResponse(data['errors'], format)
             
                 actual_video = VideoState.objects.get(pk=request.POST['child-id'])
-                edit_form = ImageStateForm(request.POST, prefix='video', instance=actual_image)
+                edit_form = VideoStateForm(request.POST, prefix='video', instance=actual_video)
                 edit_form.is_valid()
                 edit_form.save()
                 if 'video' in request.FILES:
                     actual_video.original_video = request.FILES['video']
+            if request.POST['element-type'] == 'audio':
+                childStateForm = AudioStateForm(request.POST, prefix='audio')
+                if not childStateForm.is_valid():
+                    data['errors'] = 'Audio data isn\'t valid: ' + str(childStateForm.errors)
+                    return ErrorResponse(data['errors'], format)
+            
+                actual_audio = AudioState.objects.get(pk=request.POST['child-id'])
+                edit_form = AudioStateForm(request.POST, prefix='audio', instance=actual_audio)
+                edit_form.is_valid()
+                edit_form.save()
+                if 'audio' in request.FILES:
+                    actual_audio.original_audio = request.FILES['audio']
             elif request.POST['element-type'] == 'text':
                 childStateForm = TextStateForm(request.POST, prefix='text')
                 if not childStateForm.is_valid():

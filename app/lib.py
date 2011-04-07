@@ -1,7 +1,10 @@
 import re
 import json
+import os
 
-from settings import logger
+from settings import logger, LOG_FILENAME
+
+#from django_cron import cronScheduler, Job
 
 def title_to_path(title):
     """
@@ -23,3 +26,15 @@ def jsonload(jsonstring):
     jsonstring = re.sub(r': null,',': "",', jsonstring)
     
     return json.loads(jsonstring)
+
+"""
+Code for a cron using django_cron:
+class ConvertVideos(Job):
+    # run every 60 seconds
+    run_every = 60
+
+    def job(self):
+        os.system('python manage.py vlprocess 2>&1 1>>'+ LOG_FILENAME)
+
+cronScheduler.register(ConvertVideos)
+"""

@@ -55,13 +55,19 @@ logger = logging.getLogger()
 
 
 SITE_ID = 1
-#
+
 # Video
 VIDEOLOGUE_ENCODE_FLV = False
 VIDEOLOGUE_ENCODE_OGV = True
 VIDEOLOGUE_ENCODE_MP4 = True
 PHOTOLOGUE_DIR = 'videos'
-VIDEOLOGUE_DIR = 'videos'
+VIDEOLOGUE_DIR = 'videos' 
+CONVERSION_TIME = 60 # in seconds
+MAX_UPLOAD_SIZE = 50.0*1024*1024 # 50MB in bytes
+
+# Cron
+# django_cron
+CRON_POLLING_FREQUENCY = 45
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -222,9 +228,10 @@ INSTALLED_APPS = (
     'cpserver',
     
     # cron
-    'plugins',
-    'canarreos',
-    
+    #'plugins',
+    #'taino',
+    #'canarreos',
+    #'django_cron',
     
     'debug_toolbar',
     'django_extensions',

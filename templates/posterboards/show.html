@@ -71,6 +71,13 @@
                     });
                 });
                 
+                $("#audio_upload").click(function() {
+                    jQuery.fn.modalBox("close");
+                    jQuery.fn.modalBox({
+                        directCall : { element: '#audio_upload_form_wrapper' }
+                    });
+                });
+                
                 // AJAX REQUEST
                 /*$('#image_upload_form').ajaxForm({ 
                    success: image_upload_callback, 
@@ -128,7 +135,7 @@
                                     "'>"+
                                     "<video height='"+ state.fields.position_height * gridArray[1] +
                                     "' width='"+ state.fields.position_width * gridArray[0] +
-                                    "'  preload='auto' controls='video_controls'>";
+                                    "'  preload='auto' controls='video_controls"+element.pk+"'>";
                                     if(typestate.fields.ogv_video != "") {
                                         domstring +=
                                         "<source src='"+ {{MEDIA_URL}} + typestate.fields.ogv_video +
@@ -149,7 +156,30 @@
                                     "</video>"+
                                     "</div>";
                     }
-                    
+                    else if(element.fields.type == 'audio') {
+                        domstring = "<div id='element" + element.pk +
+                                    "' style='" + elementstyles +
+                                       "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                                       "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
+                                       "width:" + (state.fields.position_width * gridArray[0]) +";"+
+                                       "height:" + (state.fields.position_height * gridArray[1]) +";"+
+                                    "' title='" + state.pk +
+                                    "' class='element-class " +
+                                    {% if blog_owner %}
+                                    " ui-state-disabled " +
+                                    {% endif %}
+                                    "'>"+
+                                    "<audio preload='auto' controls='audio_controls"+element.pk+"'>";
+                                    if(typestate.fields.original_audio != "") {
+                                        domstring +=
+                                        "<source src='"+ {{MEDIA_URL}} + typestate.fields.original_audio +
+                                        "'>";
+                                    }
+                                        domstring +=
+                                        "Your browser does not support the <code>audio</code> element."+
+                                    "</audio>"+
+                                    "</div>";
+                    }
                     $(pbid).append(domstring);
                     {% if blog_owner %}
                     make_element_interactive("#element"+ element.pk);
@@ -320,6 +350,7 @@
                        <div id="scrollbar_content">
                            <button id="image_upload">Add Image</button>
                            <button id="video_upload">Add Video</button>
+                           <button id="audio_upload">Add Audio</button>
                            <!--<button id="save-changes">Save Changes to Posterboard</button>-->
                        </div>
                    </div>
@@ -337,6 +368,22 @@
            </form>
        </div>
        <div style="display:none" id="video_upload_form_wrapper">
+           <p class="editing-mode-info" style="display:block;">
+               Please be aware that your media will not appear on your posterboard
+               for up to a <strong>two minutes</strong>, to allow time for any re-encoding necessary
+               to finish. Your media will appear after that, whether or not the encoding
+               was successful. Please do not attempt to re-upload your media, as it will result
+               in unnecessary duplicate files. The maximum file size is 50MB.
+           </p>
+           <p class="editing-mode-info" style="display:block;">
+               Please upload your video in the <strong><code>ogv</code></strong> format. If you upload an 
+               <strong><code>avi</code></strong>/<strong><code>mpeg</code></strong> video, we will try our best to convert 
+               it successfully, but this isn't guaranteed. Utilities to
+               convert your video to <strong><code>ogv</code></strong> are 
+               <a href="http://video.online-convert.com/convert-to-ogg" target="_blank">
+                   available on the web
+               </a>.
+           </p>
            <form action='elements/' id="video_upload_form" name="video_upload_form" method="post"
             enctype="multipart/form-data">
                <div class="form-submit-errors"></div>
@@ -344,7 +391,32 @@
                <input type="hidden" name="element-type" value="video">
                Video: <input type="file" id="upload-video-field" name="video"><br>
                <input type="submit" id="video_upload_button" value="Upload Video">
-           </form>
+           </form> 
+       </div>
+       <div style="display:none" id="audio_upload_form_wrapper">
+           <p class="editing-mode-info" style="display:block;">
+               Please be aware that your media will not appear on your posterboard
+               for up to a <strong>two minutes</strong>, to allow time for any re-encoding necessary
+               to finish. Your media will appear after that, whether or not the encoding
+               was successful. Please do not attempt to re-upload your media, as it will result
+               in unnecessary duplicate files. The maximum file size is 50MB.
+           </p>
+           <p class="editing-mode-info" style="display:block;">
+               Please upload your audio in the <strong><code>ogg</code></strong>/<strong><code>wav</code></strong> formats.
+               Audio files in other popular formats are not guaranteed to play correctly.
+               Utilities to convert your audio are 
+               <a href="http://www.oggconvert.com/" target="_blank">
+                   available on the web
+               </a>.
+           </p>
+           <form action='elements/' id="audio_upload_form" name="audio_upload_form" method="post"
+            enctype="multipart/form-data">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="element-type" value="audio">
+               audio: <input type="file" id="upload-audio-field" name="audio"><br>
+               <input type="submit" id="audio_upload_button" value="Upload audio">
+           </form> 
        </div>
        {% endif %}
       <!--<canvas id="posterboard{{posterboard.id}}" width="960px" height="900px" class='grid pbgrid'>

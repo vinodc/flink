@@ -12,4 +12,5 @@ class MyCronJob(Component):
     
     def run(self):
         import os
-        os.system('python manage.py vlprocess')
+        import settings
+        os.system('python manage.py vlprocess 2>&1 1>>'+ settings.LOG_FILENAME)

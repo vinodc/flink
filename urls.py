@@ -9,6 +9,9 @@ from django.conf.urls.static import static
 from django.contrib import admin
 admin.autodiscover()
 
+#import django_cron
+#django_cron.autodiscover()
+
 elementpatterns = patterns(
     'app.views',
     url(r'^$', 'elements_handler', name='elements_url'),
