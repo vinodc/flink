@@ -287,6 +287,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         if blogger.id != user.id and posterboard.private:
             return HttpResponseForbidden('Private Posterboard.')
 
+        data['converting'] = False
         element_data = []
         for e in posterboard.element_set.all():
             sset = e.state_set.all()
@@ -299,10 +300,13 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                 type = e.type
                 if type == 'image':
                     ts = s.imagestate
+                elif type == 'audio':
+                    ts = s.audiostate
                 elif type == 'video':
                     ts = s.videostate
                     if((datetime.now() - ts.created_at).seconds < settings.CONVERSION_TIME):
                         # Don't want to display the video before conversion safely over.
+                        data['converting'] = True
                         continue
                 elif type == 'text':
                     ts = s.textstate
@@ -430,7 +434,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     
                 childState = VideoState()
                 childState.original_video=request.FILES['video']
-                #childState.full_clean()
+                childState.clean()
                 if(childState.original_video.size > settings.MAX_UPLOAD_SIZE):
                     data['errors'] = 'File is too large. ' + \
                                      'Max size allowed is '+ \
@@ -443,7 +447,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     data['errors'] = 'No Audio File is Provided. '
                     return ErrorResponse(data['errors'], format)
                     
-                childState = VideoState()
+                childState = AudioState()
                 childState.original_audio=request.FILES['audio']
                 #childState.full_clean()
                 if(childState.original_audio.size > settings.MAX_UPLOAD_SIZE):
@@ -452,7 +456,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                                      str(settings.MAX_UPLOAD_SIZE/1024.0/1024.0) + \
                                      'MB'
                     return ErrorResponse(data['errors'], format)
-                state.videostate = childState
+                state.audiostate = childState
             elif element.type == 'text':
                 childStateForm = TextStateForm(request.POST, prefix='text')
                 if not childStateForm.is_valid():
@@ -473,7 +477,6 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             childState.save()
             
             if(element.type == "video"):
-                import pdb; pdb.set_trace();
                 os.system('python '+ settings.PROJECT_ROOT + '/manage.py vlprocess& 2>&1 1>>'+ settings.LOG_FILENAME)
             
             data['element-id'] = element.id
@@ -531,27 +534,24 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 if 'image' in request.FILES:
                     actual_image.image = request.FILES['image']
             if request.POST['element-type'] == 'video':
-                childStateForm = VideoStateForm(request.POST, prefix='video')
-                if not childStateForm.is_valid():
-                    data['errors'] = 'Video data isn\'t valid: ' + str(childStateForm.errors)
-                    return ErrorResponse(data['errors'], format)
-            
+                childStateForm = VideoStateForm(request.POST, prefix='video')            
                 actual_video = VideoState.objects.get(pk=request.POST['child-id'])
+                actual_video.clean()
                 edit_form = VideoStateForm(request.POST, prefix='video', instance=actual_video)
-                edit_form.is_valid()
-                edit_form.save()
+                #if not edit_form.is_valid():
+                #    data['errors'] = 'Video data isn\'t valid: ' + str(edit_form.errors)
+                #    return ErrorResponse(data['errors'], format)
+                #edit_form.save()
                 if 'video' in request.FILES:
                     actual_video.original_video = request.FILES['video']
             if request.POST['element-type'] == 'audio':
                 childStateForm = AudioStateForm(request.POST, prefix='audio')
-                if not childStateForm.is_valid():
-                    data['errors'] = 'Audio data isn\'t valid: ' + str(childStateForm.errors)
-                    return ErrorResponse(data['errors'], format)
-            
                 actual_audio = AudioState.objects.get(pk=request.POST['child-id'])
                 edit_form = AudioStateForm(request.POST, prefix='audio', instance=actual_audio)
-                edit_form.is_valid()
-                edit_form.save()
+                #if not edit_form.is_valid():
+                #    data['errors'] = 'Audio data isn\'t valid: ' + str(edit_form.errors)
+                #    return ErrorResponse(data['errors'], format)
+                #edit_form.save()
                 if 'audio' in request.FILES:
                     actual_audio.original_audio = request.FILES['audio']
             elif request.POST['element-type'] == 'text':

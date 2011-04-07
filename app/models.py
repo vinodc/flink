@@ -206,17 +206,22 @@ class VideoState(VideoModel):
     def delete(self):
       # Remove video files?
       try:
-          if self.image is not None: self.image.delete()
-          if self.original_video is not None: self.original_video.delete()
-          if self.mp4_video is not None: self.mp4_video.delete()
-          if self.ogv_video is not None: self.ogv_video.delete()
-          if self.flv_video is not None: self.flv_video.delete()
+          if self.image is not None: 
+              self.image.delete()
+          if self.original_video is not None: 
+              self.original_video.delete()
+          if self.mp4_video is not None: 
+              self.mp4_video.delete()
+          if self.ogv_video is not None: 
+              self.ogv_video.delete()
+          if self.flv_video is not None: 
+              self.flv_video.delete()
       except:
           pass
       super(VideoState, self).delete()
       
     def clean(self):
-       return True 
+        return True
    
     def __unicode__(self):
        return "video"+ str(self.pk)
