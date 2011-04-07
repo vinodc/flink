@@ -47,7 +47,7 @@
                         
                         sidebar_out = true;
                         
-                        if($('textarea[type="text"]') != null) {
+                        if($('div[type="text"]') != null) {
                             $('div[type="text"]').replaceWith(
     							function() {
     								return "<textarea " +
@@ -115,7 +115,6 @@
                 /*-----------------------
                   Populating elements
                 ----------------------- */
-                $(pbid).empty();
                 var jsonstring = "{% autoescape off %}{{ element_data }}{%  endautoescape %}";
                 jsonstring = jsonstring.replace(/'/g,'"');
                 var elementsToAdd = JSON.parse(jsonstring);
