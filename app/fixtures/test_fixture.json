@@ -3,11 +3,9 @@
     "pk": 1, 
     "model": "app.blogsettings", 
     "fields": {
-      "set_height": 4, 
       "grid_size": 5, 
       "created_at": "2011-04-04 17:30:38", 
-      "updated_at": "2011-04-04 17:30:38", 
-      "set_width": 4, 
+      "updated_at": "2011-04-04 17:30:38",  
       "blog_title": "My Blog"
     }
   }, 

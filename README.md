@@ -22,5 +22,10 @@ Not a bug: when you signup, the app tries to send a confirmation email.
 if your laptop isnt running a mailserver, it will fail, but just ignore it:
 Your account has been successfully created
 
-To run the unit test:
+Testing:
+
+To load the test data:
+    $ python manage.py loaddata app/fixtures/test_fixture.json 
+
+To run the unit tests:
     $ python manager.py test app

@@ -54,20 +54,8 @@ class BlogSettings(CommonInfo):
     						MaxValueValidator(5),
     						MinValueValidator(1)
     					])
-    					
-    # On blog home page, for each set of posterboards:
-    # Number of grid blocks wide the set is.
-    set_width = models.IntegerField(default=4, 
-                                    validators = [
-                                         MaxValueValidator(8),
-                                         MinValueValidator(1)
-                                    ])
-    # Number of grid blocks high the set is.
-    set_height = models.IntegerField(default=4, 
-                                     validators = [
-                                          MaxValueValidator(6),
-                                          MinValueValidator(1)
-                                     ])
+
+                                     
     def __unicode__(self):
         return self.blog_title + ' settings'
 
@@ -138,8 +126,8 @@ class State(CommonInfo):
     # Position WxH is a factor of grid size.
     position_x = models.IntegerField(default=1, blank=True)
     position_y = models.IntegerField(default=1, blank=True)
-    position_width = models.IntegerField(default=1, blank=True)
-    position_height = models.IntegerField(default=1, blank=True)
+    position_width = models.IntegerField(default=4, blank=True)
+    position_height = models.IntegerField(default=2, blank=True)
     #Orientation is between 0 and 359 degrees.
     orientation = models.IntegerField(default=0, 
                                       validators = [
@@ -182,8 +170,8 @@ class State(CommonInfo):
         if self.orientation is None: self.orientation = 0
         if self.position_x is None: self.position_x = 1
         if self.position_y is None: self.position_y = 1
-        if self.position_width is None: self.position_width = 1
-        if self.position_height is None: self.position_height = 1 
+        if self.position_width is None: self.position_width = 4
+        if self.position_height is None: self.position_height = 2
         
 class ImageState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)

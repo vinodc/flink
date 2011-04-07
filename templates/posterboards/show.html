@@ -44,14 +44,38 @@
                         $( ".element-class" ).draggable( "option", "disabled", false );
                         $( ".element-class" ).resizable( "option", "disabled", false );
                         $( '#edit-status' ).text('Editing Mode');
+                        
                         sidebar_out = true;
+                        
+                        $('div[type="text"]').replaceWith(
+							function() {
+								return "<textarea " +
+                        			"  type='text' "+
+                                    "  id='" + $(this).attr('id') +
+                                    "' child-id='" + $(this).attr('child-id') +
+                                    "' style='width:100%;height:100%;'>"+
+                                    $(this).html() +
+                                    "</textarea>";	
+							});
                     }
                     else{
                         $(sidebartab_id).html($(sidebartab_id).html().replace(/-active(\.[^.]+)$/, '$1'));
                         $( ".element-class" ).draggable( "option", "disabled", true );
                         $( ".element-class" ).resizable( "option", "disabled", true );
                         $( '#edit-status' ).text('Viewing Mode');
+                        
                         sidebar_out = false;
+
+						$('textarea[type="text"]').replaceWith(
+							function() {
+								return "<div " +
+									"  type='text' "+
+									"  id='" + $(this).attr('id') +
+									"' child-id='" + $(this).attr('child-id') +
+									"' style='width:100%;height:100%;'>"+
+									$(this).val() +
+									"</div>";	
+						});
                     }
                 });
                 // http://www.kelvinluck.com/assets/jquery/jScrollPane/jScrollPane.html
@@ -77,19 +101,17 @@
                         directCall : { element: '#audio_upload_form_wrapper' }
                     });
                 });
-                
-                // AJAX REQUEST
-                /*$('#image_upload_form').ajaxForm({ 
-                   success: image_upload_callback, 
-                   dataType: 'json',
-                   type: 'post',
-                });*/
+    
+                $('#text_upload').click(function() {
+                    $('#text_upload_form').submit();
+                });
                 
                 {% endif %}
                 
                 /*-----------------------
                   Populating elements
                 ----------------------- */
+                $(pbid).empty();
                 var jsonstring = "{% autoescape off %}{{ element_data }}{%  endautoescape %}";
                 jsonstring = jsonstring.replace(/'/g,'"');
                 var elementsToAdd = JSON.parse(jsonstring);
@@ -103,22 +125,26 @@
                     typestate = elementdata[2];
                     
                     if(element.fields.type == 'image') {
-                        domstring = "<div id='element" + element.pk +
-                                    "' style='" + elementstyles +
-                                       "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                       "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
-                                       "width:" + (state.fields.position_width * gridArray[0]) +";"+
-                                       "height:" + (state.fields.position_height * gridArray[1]) +";"+
+                        domstring = "<div id='element" + element.pk + "'" +
+                                       " element-type='image'"+
+                                       " style='" + elementstyles +
+                                       " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                                       " top:"+ (state.fields.position_y * gridArray[0]) + ";"+
+                                       " width:" + (state.fields.position_width * gridArray[0]) +";"+
+                                       " height:" + (state.fields.position_height * gridArray[1]) +";"+
                                     "' title='" + state.pk +
                                     "' class='element-class " +
                                     {% if blog_owner %}
                                     " ui-state-disabled " +
                                     {% endif %}
                                     "'>"+
-                                    "<img src='{{ MEDIA_URL }}"+ typestate.fields.image +
+                                    "<img id='state" + state.pk + 
+                                    "' child-id='" + typestate.pk + 
+                                    "' src='{{ MEDIA_URL }}"+ typestate.fields.image +
                                     "' style='width:100%;height:100%;"+
                                     "' alt='"+ typestate.fields.alt +
                                     "'></div>";
+                    }
                     }
                     else if(element.fields.type == 'video') {
                         domstring = "<div id='element" + element.pk +
@@ -132,8 +158,10 @@
                                     {% if blog_owner %}
                                     " ui-state-disabled " +
                                     {% endif %}
-                                    "'>"+
-                                    "<video height='"+ state.fields.position_height * gridArray[1] +
+                                    "' element-type='video'>"+
+                                    "<video id='state" + state.pk + 
+                                    "' child-id='" + typestate.pk + 
+                                    "' height='"+ state.fields.position_height * gridArray[1] +
                                     "' width='"+ state.fields.position_width * gridArray[0] +
                                     "'  preload='auto' controls='video_controls"+element.pk+"'>";
                                     if(typestate.fields.ogv_video != "") {
@@ -163,23 +191,45 @@
                                        "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
                                        "width:" + (state.fields.position_width * gridArray[0]) +";"+
                                        "height:" + (state.fields.position_height * gridArray[1]) +";"+
-                                    "' title='" + state.pk +
-                                    "' class='element-class " +
-                                    {% if blog_owner %}
-                                    " ui-state-disabled " +
-                                    {% endif %}
-                                    "'>"+
-                                    "<audio preload='auto' controls='audio_controls"+element.pk+"'>";
-                                    if(typestate.fields.original_audio != "") {
-                                        domstring +=
-                                        "<source src='"+ {{MEDIA_URL}} + typestate.fields.original_audio +
-                                        "'>";
-                                    }
-                                        domstring +=
-                                        "Your browser does not support the <code>audio</code> element."+
-                                    "</audio>"+
-                                    "</div>";
+                                       "' title='" + state.pk +
+                                       "' class='element-class " +
+                                       {% if blog_owner %}
+                                       " ui-state-disabled " +
+                                       {% endif %}
+                                       "' element-type='audio'>"+
+                                       "<audio id='state" + state.pk + 
+                                       "' child-id='" + typestate.pk +
+                                       "' preload='auto' controls='audio_controls"+element.pk+"'>";
+                                       if(typestate.fields.original_audio != "") {
+                                           domstring +=
+                                           "<source src='"+ {{MEDIA_URL}} + typestate.fields.original_audio +
+                                           "'>";
+                                       }
+                                           domstring +=
+                                           "Your browser does not support the <code>audio</code> element."+
+                                       "</audio>"+
+                                       "</div>";
                     }
+
+                    else if(element.fields.type == 'text') {
+                        var domtext =   "<div " +
+                        			"  type='text' "+
+                                    "  id='state" + state.pk +
+                                    "' child-id='" + typestate.pk +
+                                    "' style='width:100%;height:100%;'>"+
+                                    typestate.fields.content +
+                                    "</div>";
+                        
+                        domstring = "<div id='element" + element.pk + "'" +
+                                       " element-type='text'"+
+                                       " style='" + elementstyles +
+                                       " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                                       " top:"+ (state.fields.position_y * gridArray[0]) + ";"+
+                                       " width:" + (state.fields.position_width * gridArray[0]) +";"+
+                                       " height:" + (state.fields.position_height * gridArray[1]) +";"+
+                                        "'>"+domtext+"</div>";
+                    }
+
                     $(pbid).append(domstring);
                     {% if blog_owner %}
                     make_element_interactive("#element"+ element.pk);
@@ -203,11 +253,10 @@
                 });
                
                 $(document).keydown(function(event) {
-                    // DEL
-                    if (sidebar_out && event.keyCode == 46 && selectedelementid != '') {
+                    // Shift + DEL
+                    if (event.shiftKey && event.keyCode == 46 && selectedelementid != '') {
                         var answer = confirm('Are you sure you want to remove the element?')
                         if(!answer) { return; }
-                        
                         $.ajax({
                             url: 'elements/'+selectedelementid.substr(7)+'.json',
                             data: {
@@ -215,8 +264,8 @@
                                 '_action': 'delete'
                             },
                             method: 'get',
-                            success: function() { $("#"+selectedelementid).remove(); },
-                        }); 
+                            success: function() {$('#'+selectedelementid).remove(); },
+                        });
                     } 
                 });
                
@@ -238,41 +287,22 @@
                     
                     eid = -1;
                 });
-                {% endif %}
                 
+                $(sidebartab_id).click();
+                
+                {% endif %}
+
             });
             
             {% if blog_owner %}
-            // Image
-            function image_upload_callback(responseText, statusText, xhr) {
-                if(xhr.status < 200 || xhr.status > 299) {
-                    $("#image_upload_form .form-submit-errors")
-                        .html('An error occured while uploading the file: ' + responseText.errors);
-                    $("#image_upload_form").effect("highlight", {}, 3000);
-                }
-                else {
-                    $("#image_upload_form_wrapper .form-submit-errors").html('');
-                    add_image_to_posterboard(responseText);
-                    jQuery.fn.modalBox("close");
-                }
-            }
-            
-            function add_image_to_posterboard(responseText) {
-                var id = responseText.element_id;
-                $(pbid).append(responseText.content);
-                make_element_interactive("#element"+id);
-                update_element("#element"+id);
-            }
-            
-            // Video
-            
+                        
             function make_element_interactive(selector) {
                $(selector).draggable({ 
                     containment: pbid, 
                     disabled: true,
                     scroll: false,
                     grid: gridArray,
-                    stack: pbid +" div,img",
+                    stack: pbid +" div,img,text",
                     stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
                 }).resizable({
                     grid: gridArray,
@@ -301,44 +331,49 @@
                     validselect = true;
                     $('#'+selectedelementid).addClass('selected-element');
                 });
+                    
+                if($(selector).attr('element-type') == 'text') {  
+                    $(selector).focusout(function(){
+                        if ($(selector).draggable("option","disabled") == false) {
+                            update_element(selector);
+                        }
+                    });
+                }
+            }
                 
-               /*
-               $(selector).mouseup(function(){
-                   //For now, also call the update element method right here.
-                   update_element(selector);       
-                   return;
-                   
-                   for(var i=0; i<elementsthatchanged.length; i++) {
-                       if(a[i] == selector.substr(1)) {
-                           return;
-                       }
-                   }
-                   elementsthatchanged.push(selector.substr(1));
-               });
-               */
-            }
-            
-            function update_element(selector) {
-                $.ajax({
-                   url: 'elements/'+selector.substr(8)+'.json',
-                   data: {
-                       'csrfmiddlewaretoken': '{{csrf_token}}',
-                       '_action': 'put',
-                       'element-type': 'image',
-                       'element-id': parseInt(selector.substr(8)),
-                       'state-id': $(selector).attr('title'),
-                       'state-position_width': parseInt($(selector).width() / gridArray[0]),
-                       'state-position_height': parseInt($(selector).height() / gridArray[1]),
-                       'state-position_x': parseInt(($(selector).position().left - $(pbid).position().left) / gridArray[0]),
-                       'state-position_y': parseInt(($(selector).position().top - $(pbid).position().top) / gridArray[1]),
-                   },
-                   dataType: 'json',
-                   success: function() { $(selector).effect("highlight", {}, 1000); },
-                   type: 'post'
-                });
-            }
-            
-            {% endif %}
+            function update_element(selector) 
+                {
+                    // Populate Appropriate Fields
+                    var elementData = {};
+                    elementData['csrfmiddlewaretoken'] = '{{csrf_token}}';
+                    elementData['_action']='put';
+                    elementData['element-type']=$(selector).attr('element-type');
+                    elementData['element-id']=parseInt(selector.substr(8));
+                    elementData['state-id']=$(selector).attr('title');
+                    elementData['state-position_width']=parseInt($(selector).width() / gridArray[0]);
+                    elementData['state-position_height']=parseInt($(selector).height() / gridArray[1]);
+                    elementData['state-position_x']=parseInt(($(selector).position().left - $(pbid).position().left) / gridArray[0]);
+                    elementData['state-position_y']=parseInt(($(selector).position().top - $(pbid).position().top) / gridArray[1]);
+                    
+                    var child = $('#state'+$(selector).attr('title')); 
+                    if ($(selector).attr('element-type') == 'image') 
+                    {
+                        elementData['image-alt'] = child.attr('alt');
+                    }
+                    else if ($(selector).attr('element-type') == 'text')
+                    {
+                        elementData['text-content'] = child.val();
+                    }
+                    elementData['child-id']=child.attr('child-id');
+                    
+                    $.ajax({
+                       url: 'elements/'+selector.substr(8)+'.json',
+                       data: elementData,
+                       dataType: 'json',
+                       success: function() { $(selector).effect("highlight", {}, 1000); },
+                       type: 'post',
+                    });
+                }
         </script>
     <div id='content'>
        {% if blog_owner %}
@@ -349,6 +384,7 @@
                    <div id="scrollbar_container">
                        <div id="scrollbar_content">
                            <button id="image_upload">Add Image</button>
+                           <button id="text_upload">Add Text</button>
                            <button id="video_upload">Add Video</button>
                            <button id="audio_upload">Add Audio</button>
                            <!--<button id="save-changes">Save Changes to Posterboard</button>-->
@@ -417,6 +453,15 @@
                audio: <input type="file" id="upload-audio-field" name="audio"><br>
                <input type="submit" id="audio_upload_button" value="Upload audio">
            </form> 
+       <div style="display:none" id="text_upload_form_wrapper">
+           <form action='elements/' id="text_upload_form" name="text_upload_form" method="post"
+            enctype="multipart/form-data">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="element-type" value="text">
+               <textarea name='text-content'>Enter Text Here.</textarea>
+               <input type="submit" id="text_upload_button" value="Upload Text">
+           </form>
        </div>
        {% endif %}
       <!--<canvas id="posterboard{{posterboard.id}}" width="960px" height="900px" class='grid pbgrid'>
@@ -428,7 +473,7 @@
           This is to prevent accidental editing. Elements appear lighter in viewing mode.
        </p>
        <p align='center' class="editing-mode-info" style="display:block;">
-           Select an element by clicking on it. You can delete an element by hitting the Delete key after you select it. <br>
+           Select an element by clicking on it. You can delete an element by hitting the Shift + Delete key after you select it. <br>
            Feel free to drag and drop elements about. They can also be resized. They will be saved automatically.
       </p>
       {% endif %}

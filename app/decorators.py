@@ -55,8 +55,7 @@ def get_blogger_settings(func):
         if blogger is not None:
 		# Find the corresponding settings object for blogger
 		try:
-			#settings = user.blogsettings
-			settings = BlogSettings.objects.get(user=blogger)
+			settings = blogger.blogsettings
 		except:
 			settings = BlogSettings(user=blogger)
 			settings.save()
