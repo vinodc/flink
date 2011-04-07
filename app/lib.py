@@ -25,7 +25,7 @@ def jsonload(jsonstring):
     # Can't handle null values in json string.
     jsonstring = re.sub(r': null,',': "",', jsonstring)
     
-    return json.loads(jsonstring)
+    return eval(jsonstring)
 
 """
 Code for a cron using django_cron:
