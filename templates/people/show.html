@@ -1,6 +1,6 @@
 {% extends "site_base.html" %}
 {% block title %}
-    {{ blogger.first_name }} {{ blogger.last_name }} ({{blogger.username}})| Flink
+    {{ blogger.first_name }} {{ blogger.last_name }} ({{blogger.username}})| {{settings.blog_title}} | Flink
 {% endblock %}
 {% block extra_head %}
     {{ block.super }}
@@ -19,7 +19,7 @@
 	     them editable.
 	  -->
       <p>Here's a list of posterboards. This will soon be updated to be a nice posterboard of 
-         posterboards, just like you'd expect! {{settings.blog_title}}</p>
+         posterboards, just like you'd expect!</p>
       <ul>
       {% for p in posterboards %}
          <li><a href="/people/{{ blogger.username }}/posterboards/{{ p.title_path }}/">{{ p.title }}</a></li>

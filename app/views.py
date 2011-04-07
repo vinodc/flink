@@ -473,6 +473,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             childState.save()
             
             if(element.type == "video"):
+                import pdb; pdb.set_trace();
                 os.system('python '+ settings.PROJECT_ROOT + '/manage.py vlprocess& 2>&1 1>>'+ settings.LOG_FILENAME)
             
             data['element-id'] = element.id
