@@ -47,7 +47,7 @@
                         
                         sidebar_out = true;
                         
-                        if($('div[type="text"]') != null) {
+                        if($('div[type="text"]').length != 0) {
                             $('div[type="text"]').replaceWith(
     							function() {
     								return "<textarea " +
@@ -68,7 +68,7 @@
                         
                         sidebar_out = false;
 
-                        if($('textarea[type="text"]') != null) {
+                        if($('textarea[type="text"]').length != 0) {
     						$('textarea[type="text"]').replaceWith(
     							function() {
     								return "<div " +
@@ -455,7 +455,8 @@
                <input type="hidden" name="element-type" value="audio">
                audio: <input type="file" id="upload-audio-field" name="audio"><br>
                <input type="submit" id="audio_upload_button" value="Upload audio">
-           </form> 
+           </form>
+       </div>
        <div style="display:none" id="text_upload_form_wrapper">
            <form action='elements/' id="text_upload_form" name="text_upload_form" method="post"
             enctype="multipart/form-data">
