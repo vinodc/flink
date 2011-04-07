@@ -236,9 +236,18 @@
                     }
 
                     $(pbid).append(domstring);
+                    
                     {% if blog_owner %}
                     make_element_interactive("#element"+ element.pk);
                     {% endif %}
+                    
+                    // For audio, set the height and width.
+                    if(element.fields.type == 'audio') {
+                        $("#element" + element.pk +" audio").css('height', parseInt($("#element" + element.pk).css('height')));
+                        $("#element" + element.pk +" audio").css('width', parseInt($("#element" + element.pk).css('width')));
+                    }
+                    
+                    // All elements need to be position: absolute.
                     $("#element"+ element.pk).css("position","absolute");
                 });
                 
@@ -317,24 +326,26 @@
                     stack: pbid +" div,img,text,video,audio",
                     stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
                 });
-                if($(selector).attr("element-type") != 'audio') {
-                    $(selector).resizable({
-                        grid: gridArray,
-                        containment: pbid,
-                        disabled: false,
-                        stop: function(event, ui) {
-                            var selector = "#"+$(this).attr('id'); 
-                            // If there are video elements here, alter their width/height too.
-                            if($(selector +" video").length != 0) {
-                               // Only 1 element anyway.
-                               $(selector +" video").attr('height', parseInt($(this).css('height')));
-                               $(selector +" video").attr('width', parseInt($(this).css('width')));
-                            }
-                            update_element(selector); 
-                        },
-                        //animate: true,
-                    });
-                }
+                $(selector).resizable({
+                    grid: gridArray,
+                    containment: pbid,
+                    disabled: false,
+                    stop: function(event, ui) {
+                        var selector = "#"+$(this).attr('id'); 
+                        // If there are video elements here, alter their width/height too.
+                        if($(selector +" video").length != 0) {
+                           // Only 1 element anyway.
+                           $(selector +" video").attr('height', parseInt($(this).css('height')));
+                           $(selector +" video").attr('width', parseInt($(this).css('width')));
+                        }
+                        else if($(selector +" audio").length != 0) {
+                           $(selector +" audio").css('height', parseInt($(this).css('height')));
+                           $(selector +" audio").css('width', parseInt($(this).css('width')));
+                        }
+                        update_element(selector); 
+                    },
+                    //animate: true,
+                });
                 
                 $(selector).mousedown(function(){
                     if(!sidebar_out) { return; }
@@ -344,16 +355,16 @@
                     // If element with id exists and is not the element selected, change the class.
                     if(selectedelementid != $(this).attr('id') && selectedelementid != "") {
                         subselector = '#' + selectedelementid;
-                        if($(subselector).attr("element-type") == 'audio') {
+                        /*if($(subselector).attr("element-type") == 'audio') {
                             subselector += ' audio';
-                        }
+                        }*/
                         $(subselector).removeClass('selected-element');
                     }
                     
                     subselector = '#' + $(this).attr('id');
-                    if($(subselector).attr("element-type") == 'audio') {
+                    /*if($(subselector).attr("element-type") == 'audio') {
                         subselector += ' audio';
-                    }
+                    }*/
                     $(subselector).addClass('selected-element');
                     
                     validselect = true;
