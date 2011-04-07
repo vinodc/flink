@@ -244,3 +244,16 @@ class AudioState(CommonInfo):
    
     def __str__(self):
         return self.__unicode__()
+        
+class ThumbnailState(CommonInfo):
+    state = models.OneToOneField(State, editable=False, primary_key=True)
+    thumbnail_name = models.CharField(max_length=25, default='thumbnail')
+    alt = models.CharField('alt', max_length=250, blank = True)
+    image = models.ImageField(upload_to='images', max_length=255, editable=False)
+    
+    def __unicode__(self):
+        return self.blog_title + ' settings'
+        
+    def delete(self):
+        self.image.delete()
+        super(ThumbnailState,self).delete()
