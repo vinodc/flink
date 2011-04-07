@@ -327,6 +327,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             return render_to_response('posterboards/show.html',
                                       {'blogger': blogger,
                                         'posterboard': posterboard,
+                                        'converting': data['converting'],
                                         'element_data': data['element_data'],
                                         'blog_owner': blogger.id == user.id},
                                       context_instance=RequestContext(request))
@@ -477,7 +478,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             childState.save()
             
             if(element.type == "video"):
-                os.system('python '+ settings.PROJECT_ROOT + '/manage.py vlprocess& 2>&1 1>>'+ settings.LOG_FILENAME)
+                    os.system('python '+ settings.PROJECT_ROOT + '/manage.py vlprocess& 2>&1 1>>'+ settings.LOG_FILENAME)
             
             data['element-id'] = element.id
             data['state-id'] = state.id

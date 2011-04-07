@@ -395,7 +395,7 @@
                     elementData['state-position_x']=parseInt(($(selector).position().left) / gridArray[0]);
                     elementData['state-position_y']=parseInt(($(selector).position().top) / gridArray[1]);
                     
-                    var child = $('#state'+$(selector).attr('title')); 
+                    var child = $('#state'+$(selector).attr('state-id')); 
                     if ($(selector).attr('element-type') == 'image') 
                     {
                         elementData['image-alt'] = child.attr('alt');
@@ -512,8 +512,13 @@
       <p align='center' style="text-align:center" id="edit-status">Viewing Mode</p>
       {% if converting %}
       <p align='center' style='text-align:center' id='converting-info'>
-          <img src='{{ STATIC_URL }}images/converting.gif'> Converting uploaded media.
+          <img src='{{ STATIC_URL }}images/jquery-modalbox-1.2.0/ajax-loader.gif'> Converting uploaded media.
       </p>
+      <script type="text/javascript">
+          setTimeout(function() {
+                window.location.reload();
+          },60000);
+      </script>
       {% endif %}
       <p align='center' class="editing-mode-info" style="display:block;">
           Use left sidebar to switch modes.The elements <strong>cannot</strong> be edited while in <strong>Viewing Mode</strong>.<br>
