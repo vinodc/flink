@@ -349,12 +349,15 @@
                         }
                         $(subselector).removeClass('selected-element');
                     }
+                    
                     subselector = '#' + $(this).attr('id');
                     if($(subselector).attr("element-type") == 'audio') {
                         subselector += ' audio';
                     }
-                    validselect = true;
                     $(subselector).addClass('selected-element');
+                    
+                    validselect = true;
+                    selectedelementid = $(this).attr('id');
                 });
                     
                 if($(selector).attr('element-type') == 'text') {  
