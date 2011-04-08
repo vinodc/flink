@@ -11,8 +11,7 @@ from django.contrib.auth.models import User
 from app.models import *
 from app.forms import *
 from selenium import selenium
-import unittest, time, re
-import os, time, coverage
+import os, time, coverage, unittest, re
 
 """
 To save a fixture using current database:

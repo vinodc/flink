@@ -37,8 +37,8 @@ def test():
         result = local('kill `cat /tmp/flink-cherrypy.pid`', capture=True)
     
     local('python cherrypy_static_server.py')
-    local('java -jar testing-utilities/selenium-server.jar &')
-    pid = local('echo $!')
-    local('echo ' + pid)
-    #with settings(warn_only=True):
-    local('python manage.py test app') #, capture=True)
+    #local('java -jar testing-utilities/selenium-server.jar &')
+    #pid = local('echo $!')
+    #local('echo ' + pid)
+    with settings(warn_only=True):
+        local('python manage.py test app') #, capture=True)
