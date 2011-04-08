@@ -28,3 +28,16 @@ def deploy():
     #local('python manage.py crond --pidfile=/tmp/flink-crond.pid 2>&1')
     local('python cherrypy_static_server.py')
     local('python manage.py runserver')
+
+#to run automated selenium tests
+#have the selenium server running!! 
+def test():
+    with settings(warn_only=True):
+        result = local('kill `cat /tmp/flink-cherrypy.pid`', capture=True)
+    
+    local('python cherrypy_static_server.py')
+    local('java -jar testing-utilities/selenium-server.jar &')
+    pid = local('echo $!')
+    local('echo ' + pid)
+    #with settings(warn_only=True):
+    local('python manage.py test app') #, capture=True)
