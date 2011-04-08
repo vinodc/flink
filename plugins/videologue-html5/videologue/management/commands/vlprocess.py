@@ -318,6 +318,16 @@ def convertvideoogv(convert, video_data):
     video = convert.video
 
     sourcefile = video.original_video.path
+    
+    if sourcefile[-3:] == 'ogv' or sourcefile[-3:] == 'ogg':
+        targetfile = video.original_video
+        convert.error = 'Already an ogv or ogg file.'
+        convert.save()
+        video.ogv_video.save('%s.ogv' % video.pk, File( targetfile ) )
+        video.save()
+        print convert.error
+        return
+            
     targetfile = NamedTemporaryFile(suffix='.ogv')
 
     ffmpeg = (  '%(ffmpeg)s -y -i "%(infile)s" '

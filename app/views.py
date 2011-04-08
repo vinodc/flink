@@ -58,30 +58,6 @@ def new_posterboards_handler(request, blogger=None, format=None):
     return render_to_response('posterboards/new.html',{},
                               context_instance=RequestContext(request))
                               
-@login_required
-@get_blogger
-@csrf_exempt
-def new_form_handler(request, modelname=None, blogger=None, format=None):
-    """
-    Render the forms required to create new objects.
-    blogger and format arguments not required.
-    """
-    model_mapping = {
-        'posterboards': Posterboard,
-        }
-    fields_mapping = {
-        'posterboards': ('title', 'private'),
-        }
-
-    data = {}
-    if model_mapping.has_key(modelname):
-        fs = modelformset_factory(model_mapping[modelname], fields=fields_mapping[modelname])
-        data['formset'] = fs(queryset=model_mapping[modelname].objects.none())
-        return render_to_response(modelname +'/new.html', data,
-                                  context_instance=RequestContext(request))
-    else:
-        return HttpResponseBadRequest()
-
 @handle_handlers
 @login_required
 def settings_handler(request, format='html'):
@@ -327,6 +303,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             return render_to_response('posterboards/show.html',
                                       {'blogger': blogger,
                                         'posterboard': posterboard,
+                                        'converting': data['converting'],
                                         'element_data': data['element_data'],
                                         'blog_owner': blogger.id == user.id},
                                       context_instance=RequestContext(request))
@@ -477,7 +454,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             childState.save()
             
             if(element.type == "video"):
-                os.system('python '+ settings.PROJECT_ROOT + '/manage.py vlprocess& 2>&1 1>>'+ settings.LOG_FILENAME)
+                    os.system('python '+ settings.PROJECT_ROOT + '/manage.py vlprocess& 2>&1 1>>'+ settings.LOG_FILENAME)
             
             data['element-id'] = element.id
             data['state-id'] = state.id
