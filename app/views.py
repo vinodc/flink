@@ -118,6 +118,7 @@ def profile_handler(request, format='html'):
         #so at this point: we got the form from the edit_settings page and now we'll
         #use it to save it to the user's settings object
         settingsForm = BlogSettingsForm(request.POST, instance=blogsettings)
+        import pdb; pdb.set_trace();
         if settingsForm.is_valid():
             settingsForm.save()
             data['message'] = 'New grid size is: ' + str(blogsettings.grid_size)
@@ -189,8 +190,6 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
 
         nexthomepage = False
         prevhomepage = False
-        if len(pbs) > 1:
-            prevhomepage = pbs[1]
             
         if len(pbs) < 1:
             # Not a single homepage?! Create one.
@@ -202,6 +201,8 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
             posterboard.save()
         elif homepageid is None:
             posterboard = pbs[0]
+            if len(pbs) > 1:
+                prevhomepage = pbs[1]
         else:
             # This isn't really the posterboad, it's an array 
             # that should have it as the only element.
@@ -209,6 +210,8 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
             posterboard = pbs.filter(id=homepageid)
             if len(posterboard) == 0:
                 posterboard = pbs[0]
+                if len(pbs) > 1:
+                    prevhomepage = pbs[1]
             else:
                 posterboard = posterboard[0]
                 for i in range (0,len(pbs)):
@@ -240,7 +243,7 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
         #logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
         #logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
 
-        unlinked_pbs = user.posterboard_set.filter(is_user_home_page=False, 
+        unlinked_pbs = blogger.posterboard_set.filter(is_user_home_page=False, 
                                                    imagestate__linkedposterboard=None)
         unlinked_pbs = unlinked_pbs.order_by('-created_at')
 
@@ -359,7 +362,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             return render_to_response('posterboards/show.html',
                                       {'blogger': blogger,
                                         'posterboard': posterboard,
-                          #              'linked': linked,
+                                        'linked': linked,
                                         'converting': data['converting'],
                                         'element_data': data['element_data'],
                                         'blog_owner': blogger.id == user.id},
