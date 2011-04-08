@@ -540,23 +540,41 @@ class ProfileHandlerTest(TestCase):
 # Bad Behavior Test
 
 '''
-class SettingsHandlerTest(TestCase):
+class TestSettings(unittest.TestCase):
+    fixtures = ['test_fixture.json']
+    
     def setUp(self):
         self.verificationErrors = []
-        self.selenium = selenium("localhost", 4444, "*chrome", "http://www.google.com/")
+        [self.c, self.user] = login_user('test','test')
+        self.selenium = selenium("localhost", 4444, "*chrome", "http://localhost:8000/")
         self.selenium.start()
     
-    def test_test(self):
+    def test_settings(self):
         sel = self.selenium
-        sel.open("/search?source=ig&hl=en&rlz=1G1GGLQ_ENUS374&q=hello+world&aq=f&aqi=g10&aql=&oq=")
-        sel.click("link=Hello world program - Wikipedia, the free encyclopedia")
+        sel.open("/")
+        sel.click("link=Login")
         sel.wait_for_page_to_load("30000")
-        sel.click("link=computer program")
+        sel.type("id_email", "test@test.com")
+        sel.type("id_password", "test")
+        sel.click("id_remember")
+        sel.click("id_remember")
+        sel.click("//button[@type='submit']")
         sel.wait_for_page_to_load("30000")
+        sel.click("link=Settings")
+        sel.wait_for_page_to_load("30000")
+        sel.click("//input[@value='Edit Settings']")
+        sel.wait_for_page_to_load("30000")
+        sel.select("id_grid_size", "label=Grid Size 3")
+        sel.click("//input[@value='Submit']")
+        sel.wait_for_page_to_load("30000")
+        sel.click("//input[@value='Edit Settings']")
+        sel.wait_for_page_to_load("30000")
+        sel.select("id_grid_size", "label=Grid Size 4")
+        sel.click("//input[@value='Submit']")
+        sel.wait_for_page_to_load("30000")
+        self.failUnless(sel.is_text_present("New grid size is: 4"))
+        self.failUnless(sel.is_text_present("old gridsize : 3"))
     
     def tearDown(self):
         self.selenium.stop()
         self.assertEqual([], self.verificationErrors)
-
-if __name__ == "__main__":
-    unittest.main()
