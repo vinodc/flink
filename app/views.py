@@ -89,10 +89,10 @@ def profile_handler(request, format='html'):
     
     #check to make sure that a BlogSettings object has been created for the user
     try:
-	blogsettings = current_user.blogsettings
+        blogsettings = current_user.blogsettings
     except:
-	blogsettings = BlogSettings(user=current_user)
-	blogsettings.save()
+        blogsettings = BlogSettings(user=current_user)
+        blogsettings.save()
                 
     if request.method == 'GET':
         data = {'profile':
@@ -122,7 +122,7 @@ def profile_handler(request, format='html'):
             settingsForm.save()
             data['message'] = 'New grid size is: ' + str(blogsettings.grid_size)
         else:
-            error = {'errors': 'BlogSettingsFrom did not validate!'}
+            error = {'errors': 'BlogSettingsForm did not validate!'}
     	    return ErrorResponse(error, format)
           
         if format=='html':

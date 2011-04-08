@@ -42,6 +42,7 @@ def test():
     with settings(warn_only=True):
         result = local('kill `cat /tmp/flink-cherrypy.pid`', capture=True)
     
+    local('python manage.py loaddata test_fixture.json')
     local('python cherrypy_static_server.py')
     
     popen = subprocess.Popen('python manage.py runserver', shell=True)

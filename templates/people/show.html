@@ -28,7 +28,7 @@
                <div id="editbar_contents_inner">
                    <div id="scrollbar_container">
                        <div id="scrollbar_content">
-                           <button id="image_upload">Add Image</button>
+                           <button id="image_upload">New Thumbnail</button>
                            <button id="pb_delete">Remove Page</button>
                            <button id="add_user_home_page">Add a Page</button>
                        </div>
@@ -41,6 +41,10 @@
             id="image_upload_form" name="image_upload_form" method="post" enctype="multipart/form-data">
                <div class="form-submit-errors"></div>
                {% csrf_token %}
+               <p class="editing-mode-info" style="display:block;">
+               Note: you must first have some existing posterboards so as 
+               to create thumbnails for them on you user home page. 
+               </p>
                <input type="hidden" name="element-type" value="image">
                Image: <input type="file" id="upload-image-field" name="image"><br>
                <select id="select-linked-posterboard" name="linked-posterboard">
