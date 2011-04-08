@@ -358,14 +358,16 @@ def posterboards_handler(request, blogger=None, posterboard=None,
 
     # create, make sure to check user.id as only logged in user can create new posterboard
     elif user.id and request.method == 'POST':
-        pbForm = PosterboardForm(request.POST)           
+        pbForm = PosterboardForm(request.POST)
+        if pbForm.data['title'] is None or pbForm.data['title'] == '':
+            pbForm.data['title'] = 'userhomepage'
         if pbForm.is_valid():
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
             posterboard = pbForm.save(commit=False)
             try:
+                posterboard.user = user
                 posterboard.full_clean()
-                user.posterboard_set.add(posterboard)
                 posterboard.save()
             except ValidationError, e:
                 return ErrorResponse(str(e), format)
@@ -513,6 +515,10 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             childState.save()
             
             if(element.type == "video"):
+                if settings.VIDEO_CONVERT_SYNC:
+                    from videologue.management.commands.vlprocess import process_files
+                    process_files()
+                else: 
                     os.system('python '+ settings.PROJECT_ROOT + '/manage.py vlprocess& 2>&1 1>>'+ settings.LOG_FILENAME)
             
             data['element-id'] = element.id

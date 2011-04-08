@@ -95,8 +95,12 @@ class Posterboard(CommonInfo):
                                  blank=True, null=True)
 
     def clean(self):
-        if self.title == "userhomepage":
-            self.title += " "+str(Posterboard.objects.filter(user=self.user).count()+1)
+        try:
+            if self.title == "userhomepage" and self.user is not None:
+                self.title += " "+str(Posterboard.objects.filter(user=self.user).count()+1)
+        except:
+            # Probably just form validation here.
+            pass
         self.title_path = title_to_path(self.title)
         if len(self.title_path) < 5:
             raise ValidationError('Please enter a longer posterboard title', 

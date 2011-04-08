@@ -110,8 +110,6 @@ class PosterboardHandlerTest (TestCase):
         self.title = 'testposterboardpost'
     
     def create_posterboard_general(self, title='', private=False, is_user_home_page=False):
-        if is_user_home_page:
-            title = "userhomepage"
         data = {
             'title': title,
             'private': private,
@@ -176,6 +174,7 @@ class PosterboardHandlerTest (TestCase):
         pb_path = container['posterboard-path']
         
         self.assertEqual(Posterboard.objects.get(pk=pb_id).is_user_home_page, True)
+        self.assertRegexpMatches(pb_path, r'^userhomepage-\d+$', 'User home page title malformed: ' + pb_path)
         self.assertEqual(self.delete_posterboard(pb_path).status_code, 200)
         self.assertEqual(len(Posterboard.objects.filter(pk=pb_id)), 0)
     
@@ -266,9 +265,13 @@ class ElementHandlerTest (TestCase):
     fixtures = ['test_fixture.json']
     
     def setUp(self):
+        settings.VIDEO_CONVERT_SYNC = True
+        
         [self.c, self.user] = login_user('test','test')
         self.pb = Posterboard.objects.filter(user__username=self.user.username)[0]
+        self.uhp = Posterboard.objects.filter(user__username=self.user.username, is_user_home_page=True)[0]
         self.pbpath = '/people/'+self.user.username+'/posterboards/'+self.pb.title_path+'/elements/'
+        self.uhppath = '/people'+self.user.username+'/posterboards/'+self.uhp.title_path+'/elements/'
 
         # Set paths to files.
         self.imagepath = os.path.join(settings.TEST_MEDIA_ROOT,'mountains.jpg')
@@ -277,13 +280,16 @@ class ElementHandlerTest (TestCase):
         self.audiopath = os.path.join(settings.TEST_MEDIA_ROOT,'shimmer.wav')
         
     
-    def create_image(self):
+    def create_image(self, homepage=False):
         img = open(self.imagepath,'rb')
         data = {
             'element-type':'image',
             'image':img
         }
-        response = self.c.post(self.pbpath[:-1]+'.json',data)
+        if(homepage):
+            response = self.c.post(self.uhppath[:-1]+'.json',data)
+        else:
+            response = self.c.post(self.pbpath[:-1]+'.json',data)
         img.close()
         return response
     
@@ -305,13 +311,6 @@ class ElementHandlerTest (TestCase):
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
         video.close()
-        # Give video time to convert
-        sleeprange = range(0,60)
-        sleeprange.reverse()
-        for i in sleeprange:
-            if i % 10 == 0:
-                print str(i) + "..."
-            time.sleep(1)
         return response
 
     def create_audio(self):
@@ -438,11 +437,14 @@ class ElementHandlerTest (TestCase):
             val = eval('state.'+key)
             self.assertEqual(property[key],val)
     
-    def delete_element(self, id):
+    def delete_element(self, id, homepage=False):
         data = {
             '_action':'delete'
         }
-        response = self.c.get(self.pbpath+str(id)+'/.json',data)
+        if(homepage):
+            response = self.c.get(self.uhppath+str(id)+'/.json',data)
+        else:
+            response = self.c.get(self.pbpath+str(id)+'/.json',data)
         return response
     
     def delete_state(self, response):
@@ -458,7 +460,7 @@ class ElementHandlerTest (TestCase):
         self.assertEqual(self.delete_element(element_id).status_code, 200)
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0)
     
-    def est_create_delete_one_video(self):
+    def test_create_delete_one_video(self):
         response = self.create_video()
         container = eval(response._container[0])
         self.assertEqual(response.status_code, 200)
@@ -467,7 +469,7 @@ class ElementHandlerTest (TestCase):
         self.assertEqual(self.delete_element(element_id).status_code, 200)
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0)
 
-    def est_create_delete_one_video_to_convert(self):
+    def test_create_delete_one_video_to_convert(self):
         response = self.create_video_to_convert()
         container = eval(response._container[0])
         self.assertEqual(response.status_code, 200)
@@ -476,8 +478,8 @@ class ElementHandlerTest (TestCase):
         self.assertEqual(self.delete_element(element_id).status_code, 200)
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0)
 
-    def est_create_delete_one_audio(self):
-        response = self.create_video()
+    def test_create_delete_one_audio(self):
+        response = self.create_audio()
         container = eval(response._container[0])
         self.assertEqual(response.status_code, 200)
         element_id = container['element-id']
@@ -508,7 +510,7 @@ class ElementHandlerTest (TestCase):
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0) 
         self.assertEqual(len(ImageState.objects.filter(pk=state_id)), 0) 
         
-    def est_update_one_video(self):
+    def test_update_one_video(self):
         response = self.create_video()
         container = eval(response._container[0])
         self.assertEqual(response.status_code, 200)
@@ -522,7 +524,7 @@ class ElementHandlerTest (TestCase):
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0) 
         self.assertEqual(len(VideoState.objects.filter(pk=state_id)), 0)
         
-    def est_update_one_audio(self):
+    def test_update_one_audio(self):
         response = self.create_audio()
         container = eval(response._container[0])
         self.assertEqual(response.status_code, 200)
