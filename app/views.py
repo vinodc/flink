@@ -187,6 +187,11 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
             pbs = blogger.posterboard_set.filter(private=False)
         pbs = pbs.filter(is_user_home_page=True).order_by('-created_at').all()
 
+        nexthomepage = False
+        prevhomepage = False
+        if len(pbs) > 1:
+            prevhomepage = pbs[1]
+            
         if len(pbs) < 1:
             # Not a single homepage?! Create one.
             posterboard = Posterboard()
@@ -206,7 +211,13 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
                 posterboard = pbs[0]
             else:
                 posterboard = posterboard[0]
-            
+                for i in range (0,len(pbs)):
+                    if pbs[i].id == posterboard.id:
+                        if i > 0:
+                            nexthomepage = pbs[i-1]
+                        if i < len(pbs)-1:
+                            prevhomepage = pbs[i+1]
+                            
         element_data = []
         for e in posterboard.element_set.all():
             sset = e.state_set.all()
@@ -238,6 +249,8 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
             return render_to_response('people/show.html',
                                       {'blogger': blogger,
                                        'userhomepages': pbs,
+                                       'nexthomepage': nexthomepage,
+                                       'prevhomepage': prevhomepage,
                                        'posterboard': posterboard,
                                        'unlinkedposterboards': unlinked_pbs,
                                        'element_data': data['element_data'],
@@ -356,8 +369,10 @@ def posterboards_handler(request, blogger=None, posterboard=None,
 
     # create, make sure to check user.id as only logged in user can create new posterboard
     elif user.id and request.method == 'POST':
-        pbForm = PosterboardForm(request.POST)
-        if pbForm.data['title'] is None or pbForm.data['title'] == '':
+        pbForm = PosterboardForm(request.POST,initial={'title':'userhomepage'})
+        if (not pbForm.data.has_key('title')) or pbForm.data['title'] is None or pbForm.data['title'] == '':
+            import pdb; pdb.set_trace();
+            pbForm.data = pbForm.data.copy()
             pbForm.data['title'] = 'userhomepage'
         if pbForm.is_valid():
             # commit=False creates and returns the model object but doesn't save it.
