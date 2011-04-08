@@ -680,15 +680,12 @@ class ProfileHandlerTest(TestCase):
         self.test_get_profile()
     
     def test_good_post_get_profile(self):
-        new_blog_title = 'new_title!'
         new_grid_size = 3
         data = {
-                'blog_title': new_blog_title,
                 'grid_size': new_grid_size
             }
         response = self.c.post('/profile/.json',data)
         self.assertEqual(response.status_code,200)
-        self.assertEqual(self.user.blogsettings.blog_title,new_blog_title)
         self.assertEqual(self.user.blogsettings.grid_size,new_grid_size)
     
     def test_settings_handler(self):
