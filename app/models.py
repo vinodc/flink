@@ -7,6 +7,8 @@ from decimal import *
 import datetime
 from app.lib import title_to_path, jsonload
 
+import re
+
 from videologue.models import VideoModel
 
 def reserved_keywords(value):
@@ -14,10 +16,11 @@ def reserved_keywords(value):
     Makes sure the value isn't a reserved word such as 'new',
     which is used in our REST setup.
     """
-    reserved = ['new']
-    if value in reserved:
-        raise ValidationError(u'The identifier cannot be' +
-                              u'the reserved word %s' % value)
+    reserved = ['^new$']
+    for regex in reserved:
+        if re.search(regex,value):
+            raise ValidationError(u'The identifier cannot be' +
+                                  u'the reserved word %s' % value)
  
 #-------------------------------
 #
@@ -60,15 +63,17 @@ class BlogSettings(CommonInfo):
         return self.blog_title + ' settings'
 
 class Posterboard(CommonInfo):
-    title = models.CharField('title', unique=True, max_length=125,
+    title = models.CharField('title', max_length=125,
                              validators=[
                                  MinLengthValidator(5),
                                  reserved_keywords])
     # Gets created during validation in clean()
-    title_path = models.CharField('title', unique=True, max_length=250,
+    title_path = models.CharField('title', max_length=250,
                                   editable=False)
     private = models.BooleanField('private?', default=False)
     user = models.ForeignKey(User, editable=False)
+    
+    is_user_home_page = models.BooleanField('user home page', default=False)
     
     # Regarding display on the User Home Page (UHP).
     # Each set is a set of posterboards starting from 1 onwards and control
@@ -87,6 +92,8 @@ class Posterboard(CommonInfo):
                                  blank=True, null=True)
 
     def clean(self):
+        if self.title == "userhomepage":
+            self.title += " "+str(Posterboard.objects.filter(user=self.user).count()+1)
         self.title_path = title_to_path(self.title)
         if len(self.title_path) < 5:
             raise ValidationError('Please enter a longer posterboard title', 
@@ -94,6 +101,9 @@ class Posterboard(CommonInfo):
         reserved_keywords(self.title_path)
         if self.snapshot_width is None: self.snapshot_width = 1
         if self.snapshot_height is None: self.snapshot_height = 1 
+        if self.is_user_home_page is None: self.is_user_home_page = False
+        if re.search('^userhomepage', self.title) and not self.is_user_home_page:
+            raise ValidationError('Cannot begin title with "userhomepage"')
 
     def __unicode__(self):
         return self.title
@@ -105,6 +115,10 @@ class Posterboard(CommonInfo):
         #            'blogger': self.user.username, 
         #            'posterboard': self.title_path,
         #            'format':'html'})
+        
+    class Meta:
+        unique_together = ('title','user')
+        unique_together = ('title_path', 'user')
 
 ELEMENT_TYPE_CHOICES = (('image','image'),('audio','audio'),('video','video'),('text','text'))
 class Element(CommonInfo):

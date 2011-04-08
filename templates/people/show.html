@@ -1,30 +1,45 @@
-{% extends "site_base.html" %}
+{% extends "posterboards/show.html" %}
 {% block title %}
     {{ blogger.first_name }} {{ blogger.last_name }} ({{blogger.username}})| {{settings.blog_title}} | Flink
 {% endblock %}
 {% block extra_head %}
     {{ block.super }}
-
+    
 {% endblock %}
 {% block content %}
-    <div id='content'>
-      <div class='grid_{{settings.grid_size}} pbgrid'>
-	<!-- 
-	     There shouldn't be any hardcoded elements here.
-	     All elements must be carefully added via jQuery and kept track of.
-	     When an element is added or removed, their unique, randomly generated IDs
-	     must be stored in javascript and regularly transmitted to the server
-	     in an attempt to 'save' the current state of the elements.
-	     All elements must be draggable, resizeable and extend properties that make
-	     them editable.
-	  -->
-      <p>Here's a list of posterboards. This will soon be updated to be a nice posterboard of 
-         posterboards, just like you'd expect!</p>
-      <ul>
-      {% for p in posterboards %}
-         <li><a href="/people/{{ blogger.username }}/posterboards/{{ p.title_path }}/">{{ p.title }}</a></li>
-      {% endfor %}
-      </ul>
-      </div>
-    </div>
+    {{ block.super }}   
+    {% block editbar %}{% endblock %}
+    {% if blog_owner %}
+       <div id="editbar">
+           <a href="javascript:void(0);" id="edit_toggle"><span id="edit_toggle_text">Edit Bar</span></a>
+           <div id="editbar_contents" style="display: none">
+               <div id="editbar_contents_inner">
+                   <div id="scrollbar_container">
+                       <div id="scrollbar_content">
+                           <button id="image_upload">Add Image</button>
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>
+       <div style="display:none" id="image_upload_form_wrapper">
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/' 
+            id="image_upload_form" name="image_upload_form" method="post" enctype="multipart/form-data">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="element-type" value="image">
+               Image: <input type="file" id="upload-image-field" name="image"><br>
+               <input type="submit" id="image_upload_button" value="Upload Image">
+           </form>
+       </div>
+    {% endif %}
+    
+Posterboards:
+<ul>
+{% for homepage in userhomepages %}
+   <li>
+       <a href="/people/{{blogger.username}}/homepages/{{homepage.id}}">{{ forloop.revcounter }}</a>
+   </li>
+{% endfor %}
+</ul>    
 {% endblock %}
