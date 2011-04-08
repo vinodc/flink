@@ -80,8 +80,6 @@
             {% endif %}
             
             $(document).ready(function(){
-                //canvas = document.getElementById("posterboard{{posterboard.id}}");
-                //ctx = canvas.getContext("2d");
                 
                 {% if blog_owner %}
                 $(sidebartab_id).click(function(){
@@ -473,6 +471,7 @@
             {% endif %}
         </script>
     <div id='content'>
+       {% block editbar %}
        {% if blog_owner %}
        <div id="editbar">
            <a href="javascript:void(0);" id="edit_toggle"><span id="edit_toggle_text">Edit Bar</span></a>
@@ -562,8 +561,7 @@
            </form>
        </div>
        {% endif %}
-      <!--<canvas id="posterboard{{posterboard.id}}" width="960px" height="900px" class='grid pbgrid'>
-      </canvas>-->
+
       {% if blog_owner %}
       <p align='center' style="text-align:center" id="edit-status">Viewing Mode</p>
       {% if converting %}
@@ -609,6 +607,7 @@
           </div>
       </div>
       {% endif %}
+      {% endblock %}
       <br>
       <div id="posterboard{{posterboard.id}}" class='grid pbgrid'>
 	<!-- 
