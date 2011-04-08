@@ -50,5 +50,5 @@ def test():
     # End the manage.py processes... all of them.
     popen.kill()
     with settings(warn_only=True):
-        local('ps aux | grep "runserver$" | grep -v grep | awk "/\d+/{print $2}" | xargs kill')
-        local('ps aux | grep "selenium-server.jar$" | grep -v grep | awk "/\d+/{print $2}" | xargs kill')
+        local("ps aux | grep 'runserver$' | grep -v grep | awk '/\d+/{print $2}' | xargs kill")
+        local("ps aux | grep 'selenium-server.jar$' | grep -v grep | awk '/\d+/{print $2}' | xargs kill")
