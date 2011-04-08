@@ -32,7 +32,10 @@ def deploy():
 
 #to run automated selenium tests
 #have the selenium server running!! 
-def test():
+
+# Run:
+# java -jar testing-utilities/selenium-server.jar
+def test():    
     with settings(warn_only=True):
         result = local('kill `cat /tmp/flink-cherrypy.pid`', capture=True)
     

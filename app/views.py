@@ -22,7 +22,7 @@ from app.forms import PosterboardForm, ImageStateForm, StateForm, BlogSettingsFo
 from app.models import Posterboard, BlogSettings, Element, State, \
     ImageState, TextState, AudioState, VideoState
 from app.decorators import get_blogger, get_element, get_posterboard, \
-    get_set, handle_handlers, get_blogger_settings
+    handle_handlers, get_blogger_settings
 
 # Logger:
 from settings import logger
@@ -259,16 +259,6 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
     elif format == 'json':
         return HttpResponse(json.dumps(error), mimetype='application/json',
                             status=400)
-
-
-@handle_handlers
-@get_blogger
-@get_set
-def sets_handler(request, blogger=None, set=None, format='html'):
-    user = request.user
-    # TODO
-    return HttpResponseNotFound()
-
 
 @handle_handlers
 @get_blogger

@@ -61,19 +61,18 @@ class PeopleHandlerTest(TestCase):
 
     def test_get_user_home(self):
         data = { }
-        response = self.c1.get(self.peoplepath1+'.json',data)
+        response = self.c.get(self.peoplepath+'.json',data)
         self.assertEqual(response.status_code,200)
         container = eval(response._container[0])
         
         blogger = container['blogger']
-        user = self.user1
-        self.assertEqual(self.user1.username,blogger['username'])
-        self.assertEqual(self.user1.first_name,blogger['first_name'])
-        self.assertEqual(self.user1.last_name,blogger['last_name'])
-        self.assertEqual(self.user1.get_full_name(),blogger['full_name'])
+        self.assertEqual(self.user.username,blogger['username'])
+        self.assertEqual(self.user.first_name,blogger['first_name'])
+        self.assertEqual(self.user.last_name,blogger['last_name'])
+        self.assertEqual(self.user.get_full_name(),blogger['full_name'])
         
         settings = container['settings']
-        userSettings = self.user1.blogsettings
+        userSettings = self.user.blogsettings
         self.assertEqual(userSettings.grid_size,settings['grid_size'])
         self.assertEqual(userSettings.blog_title,settings['blog_title'])        
         
@@ -270,6 +269,8 @@ class ElementHandlerTest (TestCase):
         [self.c, self.user] = login_user('test','test')
         self.pb = Posterboard.objects.filter(user__username=self.user.username)[0]
         self.uhp = Posterboard.objects.filter(user__username=self.user.username, is_user_home_page=True)[0]
+        self.pbpage = '/people/'+self.user.username+'/posterboards/'+self.pb.title_path
+        self.uhpage ='/people/'+self.user.username+'/posterboards/'+self.uhp.title_path
         self.pbpath = '/people/'+self.user.username+'/posterboards/'+self.pb.title_path+'/elements/'
         self.uhppath = '/people'+self.user.username+'/posterboards/'+self.uhp.title_path+'/elements/'
 
@@ -278,8 +279,12 @@ class ElementHandlerTest (TestCase):
         self.videopath = os.path.join(settings.TEST_MEDIA_ROOT,'test-video.ogv')
         self.videotoconvertpath = os.path.join(settings.TEST_MEDIA_ROOT,'SUMMER.MPG')
         self.audiopath = os.path.join(settings.TEST_MEDIA_ROOT,'shimmer.wav')
-        
     
+    def checkPageLoad(self, page):
+        check = self.c.get(page+'/.json',{})
+        self.assertEqual(check.status_code,200)
+
+        
     def create_image(self, homepage=False):
         img = open(self.imagepath,'rb')
         data = {
@@ -288,9 +293,13 @@ class ElementHandlerTest (TestCase):
         }
         if(homepage):
             response = self.c.post(self.uhppath[:-1]+'.json',data)
+            self.checkPageLoad(self.uhpage)
         else:
             response = self.c.post(self.pbpath[:-1]+'.json',data)
+            self.checkPageLoad(self.pbpage)
+            
         img.close()
+        
         return response
     
     def create_video(self):
@@ -301,6 +310,8 @@ class ElementHandlerTest (TestCase):
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
         video.close()
+        self.checkPageLoad(self.pbpage)        
+
         return response
 
     def create_video_to_convert(self):
@@ -310,6 +321,7 @@ class ElementHandlerTest (TestCase):
             'video':video
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
+
         video.close()
         return response
 
@@ -320,7 +332,9 @@ class ElementHandlerTest (TestCase):
             'audio':audio
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
+        self.checkPageLoad(self.pbpage) 
         audio.close()
+        
         return response
 
     def update_image_wrapper(self, state_id, alt):
@@ -397,6 +411,8 @@ class ElementHandlerTest (TestCase):
             'text-content':'This is a test text line.'
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
+        self.checkPageLoad(self.pbpage)         
+        
         return response
 
     def update_text_wrapper(self, state_id, content):

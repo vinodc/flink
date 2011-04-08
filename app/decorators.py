@@ -5,15 +5,6 @@ from django.contrib.auth.models import User
 
 from settings import logger
 
-def wrap_in_a(tag):
-    """
-    Wrap the result of a function in a `tag` HTML tag.
-    """
-    def _dec(func):
-        def _new_func(*args, **kwargs):
-            return "<%s>%s</%s>" % (tag, func(*args, **kwargs), tag)
-        return _new_func
-
 def handle_handlers(func):
     """
     Handle stuff.
@@ -64,29 +55,6 @@ def get_blogger_settings(func):
         return func(*args, **kwargs)
     return _dec
         
-def get_set(func):
-    """
-    Get the posterboard that the 'posterboard' refers to.
-    """
-    def _dec(*args, **kwargs):
-        blogger = kwargs.get('blogger')
-        pbset = kwargs.get('set')
-
-        if blogger is None:
-            logger.info("Attempt to access PB set without blogger o.O")
-            return HttpResponseForbidden('Please specify a blogger first.')
-        
-        try:
-            pbset = int(pbset)
-        except ValueError:
-            logger.info('Attempt to access PB set' + str(pbset))
-            return HttpResponseBadRequest('Set should be an id, '+
-                                          'which is a number.')
-
-        kwargs['set'] = pbset
-        return func(*args, **kwargs)
-    return _dec
-
 def get_posterboard(func):
     """
     Get the posterboard that the 'posterboard' refers to.
