@@ -122,7 +122,7 @@ def profile_handler(request, format='html'):
             settingsForm.save()
             data['message'] = 'New grid size is: ' + str(blogsettings.grid_size)
         else:
-            error = {'errors': 'BlogSettingsFrom did not validate!'}
+            error = {'errors': 'BlogSettingsForm did not validate!'}
     	    return ErrorResponse(error, format)
           
         if format=='html':

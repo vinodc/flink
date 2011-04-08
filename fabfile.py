@@ -34,14 +34,12 @@ def deploy():
 
 #to run automated selenium tests
 #have the selenium server running!! 
-
 # java -jar testing-utilities/selenium-server.jar
-#manually kill the django test server: kill <pid>
-#can get pid from "ps -aux"
 def test():
     with settings(warn_only=True):
         result = local('kill `cat /tmp/flink-cherrypy.pid`', capture=True)
     
+    local('java -jar testing-utilities/selenium-server.jar &')
     local('python cherrypy_static_server.py')
     
     popen = subprocess.Popen('python manage.py runserver', shell=True)
@@ -49,4 +47,8 @@ def test():
     with settings(warn_only=True):
         local('python manage.py test app')
         
+    # End the manage.py processes... all of them.
     popen.kill()
+    with settings(warn_only=True):
+        local('ps aux | grep "runserver$" | grep -v grep | awk "/\d+/{print $2}" | xargs kill')
+        local('ps aux | grep "selenium-server.jar$" | grep -v grep | awk "/\d+/{print $2}" | xargs kill')
