@@ -17,6 +17,7 @@
                    <div id="scrollbar_container">
                        <div id="scrollbar_content">
                            <button id="image_upload">Add Image</button>
+                           <button id="pb_delete">Remove Page</button>
                        </div>
                    </div>
                </div>
@@ -30,6 +31,14 @@
                <input type="hidden" name="element-type" value="image">
                Image: <input type="file" id="upload-image-field" name="image"><br>
                <input type="submit" id="image_upload_button" value="Upload Image">
+           </form>
+       </div>
+       <div style="display:none" id="pb_delete_form_wrapper">
+           <form action='/people/{{blogger.username}}/' id="pb_delete_form" name="pb_delete_form" method="get">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="_action" value="delete">
+               <input type="submit" id="pb_delete_button" value="Delete Posterboard">
            </form>
        </div>
     {% endif %}
