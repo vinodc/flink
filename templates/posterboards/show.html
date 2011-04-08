@@ -180,11 +180,17 @@
                     elementstyles += 'cursor:pointer;'
                 {% endif %}
                 
-                var element, state, typestate, domstring;
+                var element, state, typestate, linkedpb, domstring;
                 $.each(elementsToAdd, function(index, elementdata) {
                     element = elementdata[0];
                     state = elementdata[1];
                     typestate = elementdata[2];
+                    if(elementdata.length > 3) {
+                        linkedpb = elementdata[3];
+                    }
+                    else {
+                        linkedpb = null;
+                    }
                     
                     if(element.fields.type == 'image') {
                         domstring = "<div id='element" + element.pk + "'" +
@@ -199,13 +205,21 @@
                                     {% if blog_owner %}
                                     " ui-state-disabled " +
                                     {% endif %}
-                                    "'>"+
+                                    "'>";
+                                    if(linkedpb != null) {
+                                        domstring += "<a href='/people/{{blogger.username}}/posterboards/"+linkedpb.fields.title_path+"'>";
+                                    }
+                                    domstring +=
                                     "<img id='state" + state.pk + 
                                     "' child-id='" + typestate.pk + 
                                     "' src='{{ MEDIA_URL }}"+ typestate.fields.image +
                                     "' style='width:100%;height:100%;"+
                                     "' alt='"+ typestate.fields.alt +
-                                    "'></div>";
+                                    "'>";
+                                    if(linkedpb != null) {
+                                        domstring += "</a>";
+                                    }
+                                    domstring += "</div>";
                     }
                     else if(element.fields.type == 'video') {
                         domstring = "<div id='element" + element.pk +
@@ -591,6 +605,12 @@
                 window.location.reload();
           },60000);
       </script>
+      {% endif %}
+      {% if not linked %}
+         <div class="link-posterboard-info" style="display:block;">
+            Hey there. We notice this posterboard isn't yet linked from your 
+            <a href="/people/{{blogger.username}}">home page</a>. Don't forget!
+         </div>
       {% endif %}
       <p align='center' class="editing-mode-info" style="display:block;">
           Use left sidebar to switch modes.The elements <strong>cannot</strong> be edited while in <strong>Viewing Mode</strong>.<br>

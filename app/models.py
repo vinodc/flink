@@ -112,6 +112,11 @@ class Posterboard(CommonInfo):
         if re.search('^userhomepage', self.title) and not self.is_user_home_page:
             raise ValidationError('Cannot begin title with "userhomepage"')
 
+    def delete(self):
+        for element in Element.objects.filter(posterboard=self):
+            element.delete()
+        super(Posterboard,self).delete()
+
     def __unicode__(self):
         return self.title
     
@@ -198,7 +203,10 @@ class ImageState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)
     alt = models.CharField('alt', max_length=250, blank = True)
     image = models.ImageField(upload_to='images', max_length=255, editable=False)
-       
+    # For user home page.
+    linkedposterboard = models.OneToOneField(Posterboard, editable=False, 
+                                             null=True, blank=True)
+    
     def delete(self):
         self.image.delete()
         super(ImageState,self).delete()
@@ -206,7 +214,6 @@ class ImageState(CommonInfo):
 class TextState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)
     content = models.TextField(blank = True)
-       
 
 # TODO: create the rest of the <Type>State models.
 # Use the same format as above. If you have defaults for anything, be sure to include
@@ -270,16 +277,3 @@ class AudioState(CommonInfo):
    
     def __str__(self):
         return self.__unicode__()
-        
-class ThumbnailState(CommonInfo):
-    state = models.OneToOneField(State, editable=False, primary_key=True)
-    thumbnail_name = models.CharField(max_length=25, default='thumbnail')
-    alt = models.CharField('alt', max_length=250, blank = True)
-    image = models.ImageField(upload_to='images', max_length=255, editable=False)
-    
-    def __unicode__(self):
-        return self.thumbnail_name 
-        
-    def delete(self):
-        self.image.delete()
-        super(ThumbnailState,self).delete()

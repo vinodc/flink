@@ -30,8 +30,18 @@
                {% csrf_token %}
                <input type="hidden" name="element-type" value="image">
                Image: <input type="file" id="upload-image-field" name="image"><br>
-               <input type="submit" id="image_upload_button" value="Upload Image">
+               <select id="select-linked-posterboard" name="linked-posterboard">
+               {% for posterboard in unlinkedposterboards %}
+                    <option>{{posterboard.title}}</option>
+               {% endfor %}
+               </select>
+               <input type="submit" id="image_upload_button" value="Upload Image" disabled='1'>
            </form>
+           <script type="text/javascript">
+               if($("#select-linked-posterboard").find("option").length >= 1) {
+                   $("#image_upload_button").removeAttr("disabled");
+               }
+           </script>
        </div>
        <div style="display:none" id="pb_delete_form_wrapper">
            <form action='/people/{{blogger.username}}/' id="pb_delete_form" name="pb_delete_form" method="get">
@@ -51,4 +61,14 @@ Posterboards:
    </li>
 {% endfor %}
 </ul>    
+
+<script type="text/javascript">
+    $(document).ready(function(){
+       $(".element-class a").click(function(){
+          if(sidebar_out) {
+              return false;
+          }
+       }); 
+    });
+</script>
 {% endblock %}

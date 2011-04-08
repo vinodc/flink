@@ -99,7 +99,7 @@ body {
     position: relative;
 }
 
-.editing-mode-info, .editing-mode-help {
+.editing-mode-info, .editing-mode-help, .link-posterboard-info {
     display:none;
     text-align:center;
     font-size:smaller; 
@@ -111,6 +111,10 @@ body {
     margin-left: auto;
     margin-right: auto;
     text-align: left;
+}
+
+.link-posterboard-info {
+    font-size: medium;
 }
 
 .ui-resizable-helper { border: 1px dotted gray; }

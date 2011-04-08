@@ -220,21 +220,26 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
                 type = e.type
                 if type == 'image':
                     ts = s.imagestate
+                    p = ts.linkedposterboard
                 else:
                     logger.debug(u"Can't get type state for type %s" % type)
-            element_data.append(jsonload(serializers.serialize('json', [e, s, ts])))
+            element_data.append(jsonload(serializers.serialize('json', [e, s, ts, p])))
         data['element_data'] = element_data
 
         #logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
         #logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
 
-        # TODO: pbs is an array of posterboards.
+        unlinked_pbs = user.posterboard_set.filter(is_user_home_page=False, 
+                                                   imagestate__linkedposterboard=None)
+        unlinked_pbs = unlinked_pbs.order_by('-created_at')
 
+        # TODO: pbs is an array of posterboards.
         if format == 'html':
             return render_to_response('people/show.html',
                                       {'blogger': blogger,
                                        'userhomepages': pbs,
                                        'posterboard': posterboard,
+                                       'unlinkedposterboards': unlinked_pbs,
                                        'element_data': data['element_data'],
                                        'blog_owner': blogger.id == user.id},
                                       context_instance=RequestContext(request))
@@ -292,7 +297,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         if blogger.id == user.id:
             pbs = blogger.posterboard_set.filter(is_user_home_page=False).all()
         else:
-            pbs = blogger.posterboard_set.filter(private=False,is_user_home_page=False).all()
+            pbs = blogger.posterboard_set.filter(private=False,
+                                                 user_home_page=False).all()
 
         if format == 'html':
             return render_to_response('posterboards/index.html',
@@ -349,10 +355,17 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         #logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
         #logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
 
+        linked = True
+        try:
+            posterboard.imagestate
+        except:
+            linked = False
+
         if format == 'html':
             return render_to_response('posterboards/show.html',
                                       {'blogger': blogger,
                                         'posterboard': posterboard,
+                          #              'linked': linked,
                                         'converting': data['converting'],
                                         'element_data': data['element_data'],
                                         'blog_owner': blogger.id == user.id},
@@ -462,6 +475,19 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     
                 childState = ImageState()
                 childState.image=request.FILES['image']
+                if(request.POST.has_key('linked-posterboard')):
+                    linkpb = request.POST['linked-posterboard']
+                    if(linkpb is not None):
+                        pblist = user.posterboard_set.filter(is_user_home_page=False, title=linkpb).all()
+                        if(len(pblist) > 0):
+                            childState.linkedposterboard = pblist[0]
+                        else:
+                            data['errors'] = 'Invalid posterboard.'
+                            return ErrorResponse(data['errors'], format)
+                    else:
+                        data['errors'] = 'No posterboard to link to provided.'
+                        return ErrorResponse(data['errors'], format)
+                        
                 childState.full_clean()
                 state.imagestate = childState
 

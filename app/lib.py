@@ -24,6 +24,8 @@ def jsonload(jsonstring):
     """
     # Can't handle null values in json string.
     jsonstring = re.sub(r': null,',': "",', jsonstring)
+    jsonstring = re.sub(r': false,',': "false",', jsonstring)
+    jsonstring = re.sub(r': true,',': "true",', jsonstring)
     
     return eval(jsonstring)
 
