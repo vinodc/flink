@@ -13,6 +13,16 @@ from app.forms import *
 from selenium import selenium
 import os, time, coverage, unittest, re
 
+import threading
+
+import urllib
+
+
+
+from django.core.servers import basehttp 
+
+from django.core.handlers.wsgi import WSGIHandler 
+
 """
 To save a fixture using current database:
 ./manage.py dumpdata app auth --all --indent=2 > app/fixtures/test_fixture.json
@@ -608,10 +618,9 @@ class ProfileHandlerTest(TestCase):
 '''
 class TestSettings(TestCase):
     fixtures = ['test_fixture.json']
-    
+     
     def setUp(self):
         self.verificationErrors = []
-        self.start_test_server('localhost', 8000)
         self.selenium = selenium("localhost", 4444, "*firefox", "http://localhost:8000/")
         self.selenium.start()
     
@@ -643,4 +652,4 @@ class TestSettings(TestCase):
     
     def tearDown(self):
         self.selenium.stop()
-        #self.assertEqual([], self.verificationErrors)
+        self.assertEqual([], self.verificationErrors)
