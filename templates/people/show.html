@@ -44,7 +44,7 @@
            </script>
        </div>
        <div style="display:none" id="pb_delete_form_wrapper">
-           <form action='/people/{{blogger.username}}/' id="pb_delete_form" name="pb_delete_form" method="get">
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/' id="pb_delete_form" name="pb_delete_form" method="get">
                <div class="form-submit-errors"></div>
                {% csrf_token %}
                <input type="hidden" name="_action" value="delete">

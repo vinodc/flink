@@ -25,12 +25,7 @@ posterboardpatterns = patterns(
     url(r'^$', 'posterboards_handler', name='posterboards_url'),
     url(r'^new[/$]', 'new_posterboards_handler'),
     
-    # Get a particular set of posterboards.
-    url(r'^sets/?(\.(?P<format>(json|html)))?$', 'sets_handler',
-        name='sets_url'),
-    url(r'^sets/(?P<set>\d+)/?(\.(?P<format>(json|html)))?$', 
-        'sets_handler', name='set_url'),
-    
+    # Get a particular set of posterboards.    
     url(r'^(?P<posterboard>[^./]+)/?(\.(?P<format>(json|html)))?$',
         'posterboards_handler', name='posterboard_url'),
     (r'^(?P<posterboard>[^./]+)/elements(/|/?\.(?P<format>(json|html))$)',

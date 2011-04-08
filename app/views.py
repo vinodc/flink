@@ -22,7 +22,7 @@ from app.forms import PosterboardForm, ImageStateForm, StateForm, BlogSettingsFo
 from app.models import Posterboard, BlogSettings, Element, State, \
     ImageState, TextState, AudioState, VideoState
 from app.decorators import get_blogger, get_element, get_posterboard, \
-    get_set, handle_handlers, get_blogger_settings
+    handle_handlers, get_blogger_settings
 
 # Logger:
 from settings import logger
@@ -70,8 +70,7 @@ def settings_handler(request, format='html'):
         data = {'profile':
                 {'username': user.username,
                  'email': user.email
-                 },
-                'blogsettingsform': blogsettingsform,
+                 }
                 }
         
         if format=='html':
@@ -88,7 +87,7 @@ def settings_handler(request, format='html'):
 def profile_handler(request, format='html'):
     current_user = request.user
     
-    #check to make sure that a BlogSettings object has been crated for the user
+    #check to make sure that a BlogSettings object has been created for the user
     try:
 	blogsettings = current_user.blogsettings
     except:
@@ -170,7 +169,7 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # GET request with a specific user, so show that user's blog.
-    elif request.method == 'GET' and blogger is not None:
+    elif request.method == 'GET' and not request.GET.has_key('_action') and blogger is not None:
         data = {'blogger':
                 {'first_name': blogger.first_name,
                  'last_name': blogger.last_name,
@@ -221,9 +220,10 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
                 if type == 'image':
                     ts = s.imagestate
                     p = ts.linkedposterboard
-                else:
-                    logger.debug(u"Can't get type state for type %s" % type)
+                #else:
+                #    logger.debug(u"Can't get type state for type %s" % type)
             element_data.append(jsonload(serializers.serialize('json', [e, s, ts, p])))
+
         data['element_data'] = element_data
 
         #logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
@@ -247,37 +247,18 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
             return HttpResponse(json.dumps(data), mimetype='application/json')
         
     # DELETE request, to delete that specific blog and user. Error for now.
-    elif request.method == 'DELETE' and blogger is not None and \
-            (blogger.id == user.id and blogger.username == user.username):
+    elif request.method == 'GET' and request.GET.has_key('_action') and request.GET['_action']=='delete' \
+        and blogger is not None and (blogger.id == user.id and blogger.username == user.username):
         # Trying to delete themselves? Not handling it for now.
         data = {'blogger':
                 {'username': blogger.username,
                  'full_name': blogger.get_full_name()},
                 'errors': 'User deletion not supported this way.'}
-        if format == 'html':
-            return render_to_response('people/show.html', data,
-                                      context_instance=RequestContext(request))
-        elif format == 'json':
-            return HttpResponse(json.dumps(data), mimetype='application/json')
+        return ErrorResponse(data,format);
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
-    if format == 'html':
-        return render_to_response('people/index.html', error,
-                                  context_instance=RequestContext(request))
-    elif format == 'json':
-        return HttpResponse(json.dumps(error), mimetype='application/json',
-                            status=400)
-
-
-@handle_handlers
-@get_blogger
-@get_set
-def sets_handler(request, blogger=None, set=None, format='html'):
-    user = request.user
-    # TODO
-    return HttpResponseNotFound()
-
+    return ErrorResponse(error,format);    
 
 @handle_handlers
 @get_blogger
@@ -289,7 +270,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
 
     # Extra check for redundancy. This is already handled in the decorator.
     if blogger is None:
-        logger.info("Attempt to access PB without blogger o.O")
+        #logger.info("Attempt to access PB without blogger o.O")
         return HttpResponseForbidden('Please specify a blogger first.')
 
     # index
@@ -342,15 +323,15 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                         continue
                 elif type == 'text':
                     ts = s.textstate
-                else:
-                    logger.debug(u"Can't get type state for type %s" % type)
-            if settings.DEBUG:
-                logger.info("\nSerializing: "+ str(s.__dict__) + str(e.__dict__) + str(ts.__dict__))
-                logger.info("\nSerialized: "+ serializers.serialize('json', [e, s, ts]))
+                #else:
+                #    logger.debug(u"Can't get type state for type %s" % type)
+            #if settings.DEBUG:
+            #    logger.info("\nSerializing: "+ str(s.__dict__) + str(e.__dict__) + str(ts.__dict__))
+            #    logger.info("\nSerialized: "+ serializers.serialize('json', [e, s, ts]))
             element_data.append(jsonload(serializers.serialize('json', [e, s, ts])))
         data['element_data'] = element_data
-        if settings.DEBUG:
-            logger.info("\nElement data: "+ str(element_data))                    
+        #if settings.DEBUG:
+        #    logger.info("\nElement data: "+ str(element_data))                    
 
         #logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
         #logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
@@ -566,7 +547,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
             data['errors'] = 'Element data isn\'t valid: ' + str(elementform.errors)
-            logger.debug('Errors creating Element: '+ data['errors'])
+            #logger.debug('Errors creating Element: '+ data['errors'])
             return ErrorResponse(data['errors'], format)
 
     # Batch update elements

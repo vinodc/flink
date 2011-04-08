@@ -13,6 +13,16 @@ from app.forms import *
 from selenium import selenium
 import os, time, coverage, unittest, re
 
+import threading
+
+import urllib
+
+
+
+from django.core.servers import basehttp 
+
+from django.core.handlers.wsgi import WSGIHandler 
+
 """
 To save a fixture using current database:
 ./manage.py dumpdata app auth --all --indent=2 > app/fixtures/test_fixture.json
@@ -27,6 +37,60 @@ def login_user (username, password):
     c = Client()
     c.login(username=username, password=password)
     return [c, user]
+
+"""
+# Normal Behavior Test
+- Get a list of users
+- Get user homepage, and if one does not exist,
+    one has to be created
+
+# Bad Behavior Test
+- Attempts to delete a user
+"""
+class PeopleHandlerTest(TestCase):
+    fixtures = ['test_fixture.json']
+    
+    def setUp(self):
+        [self.c, self.user] = login_user('test','test')
+        [self.c1, self.user1] = login_user('vinod','vinod')
+        self.peoplepath = '/people/'+self.user.username
+        self.peoplepath1 = '/people/'+self.user1.username
+
+    def test_get_all_users(self):
+        data = { }
+        response = self.c.get('/people/.json',data)
+        self.assertEqual(response.status_code,200)
+        container = eval(response._container[0])
+        for blogger in container['bloggers']:
+            blogger_name = blogger['username']
+            user = User.objects.get(username=blogger_name)
+            self.assertEqual(user.username,blogger['username'])            
+            self.assertEqual(user.first_name,blogger['first_name'])
+            self.assertEqual(user.last_name,blogger['last_name'])
+            self.assertEqual(user.get_full_name(),blogger['full_name'])
+
+    def test_get_user_home(self):
+        data = { }
+        response = self.c1.get(self.peoplepath1+'.json',data)
+        self.assertEqual(response.status_code,200)
+        container = eval(response._container[0])
+        
+        blogger = container['blogger']
+        self.assertEqual(self.user1.username,blogger['username'])
+        self.assertEqual(self.user1.first_name,blogger['first_name'])
+        self.assertEqual(self.user1.last_name,blogger['last_name'])
+        self.assertEqual(self.user1.get_full_name(),blogger['full_name'])
+        
+        settings = container['settings']
+        userSettings = self.user1.blogsettings
+        self.assertEqual(userSettings.grid_size,settings['grid_size'])
+        self.assertEqual(userSettings.blog_title,settings['blog_title'])        
+        
+    def test_delete_user(self):
+        data = {'_action':'delete'
+                }
+        response = self.c.get(self.peoplepath+'.json',data)
+        self.assertEqual(response.status_code,400)
 
 """
 List of Tests for Posterboard Handler
@@ -215,6 +279,8 @@ class ElementHandlerTest (TestCase):
         [self.c, self.user] = login_user('test','test')
         self.pb = Posterboard.objects.filter(user__username=self.user.username)[0]
         self.uhp = Posterboard.objects.filter(user__username=self.user.username, is_user_home_page=True)[0]
+        self.pbpage = '/people/'+self.user.username+'/posterboards/'+self.pb.title_path
+        self.uhpage ='/people/'+self.user.username+'/posterboards/'+self.uhp.title_path
         self.pbpath = '/people/'+self.user.username+'/posterboards/'+self.pb.title_path+'/elements/'
         self.uhppath = '/people'+self.user.username+'/posterboards/'+self.uhp.title_path+'/elements/'
 
@@ -223,8 +289,12 @@ class ElementHandlerTest (TestCase):
         self.videopath = os.path.join(settings.TEST_MEDIA_ROOT,'test-video.ogv')
         self.videotoconvertpath = os.path.join(settings.TEST_MEDIA_ROOT,'SUMMER.MPG')
         self.audiopath = os.path.join(settings.TEST_MEDIA_ROOT,'shimmer.wav')
-        
     
+    def checkPageLoad(self, page):
+        check = self.c.get(page+'/.json',{})
+        self.assertEqual(check.status_code,200)
+
+        
     def create_image(self, homepage=False):
         img = open(self.imagepath,'rb')
         data = {
@@ -233,9 +303,13 @@ class ElementHandlerTest (TestCase):
         }
         if(homepage):
             response = self.c.post(self.uhppath[:-1]+'.json',data)
+            self.checkPageLoad(self.uhpage)
         else:
             response = self.c.post(self.pbpath[:-1]+'.json',data)
+            self.checkPageLoad(self.pbpage)
+            
         img.close()
+        
         return response
     
     def create_video(self):
@@ -246,6 +320,8 @@ class ElementHandlerTest (TestCase):
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
         video.close()
+        self.checkPageLoad(self.pbpage)        
+
         return response
 
     def create_video_to_convert(self):
@@ -255,6 +331,7 @@ class ElementHandlerTest (TestCase):
             'video':video
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
+
         video.close()
         return response
 
@@ -265,7 +342,9 @@ class ElementHandlerTest (TestCase):
             'audio':audio
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
+        self.checkPageLoad(self.pbpage) 
         audio.close()
+        
         return response
 
     def update_image_wrapper(self, state_id, alt):
@@ -342,6 +421,8 @@ class ElementHandlerTest (TestCase):
             'text-content':'This is a test text line.'
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
+        self.checkPageLoad(self.pbpage)         
+        
         return response
 
     def update_text_wrapper(self, state_id, content):
@@ -571,6 +652,9 @@ List of Tests for Profile Handler
 - Get basic personal information from profile page
 - Change personal information and get basic personal information again to
     verify that it correctly display the updated information
+- Post a change in personal information and get
+    it to verify that post is successful
+- Check the page that modify settings
 
 # Bad Behavior Test
 - If a user tries to Get basic personal information when not logged in
@@ -595,6 +679,22 @@ class ProfileHandlerTest(TestCase):
         self.user.save()
         self.test_get_profile()
     
+    def test_good_post_get_profile(self):
+        new_blog_title = 'new_title!'
+        new_grid_size = 3
+        data = {
+                'blog_title': new_blog_title,
+                'grid_size': new_grid_size
+            }
+        response = self.c.post('/profile/.json',data)
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(self.user.blogsettings.blog_title,new_blog_title)
+        self.assertEqual(self.user.blogsettings.grid_size,new_grid_size)
+    
+    def test_settings_handler(self):
+        response = self.c.get('/profile/settings/.json')
+        self.assertEqual(response.status_code,200)
+    
     def test_not_logged_in(self):
         self.c.logout()
         response = self.c.get('/profile/.json')
@@ -610,10 +710,9 @@ class ProfileHandlerTest(TestCase):
 '''
 class TestSettings(TestCase):
     fixtures = ['test_fixture.json']
-    
+     
     def setUp(self):
         self.verificationErrors = []
-        self.start_test_server('localhost', 8000)
         self.selenium = selenium("localhost", 4444, "*firefox", "http://localhost:8000/")
         self.selenium.start()
     
@@ -645,4 +744,4 @@ class TestSettings(TestCase):
     
     def tearDown(self):
         self.selenium.stop()
-        #self.assertEqual([], self.verificationErrors)
+        self.assertEqual([], self.verificationErrors)
