@@ -12,7 +12,7 @@ from app.models import *
 from app.forms import *
 from selenium import selenium
 import unittest, time, re
-import os
+import os, time, coverage
 
 """
 To save a fixture using current database:
