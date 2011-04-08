@@ -34,6 +34,8 @@ def deploy():
 
 #to run automated selenium tests
 #have the selenium server running!! 
+#manually kill the django test server: kill <pid>
+#can get pid from "ps -aux"
 def test():
     with settings(warn_only=True):
         result = local('kill `cat /tmp/flink-cherrypy.pid`', capture=True)
