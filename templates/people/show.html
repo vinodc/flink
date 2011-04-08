@@ -7,6 +7,18 @@
     
 {% endblock %}
 {% block content %}
+<div id="homepage-navigation">
+    {% if nexthomepage %}
+    <span id="text-align:right;float:right">
+        <a href="/people/{{blogger.username}}/homepages/{{nexthomepage.id}}">Newer</a>
+    </span>
+    {% endif %}
+    {% if prevhomepage %}
+    <span id="text-align:left;float:left">    
+        <a href="/people/{{blogger.username}}/homepages/{{prevhomepage.id}}">Older</a>
+    </span>
+    {% endif %}
+</div>
     {{ block.super }}   
     {% block editbar %}{% endblock %}
     {% if blog_owner %}
@@ -18,6 +30,7 @@
                        <div id="scrollbar_content">
                            <button id="image_upload">Add Image</button>
                            <button id="pb_delete">Remove Page</button>
+                           <button id="add_user_home_page">Add a Page</button>
                        </div>
                    </div>
                </div>
@@ -43,6 +56,22 @@
                }
            </script>
        </div>
+        <div style="display:none" id="add_homepage_form_wrapper">
+           <p class="editing-mode-info" style="display:block;">
+               You are about to add another page to display your posterboards on! WTG!
+               You can always remove it later if you feel like. Note that deleting a page
+               won't delete the actual posterboards you've displayed links to on it. Deleting
+               images that link to posterboards frees them up to be added to other pages (such as 
+               the one you're about to create).
+           </p>
+           <form action='/people/{{blogger.username}}/posterboards/' id="add_homepage_form" name="add_homepage_form" 
+            method="post">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="is_user_home_page" value='1'>
+               <input type="submit" align="center" style="width:100%;padding:1em;" id="add_homepage_confirm" value="Go!">
+           </form>
+       </div>
        <div style="display:none" id="pb_delete_form_wrapper">
            <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/' id="pb_delete_form" name="pb_delete_form" method="get">
                <div class="form-submit-errors"></div>
@@ -52,7 +81,7 @@
            </form>
        </div>
     {% endif %}
-    
+<!--
 Posterboards:
 <ul>
 {% for homepage in userhomepages %}
@@ -60,6 +89,7 @@ Posterboards:
        <a href="/people/{{blogger.username}}/homepages/{{homepage.id}}">{{ forloop.revcounter }}</a>
    </li>
 {% endfor %}
+-->
 </ul>    
 
 <script type="text/javascript">
@@ -69,6 +99,14 @@ Posterboards:
               return false;
           }
        }); 
+       $(".element-class img").css("border-style","none");
+       
+       $("#add_user_home_page").click(function() {
+            jQuery.fn.modalBox("close");
+            jQuery.fn.modalBox({
+                directCall : { element: '#add_homepage_form_wrapper' }
+            });
+        });
     });
 </script>
 {% endblock %}

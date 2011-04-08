@@ -511,7 +511,7 @@
            </div>
        </div>
        <div style="display:none" id="image_upload_form_wrapper">
-           <form action='elements/' id="image_upload_form" name="image_upload_form" method="post"
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/' id="image_upload_form" name="image_upload_form" method="post"
             enctype="multipart/form-data">
                <div class="form-submit-errors"></div>
                {% csrf_token %}
@@ -537,7 +537,7 @@
                    available on the web
                </a>.
            </p>
-           <form action='elements/' id="video_upload_form" name="video_upload_form" method="post"
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/' id="video_upload_form" name="video_upload_form" method="post"
             enctype="multipart/form-data">
                <div class="form-submit-errors"></div>
                {% csrf_token %}
@@ -562,7 +562,7 @@
                    available on the web
                </a>.
            </p>
-           <form action='elements/' id="audio_upload_form" name="audio_upload_form" method="post"
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/' id="audio_upload_form" name="audio_upload_form" method="post"
             enctype="multipart/form-data">
                <div class="form-submit-errors"></div>
                {% csrf_token %}
@@ -572,7 +572,7 @@
            </form>
        </div>
        <div style="display:none" id="text_upload_form_wrapper">
-           <form action='elements/' id="text_upload_form" name="text_upload_form" method="post"
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/' id="text_upload_form" name="text_upload_form" method="post"
             enctype="multipart/form-data">
                <div class="form-submit-errors"></div>
                {% csrf_token %}
