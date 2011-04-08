@@ -113,6 +113,8 @@ class Posterboard(CommonInfo):
             raise ValidationError('Cannot begin title with "userhomepage"')
 
     def delete(self):
+        for thumb in ImageState.objects.filter(linkedposterboard=self):
+            thumb.delete()
         for element in Element.objects.filter(posterboard=self):
             element.delete()
         super(Posterboard,self).delete()
@@ -142,7 +144,7 @@ class Element(CommonInfo):
        return self.posterboard.title + ' element' + str(self.id)
    
     def delete(self):
-        for state in State.objects.filter(pb_element=self):
+        for state in State.objects.filter(pb_element=self):            
             state.delete()
         super(Element,self).delete()
 
@@ -179,6 +181,7 @@ class State(CommonInfo):
                                     MaxValueValidator(10000)
                                 ], blank=True)
     def delete(self):
+        element = self.pb_element
         for state in ImageState.objects.filter(state=self):
             state.delete()
         for state in TextState.objects.filter(state=self):
@@ -188,6 +191,7 @@ class State(CommonInfo):
         for state in VideoState.objects.filter(state=self):
             state.delete()
         super(State,self).delete()
+        element.delete()
     
     def clean(self):
         if self.delay is None: self.delay = 0.0
@@ -208,8 +212,10 @@ class ImageState(CommonInfo):
                                              null=True, blank=True)
     
     def delete(self):
+        state = self.state
         self.image.delete()
         super(ImageState,self).delete()
+        state.delete()
         
 class TextState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)
