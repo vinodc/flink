@@ -62,6 +62,7 @@ VIDEOLOGUE_ENCODE_OGV = True
 VIDEOLOGUE_ENCODE_MP4 = False
 VIDEOLOGUE_VIDEO_SIZE = '720x480'
 VIDEOLOGUE_IMAGE_SIZE = '720x480'
+VIDEO_CONVERT_SYNC = False # Don't set this to True, unless you are testing. This is handled in test.
 PHOTOLOGUE_DIR = 'videos'
 VIDEOLOGUE_DIR = 'videos' 
 CONVERSION_TIME = 55 # in seconds
