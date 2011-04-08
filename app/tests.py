@@ -540,13 +540,13 @@ class ProfileHandlerTest(TestCase):
 # Bad Behavior Test
 
 '''
-class TestSettings(unittest.TestCase):
+class TestSettings(TestCase):
     fixtures = ['test_fixture.json']
     
     def setUp(self):
         self.verificationErrors = []
-        [self.c, self.user] = login_user('test','test')
-        self.selenium = selenium("localhost", 4444, "*chrome", "http://localhost:8000/")
+        self.start_test_server('localhost', 8000)
+        self.selenium = selenium("localhost", 4444, "*firefox", "http://localhost:8000/")
         self.selenium.start()
     
     def test_settings(self):
@@ -577,4 +577,4 @@ class TestSettings(unittest.TestCase):
     
     def tearDown(self):
         self.selenium.stop()
-        self.assertEqual([], self.verificationErrors)
+        #self.assertEqual([], self.verificationErrors)
