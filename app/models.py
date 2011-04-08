@@ -48,6 +48,9 @@ class BlogSettings(CommonInfo):
     user = models.OneToOneField(User, primary_key=True, verbose_name='user')
     blog_title = models.CharField(max_length=250, default='My Blog')
     
+    # user home pages
+    # uap = [uap_1, ]
+    
     # The size of the grid
     grid_size = models.IntegerField(default=5, 
     					validators = [
@@ -252,7 +255,7 @@ class ThumbnailState(CommonInfo):
     image = models.ImageField(upload_to='images', max_length=255, editable=False)
     
     def __unicode__(self):
-        return self.blog_title + ' settings'
+        return self.thumbnail_name 
         
     def delete(self):
         self.image.delete()
