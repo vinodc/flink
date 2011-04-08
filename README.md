@@ -28,9 +28,9 @@ To load the test data:
     $ python manage.py loaddata app/fixtures/test_fixture.json 
 Unit tests will load the test data on its own, but you can load the test data to probe the database.
 
-To run the unit tests:
-    $ python manager.py test app
+To just run the unit tests + selenium test:
+    $ fab test
     
-To get the coverage report for the unit test:
-	$ coverage run --source=app/lib.py,app/views.py,app/decorators.py,urls.py ./manage.py test app
+To get the coverage report for the unit test only:
+	$ coverage run --source=app/lib.py,app/views.py,app/decorators.py,urls.py ./manage.py test app.PeopleHandlerTest app.ProfileHandlerTest app.PosterboardHandlerTest app.ElementHandlerTest
 	$ coverage report
