@@ -19,3 +19,4 @@ djangorestframework
 cherrypy
 django-cpserver
 coverage
+selenium
