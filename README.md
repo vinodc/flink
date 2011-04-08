@@ -26,7 +26,7 @@ Testing:
 
 To load the test data:
     $ python manage.py loaddata app/fixtures/test_fixture.json 
-Unit tests will load the test data on its own, but you can load the test data to prob the database.
+Unit tests will load the test data on its own, but you can load the test data to probe the database.
 
 To run the unit tests:
     $ python manager.py test app

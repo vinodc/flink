@@ -9,6 +9,54 @@
 {% block content %}
         {% if blog_owner %}
         <link href="{{ STATIC_URL }}css/editbar.css" type='text/css' rel='stylesheet' />
+        <script type="text/javascript" src="{{ STATIC_URL }}js/tiny_mce/tiny_mce.js"></script>
+        <script type="text/javascript">
+        
+            function textareaUpdateMce(id) {
+                $('#'+id+'_ifr').contents().find('body').html($('textarea[id="'+id+'"]').val());
+                $('textarea[id="'+id+'"]').val($('#'+id+'_ifr').contents().find('body').html());
+            }
+            
+            function mceUpdateTextArea(ed) {
+                $('textarea[id="'+ed.id+'"]').val(ed.getBody().innerHTML);
+            }
+            
+            function mcePostChange(ed) {
+                var state_id = ed.id.substr(5);
+                var element_id = $('div[state-id="'+state_id+'"]').attr('id');
+                update_element('#'+element_id);
+            }
+            
+            function showTextArea() {
+                $('textarea[type="text"]').show();
+            }
+            
+            function initTinyMCE() {
+                tinyMCE.init({
+                        // General options
+                        theme : "simple",
+                        mode : "specific_textareas",
+                        editor_selector : "mceEditor",
+
+                        init_instance_callback : "showTextArea",
+                        
+                        setup : function(ed) {
+                                ed.onKeyUp.add(mceUpdateTextArea);
+                                ed.onChange.add(mceUpdateTextArea); 
+                                ed.onRedo.add(mceUpdateTextArea); 
+                                ed.onUndo.add(mceUpdateTextArea);                                
+                                ed.onRemove.add(mcePostChange);
+                        }
+                });
+            }
+            
+            function destroyTinyMCE() {
+                while (tinyMCE.editors.length > 0) { 
+                    tinyMCE.activeEditor.remove();
+                }
+            }
+        </script>
+
         {% endif %}
         <script type="text/javascript">
             var pbid = "#posterboard{{posterboard.id}}";
@@ -52,12 +100,15 @@
     							function() {
     								return "<textarea " +
                             			"  type='text' "+
+                                        "  class='mceEditor' "+ 
+                                        "  onKeyUp=\"textareaUpdateMce('"+$(this).attr('id')+"');\"" +
                                         "  id='" + $(this).attr('id') +
                                         "' child-id='" + $(this).attr('child-id') +
                                         "' style='width:100%;height:100%;'>"+
                                         $(this).html() +
-                                        "</textarea>";	
+                                        "</textarea>";
     							});
+                            initTinyMCE();
                         }
                     }
                     else{
@@ -72,13 +123,14 @@
     						$('textarea[type="text"]').replaceWith(
     							function() {
     								return "<div " +
-    									"  type='text' "+
+    									"  type='text' "+                                 
     									"  id='" + $(this).attr('id') +
     									"' child-id='" + $(this).attr('child-id') +
     									"' style='width:100%;height:100%;'>"+
     									$(this).val() +
     									"</div>";	
     						});
+                            destroyTinyMCE();
                         }
                     }
                 });
@@ -395,7 +447,7 @@
                     elementData['state-position_x']=parseInt(($(selector).position().left) / gridArray[0]);
                     elementData['state-position_y']=parseInt(($(selector).position().top) / gridArray[1]);
                     
-                    var child = $('#state'+$(selector).attr('title')); 
+                    var child = $('#state'+$(selector).attr('state-id')); 
                     if ($(selector).attr('element-type') == 'image') 
                     {
                         elementData['image-alt'] = child.attr('alt');
@@ -403,6 +455,10 @@
                     else if ($(selector).attr('element-type') == 'text')
                     {
                         elementData['text-content'] = child.val();
+                        if (child.val().length == 0 && child.html().length !=0) 
+                        {
+                            elementData['text-content'] = child.html();
+                        }
                     }
                     elementData['child-id']=child.attr('child-id');
                     
