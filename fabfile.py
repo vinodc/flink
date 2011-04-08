@@ -34,17 +34,15 @@ def deploy():
 
 #to run automated selenium tests
 #have the selenium server running!! 
-#kill django server manually by doing: "kill <pid>" , you can find pid by : ps -aux
 def test():
     with settings(warn_only=True):
         result = local('kill `cat /tmp/flink-cherrypy.pid`', capture=True)
     
     local('python cherrypy_static_server.py')
     
-    local('python manage.py runserver &')
-    pid = local('echo $!')
+    popen = subprocess.Popen('python manage.py runserver', shell=True)
     
     with settings(warn_only=True):
         local('python manage.py test app')
         
-    local('echo ' + str(pid))
+    popen.kill()
