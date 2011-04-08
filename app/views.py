@@ -280,7 +280,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                     ts = s.audiostate
                 elif type == 'video':
                     ts = s.videostate
-                    if((datetime.now() - ts.created_at).seconds < settings.CONVERSION_TIME):
+                    if( ts.original_video.name[-3:] != 'ogv' and ts.original_video.name[-3:] != 'ogg' and
+                       (datetime.now() - ts.created_at).seconds < settings.CONVERSION_TIME):
                         # Don't want to display the video before conversion safely over.
                         data['converting'] = True
                         continue
