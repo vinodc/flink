@@ -1,4 +1,0 @@
-include videologue/res/*.jpg
-include videologue/templates/videologue/*.html
-include README.txt
-include LICENSE.txt
