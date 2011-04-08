@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from app.models import *
 from app.forms import *
 import os
+import time
 
 """
 To save a fixture using current database:
@@ -174,10 +175,12 @@ class ElementHandlerTest (TestCase):
         self.pb = Posterboard.objects.filter(user__username=self.user.username)[0]
         self.pbpath = '/people/'+self.user.username+'/posterboards/'+self.pb.title_path+'/elements/'
 
-        # Create a temporary image for testing
-        self.imagepath = 'test.png'
-        self.image = open(self.imagepath,'w')
-        self.image.close()
+        # Set paths to files.
+        self.imagepath = os.path.join(settings.TEST_MEDIA_ROOT,'mountains.jpg')
+        self.videopath = os.path.join(settings.TEST_MEDIA_ROOT,'test-video.ogv')
+        self.videotoconvertpath = os.path.join(settings.TEST_MEDIA_ROOT,'SUMMER.MPG')
+        self.audiopath = os.path.join(settings.TEST_MEDIA_ROOT,'shimmer.wav')
+        
     
     def create_image(self):
         img = open(self.imagepath,'rb')
@@ -187,6 +190,38 @@ class ElementHandlerTest (TestCase):
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
         img.close()
+        return response
+    
+    def create_video(self):
+        video = open(self.videopath,'rb')
+        data = {
+            'element-type':'video',
+            'video':video
+        }
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
+        video.close()
+        return response
+
+    def create_video_to_convert(self):
+        video = open(self.videotoconvertpath,'rb')
+        data = {
+            'element-type':'video',
+            'video':video
+        }
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
+        video.close()
+        # Give video time to convert
+        time.sleep(60)
+        return response
+
+    def create_audio(self):
+        audio = open(self.audiopath,'rb')
+        data = {
+            'element-type':'audio',
+            'audio':audio
+        }
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
+        audio.close()
         return response
 
     def update_image_wrapper(self, state_id, alt):
@@ -204,6 +239,38 @@ class ElementHandlerTest (TestCase):
         image = ImageState.objects.get(pk=state_id)
         self.assertEqual(beforeUpdateURL,image.image.url)
         self.assertEqual(alt,image.alt)
+        
+    def update_video_wrapper(self, state_id):
+        video = VideoState.objects.get(pk=state_id)
+        beforeUpdateUpdatedAt = video.updated_at
+        beforeUpdateCreatedAt = video.created_at
+        
+        data = {
+            '_action':'put',
+            'element-type':'video',
+            'state-id': state_id,
+            'child-id': state_id,
+        }
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
+        video = VideoState.objects.get(pk=state_id)
+        self.assertGreater(video.updated_at, beforeUpdateUpdatedAt)
+        self.assertEqual(video.created_at, beforeUpdateCreatedAt)
+        
+    def update_audio_wrapper(self, state_id):
+        audio = AudioState.objects.get(pk=state_id)
+        beforeUpdateUpdatedAt = audio.updated_at
+        beforeUpdateCreatedAt = audio.created_at
+        
+        data = {
+            '_action':'put',
+            'element-type':'audio',
+            'state-id': state_id,
+            'child-id': state_id,
+        }
+        response = self.c.post(self.pbpath[:-1]+'.json',data)
+        audio = AudioState.objects.get(pk=state_id)
+        self.assertGreater(audio.updated_at, beforeUpdateUpdatedAt)
+        self.assertEqual(audio.created_at, beforeUpdateCreatedAt)
 
     def create_text(self):
         data = {
@@ -270,6 +337,33 @@ class ElementHandlerTest (TestCase):
         self.assertEqual(self.pb.title,Element.objects.get(pk=element_id).posterboard.title)
         self.assertEqual(self.delete_element(element_id).status_code, 200)
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0)
+    
+    def test_create_delete_one_video(self):
+        response = self.create_video()
+        container = eval(response._container[0])
+        self.assertEqual(response.status_code, 200)
+        element_id = container['element-id']
+        self.assertEqual(self.pb.title,Element.objects.get(pk=element_id).posterboard.title)
+        self.assertEqual(self.delete_element(element_id).status_code, 200)
+        self.assertEqual(len(Element.objects.filter(pk=element_id)), 0)
+
+    def test_create_delete_one_video_to_convert(self):
+        response = self.create_video_to_convert()
+        container = eval(response._container[0])
+        self.assertEqual(response.status_code, 200)
+        element_id = container['element-id']
+        self.assertEqual(self.pb.title,Element.objects.get(pk=element_id).posterboard.title)
+        self.assertEqual(self.delete_element(element_id).status_code, 200)
+        self.assertEqual(len(Element.objects.filter(pk=element_id)), 0)
+
+    def test_create_delete_one_audio(self):
+        response = self.create_video()
+        container = eval(response._container[0])
+        self.assertEqual(response.status_code, 200)
+        element_id = container['element-id']
+        self.assertEqual(self.pb.title,Element.objects.get(pk=element_id).posterboard.title)
+        self.assertEqual(self.delete_element(element_id).status_code, 200)
+        self.assertEqual(len(Element.objects.filter(pk=element_id)), 0)
 
     def test_create_delete_one_text(self):
         response = self.create_text()
@@ -293,6 +387,34 @@ class ElementHandlerTest (TestCase):
         self.assertEqual(self.delete_element(element_id).status_code, 200)
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0) 
         self.assertEqual(len(ImageState.objects.filter(pk=state_id)), 0) 
+        
+    def test_update_one_video(self):
+        response = self.create_video()
+        container = eval(response._container[0])
+        self.assertEqual(response.status_code, 200)
+        element_id = container['element-id']
+        state_id = container['state-id']
+        self.assertEqual(self.pb.title,Element.objects.get(pk=element_id).posterboard.title)
+        
+        self.update_video_wrapper(state_id,'test alt')
+        
+        self.assertEqual(self.delete_element(element_id).status_code, 200)
+        self.assertEqual(len(Element.objects.filter(pk=element_id)), 0) 
+        self.assertEqual(len(VideoState.objects.filter(pk=state_id)), 0)
+        
+    def test_update_one_audio(self):
+        response = self.create_audio()
+        container = eval(response._container[0])
+        self.assertEqual(response.status_code, 200)
+        element_id = container['element-id']
+        state_id = container['state-id']
+        self.assertEqual(self.pb.title,Element.objects.get(pk=element_id).posterboard.title)
+        
+        self.update_audio_wrapper(state_id)
+        
+        self.assertEqual(self.delete_element(element_id).status_code, 200)
+        self.assertEqual(len(Element.objects.filter(pk=element_id)), 0) 
+        self.assertEqual(len(AudioState.objects.filter(pk=state_id)), 0)
     
     def test_update_one_text(self):
         response = self.create_text()
@@ -306,7 +428,7 @@ class ElementHandlerTest (TestCase):
         
         self.assertEqual(self.delete_element(element_id).status_code, 200)
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0) 
-        self.assertEqual(len(TextState.objects.filter(pk=state_id)), 0) 
+        self.assertEqual(len(TextState.objects.filter(pk=state_id)), 0)
     
     def test_update_state(self):
         old_property = {'orientation':0, 'delay':0}

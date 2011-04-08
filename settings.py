@@ -59,10 +59,12 @@ SITE_ID = 1
 # Video
 VIDEOLOGUE_ENCODE_FLV = False
 VIDEOLOGUE_ENCODE_OGV = True
-VIDEOLOGUE_ENCODE_MP4 = True
+VIDEOLOGUE_ENCODE_MP4 = False
+VIDEOLOGUE_VIDEO_SIZE = '720x480'
+VIDEOLOGUE_IMAGE_SIZE = '720x480'
 PHOTOLOGUE_DIR = 'videos'
 VIDEOLOGUE_DIR = 'videos' 
-CONVERSION_TIME = 60 # in seconds
+CONVERSION_TIME = 55 # in seconds
 MAX_UPLOAD_SIZE = 50.0*1024*1024 # 50MB in bytes
 
 # Cron
@@ -80,6 +82,7 @@ USE_L10N = True
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media/')
+TEST_MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'test-media/')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.

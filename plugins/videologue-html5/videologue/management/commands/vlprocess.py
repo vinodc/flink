@@ -107,14 +107,14 @@ def process_files():
             except Exception, e:
                 # If there are any errors getting video info, don't do letterboxing.
                 video_data = {}
-
-        convertvideopng(convert, video_data)
-        if ENCODE_FLV:
-            convertvideoflv(convert, video_data)
-        if ENCODE_MP4:
-            convertvideomp4(convert, video_data)
-        if ENCODE_OGV:
-            convertvideoogv(convert, video_data)
+        if convert.video is not None:
+            convertvideopng(convert, video_data)
+            if ENCODE_FLV:
+                convertvideoflv(convert, video_data)
+            if ENCODE_MP4:
+                convertvideomp4(convert, video_data)
+            if ENCODE_OGV:
+                convertvideoogv(convert, video_data)
 
 def convertvideoflv(convert, video_data):
     ''' Convert the uploaded video to .flv
@@ -318,6 +318,16 @@ def convertvideoogv(convert, video_data):
     video = convert.video
 
     sourcefile = video.original_video.path
+    
+    if sourcefile[-3:] == 'ogv' or sourcefile[-3:] == 'ogg':
+        targetfile = video.original_video
+        convert.error = 'Already an ogv or ogg file.'
+        convert.save()
+        video.ogv_video.save('%s.ogv' % video.pk, File( targetfile ) )
+        video.save()
+        print convert.error
+        return
+            
     targetfile = NamedTemporaryFile(suffix='.ogv')
 
     ffmpeg = (  '%(ffmpeg)s -y -i "%(infile)s" '

@@ -58,30 +58,6 @@ def new_posterboards_handler(request, blogger=None, format=None):
     return render_to_response('posterboards/new.html',{},
                               context_instance=RequestContext(request))
                               
-@login_required
-@get_blogger
-@csrf_exempt
-def new_form_handler(request, modelname=None, blogger=None, format=None):
-    """
-    Render the forms required to create new objects.
-    blogger and format arguments not required.
-    """
-    model_mapping = {
-        'posterboards': Posterboard,
-        }
-    fields_mapping = {
-        'posterboards': ('title', 'private'),
-        }
-
-    data = {}
-    if model_mapping.has_key(modelname):
-        fs = modelformset_factory(model_mapping[modelname], fields=fields_mapping[modelname])
-        data['formset'] = fs(queryset=model_mapping[modelname].objects.none())
-        return render_to_response(modelname +'/new.html', data,
-                                  context_instance=RequestContext(request))
-    else:
-        return HttpResponseBadRequest()
-
 @handle_handlers
 @login_required
 def settings_handler(request, format='html'):
@@ -174,7 +150,7 @@ def profile_handler(request, format='html'):
 @handle_handlers
 @get_blogger
 @get_blogger_settings
-def people_handler(request, blogger=None, format='html', settings=None):
+def people_handler(request, blogger=None, homepageid=None, format='html', settings=None):
     user = request.user
     # GET request with no specific user, so what is needed is a list of users.
     if request.method == 'GET' and blogger is None:
@@ -205,19 +181,64 @@ def people_handler(request, blogger=None, format='html', settings=None):
                  },
                 }
         if blogger.id == user.id:
-            pbs = blogger.posterboard_set.all()
+            pbs = blogger.posterboard_set
         else:
-            pbs = blogger.posterboard_set.filter(private=False).all()
-        data['posterboards'] = pbs
+            pbs = blogger.posterboard_set.filter(private=False)
+        pbs = pbs.filter(is_user_home_page=True).order_by('-created_at').all()
+
+        if len(pbs) < 1:
+            # Not a single homepage?! Create one.
+            posterboard = Posterboard()
+            posterboard.user = blogger
+            posterboard.title = "userhomepage"
+            posterboard.is_user_home_page = True
+            posterboard.full_clean()
+            posterboard.save()
+        elif homepageid is None:
+            posterboard = pbs[0]
+        else:
+            # This isn't really the posterboad, it's an array 
+            # that should have it as the only element.
+            # So it is [<posterboard>], not <posterboard>
+            posterboard = pbs.filter(id=homepageid)
+            if len(posterboard) == 0:
+                posterboard = pbs[0]
+            else:
+                posterboard = posterboard[0]
+            
+        element_data = []
+        for e in posterboard.element_set.all():
+            sset = e.state_set.all()
+            sset = list(sset[:1])
+            s = None
+            if sset:
+                s = sset[0]
+            ts = None
+            if s is not None:
+                type = e.type
+                if type == 'image':
+                    ts = s.imagestate
+                else:
+                    logger.debug(u"Can't get type state for type %s" % type)
+            element_data.append(jsonload(serializers.serialize('json', [e, s, ts])))
+        data['element_data'] = element_data
+
+        #logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
+        #logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
+
+        # TODO: pbs is an array of posterboards.
+
         if format == 'html':
-            if blogger.id == user.id:
-                PosterboardFormSet = modelformset_factory(Posterboard)
-                data['posterboard_formset'] = PosterboardFormSet()
-            return render_to_response('people/show.html', data,
+            return render_to_response('people/show.html',
+                                      {'blogger': blogger,
+                                       'userhomepages': pbs,
+                                       'posterboard': posterboard,
+                                       'element_data': data['element_data'],
+                                       'blog_owner': blogger.id == user.id},
                                       context_instance=RequestContext(request))
         elif format == 'json':
             return HttpResponse(json.dumps(data), mimetype='application/json')
-
+        
     # DELETE request, to delete that specific blog and user. Error for now.
     elif request.method == 'DELETE' and blogger is not None and \
             (blogger.id == user.id and blogger.username == user.username):
@@ -267,9 +288,9 @@ def posterboards_handler(request, blogger=None, posterboard=None,
     # index
     if request.method == 'GET' and not request.GET.has_key('_action') and posterboard is None:
         if blogger.id == user.id:
-            pbs = blogger.posterboard_set.all()
+            pbs = blogger.posterboard_set.filter(is_user_home_page=False).all()
         else:
-            pbs = blogger.posterboard_set.filter(private=False).all()
+            pbs = blogger.posterboard_set.filter(private=False,is_user_home_page=False).all()
 
         if format == 'html':
             return render_to_response('posterboards/index.html',
@@ -286,7 +307,10 @@ def posterboards_handler(request, blogger=None, posterboard=None,
     elif request.method == 'GET' and not request.GET.has_key('_action') and posterboard is not None:
         if blogger.id != user.id and posterboard.private:
             return HttpResponseForbidden('Private Posterboard.')
+        elif posterboard.is_user_home_page:
+            return HttpResponseRedirect('/people/'+blogger.username+'/homepages/'+str(posterboard.id)+'/')
 
+        data['converting'] = False
         element_data = []
         for e in posterboard.element_set.all():
             sset = e.state_set.all()
@@ -299,10 +323,14 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                 type = e.type
                 if type == 'image':
                     ts = s.imagestate
+                elif type == 'audio':
+                    ts = s.audiostate
                 elif type == 'video':
                     ts = s.videostate
-                    if((datetime.now() - ts.created_at).seconds < settings.CONVERSION_TIME):
+                    if( ts.original_video.name[-3:] != 'ogv' and ts.original_video.name[-3:] != 'ogg' and
+                       (datetime.now() - ts.created_at).seconds < settings.CONVERSION_TIME):
                         # Don't want to display the video before conversion safely over.
+                        data['converting'] = True
                         continue
                 elif type == 'text':
                     ts = s.textstate
@@ -323,6 +351,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             return render_to_response('posterboards/show.html',
                                       {'blogger': blogger,
                                         'posterboard': posterboard,
+                                        'converting': data['converting'],
                                         'element_data': data['element_data'],
                                         'blog_owner': blogger.id == user.id},
                                       context_instance=RequestContext(request))
@@ -336,6 +365,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
             posterboard = pbForm.save(commit=False)
+            if posterboard.is_user_home_page:
+                posterboard.title="userhomepage" # This will be cleaned up later in clean()
             posterboard.full_clean()
             user.posterboard_set.add(posterboard)
             posterboard.save()
@@ -345,7 +376,10 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                 # specified as the permalink in that model.
                 # More info:
                 # http://docs.djangoproject.com/en/dev/topics/http/shortcuts/#redirect
-                return redirect('/people/'+user.username+'/posterboards/'+posterboard.title_path+'/')
+                if not posterboard.is_user_home_page:
+                    return redirect('/people/'+user.username+'/posterboards/'+posterboard.title_path+'/')
+                else:
+                    return redirect('/people/'+user.username)
             elif format == 'json':
                 data['message'] = 'Posterboard created successfully.'
                 data['posterboard-id'] = posterboard.id
@@ -400,6 +434,9 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
             element = elementform.save(commit=False)
+            if element.type !='image' and posterboard.is_user_home_page:
+                return HttpResponseForbidden('Only adding images is allowed.')
+                
             posterboard.element_set.add(element)
 
             stateform = StateForm(request.POST, prefix='state')
@@ -430,7 +467,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     
                 childState = VideoState()
                 childState.original_video=request.FILES['video']
-                #childState.full_clean()
+                childState.clean()
                 if(childState.original_video.size > settings.MAX_UPLOAD_SIZE):
                     data['errors'] = 'File is too large. ' + \
                                      'Max size allowed is '+ \
@@ -443,7 +480,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                     data['errors'] = 'No Audio File is Provided. '
                     return ErrorResponse(data['errors'], format)
                     
-                childState = VideoState()
+                childState = AudioState()
                 childState.original_audio=request.FILES['audio']
                 #childState.full_clean()
                 if(childState.original_audio.size > settings.MAX_UPLOAD_SIZE):
@@ -452,7 +489,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                                      str(settings.MAX_UPLOAD_SIZE/1024.0/1024.0) + \
                                      'MB'
                     return ErrorResponse(data['errors'], format)
-                state.videostate = childState
+                state.audiostate = childState
             elif element.type == 'text':
                 childStateForm = TextStateForm(request.POST, prefix='text')
                 if not childStateForm.is_valid():
@@ -473,8 +510,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
             childState.save()
             
             if(element.type == "video"):
-                import pdb; pdb.set_trace();
-                os.system('python '+ settings.PROJECT_ROOT + '/manage.py vlprocess& 2>&1 1>>'+ settings.LOG_FILENAME)
+                    os.system('python '+ settings.PROJECT_ROOT + '/manage.py vlprocess& 2>&1 1>>'+ settings.LOG_FILENAME)
             
             data['element-id'] = element.id
             data['state-id'] = state.id
@@ -531,27 +567,24 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 if 'image' in request.FILES:
                     actual_image.image = request.FILES['image']
             if request.POST['element-type'] == 'video':
-                childStateForm = VideoStateForm(request.POST, prefix='video')
-                if not childStateForm.is_valid():
-                    data['errors'] = 'Video data isn\'t valid: ' + str(childStateForm.errors)
-                    return ErrorResponse(data['errors'], format)
-            
+                childStateForm = VideoStateForm(request.POST, prefix='video')            
                 actual_video = VideoState.objects.get(pk=request.POST['child-id'])
+                actual_video.clean()
                 edit_form = VideoStateForm(request.POST, prefix='video', instance=actual_video)
-                edit_form.is_valid()
-                edit_form.save()
+                #if not edit_form.is_valid():
+                #    data['errors'] = 'Video data isn\'t valid: ' + str(edit_form.errors)
+                #    return ErrorResponse(data['errors'], format)
+                #edit_form.save()
                 if 'video' in request.FILES:
                     actual_video.original_video = request.FILES['video']
             if request.POST['element-type'] == 'audio':
                 childStateForm = AudioStateForm(request.POST, prefix='audio')
-                if not childStateForm.is_valid():
-                    data['errors'] = 'Audio data isn\'t valid: ' + str(childStateForm.errors)
-                    return ErrorResponse(data['errors'], format)
-            
                 actual_audio = AudioState.objects.get(pk=request.POST['child-id'])
                 edit_form = AudioStateForm(request.POST, prefix='audio', instance=actual_audio)
-                edit_form.is_valid()
-                edit_form.save()
+                #if not edit_form.is_valid():
+                #    data['errors'] = 'Audio data isn\'t valid: ' + str(edit_form.errors)
+                #    return ErrorResponse(data['errors'], format)
+                #edit_form.save()
                 if 'audio' in request.FILES:
                     actual_audio.original_audio = request.FILES['audio']
             elif request.POST['element-type'] == 'text':

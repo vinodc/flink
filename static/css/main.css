@@ -95,15 +95,27 @@ body {
     height: 960px;
 }
 
-.editing-mode-info {
+.pbgrid {
+    position: relative;
+}
+
+.editing-mode-info, .editing-mode-help {
     display:none;
     text-align:center;
     font-size:smaller; 
     color: gray;
 }
 
+.editing-mode-help {
+    width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}
+
 .ui-resizable-helper { border: 1px dotted gray; }
-.ui-state-disabled { opacity: 0.75; }
+.ui-draggable { opacity: 0.75; }
+.ui-state-disabled { opacity: 1.0; }
 
 .selected-element {
     border-style: solid;

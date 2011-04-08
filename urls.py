@@ -42,6 +42,8 @@ peoplepatterns = patterns(
     url(r'^(\.(?P<format>(json|html)))?$', 'people_handler', name='people_url'),
     url(r'^(?P<blogger>[^./]+)/?(\.(?P<format>(json|html)))?$',
         'people_handler', name='person_url'),
+    url(r'^(?P<blogger>[^./]+)/homepages/(?P<homepageid>\d+)/?(\.(?P<format>(json|html)))?$',
+         'people_handler', name='person_url'),
     (r'^(?P<blogger>[^./]+)/posterboards(/|/?\.(?P<format>(json|html))$)',
      include(posterboardpatterns)),
     )

@@ -9,6 +9,54 @@
 {% block content %}
         {% if blog_owner %}
         <link href="{{ STATIC_URL }}css/editbar.css" type='text/css' rel='stylesheet' />
+        <script type="text/javascript" src="{{ STATIC_URL }}js/tiny_mce/tiny_mce.js"></script>
+        <script type="text/javascript">
+        
+            function textareaUpdateMce(id) {
+                $('#'+id+'_ifr').contents().find('body').html($('textarea[id="'+id+'"]').val());
+                $('textarea[id="'+id+'"]').val($('#'+id+'_ifr').contents().find('body').html());
+            }
+            
+            function mceUpdateTextArea(ed) {
+                $('textarea[id="'+ed.id+'"]').val(ed.getBody().innerHTML);
+            }
+            
+            function mcePostChange(ed) {
+                var state_id = ed.id.substr(5);
+                var element_id = $('div[state-id="'+state_id+'"]').attr('id');
+                update_element('#'+element_id);
+            }
+            
+            function showTextArea() {
+                $('textarea[type="text"]').show();
+            }
+            
+            function initTinyMCE() {
+                tinyMCE.init({
+                        // General options
+                        theme : "simple",
+                        mode : "specific_textareas",
+                        editor_selector : "mceEditor",
+
+                        init_instance_callback : "showTextArea",
+                        
+                        setup : function(ed) {
+                                ed.onKeyUp.add(mceUpdateTextArea);
+                                ed.onChange.add(mceUpdateTextArea); 
+                                ed.onRedo.add(mceUpdateTextArea); 
+                                ed.onUndo.add(mceUpdateTextArea);                                
+                                ed.onRemove.add(mcePostChange);
+                        }
+                });
+            }
+            
+            function destroyTinyMCE() {
+                while (tinyMCE.editors.length > 0) { 
+                    tinyMCE.activeEditor.remove();
+                }
+            }
+        </script>
+
         {% endif %}
         <script type="text/javascript">
             var pbid = "#posterboard{{posterboard.id}}";
@@ -32,8 +80,6 @@
             {% endif %}
             
             $(document).ready(function(){
-                //canvas = document.getElementById("posterboard{{posterboard.id}}");
-                //ctx = canvas.getContext("2d");
                 
                 {% if blog_owner %}
                 $(sidebartab_id).click(function(){
@@ -52,12 +98,15 @@
     							function() {
     								return "<textarea " +
                             			"  type='text' "+
+                                        "  class='mceEditor' "+ 
+                                        "  onKeyUp=\"textareaUpdateMce('"+$(this).attr('id')+"');\"" +
                                         "  id='" + $(this).attr('id') +
                                         "' child-id='" + $(this).attr('child-id') +
                                         "' style='width:100%;height:100%;'>"+
                                         $(this).html() +
-                                        "</textarea>";	
+                                        "</textarea>";
     							});
+                            initTinyMCE();
                         }
                     }
                     else{
@@ -72,13 +121,14 @@
     						$('textarea[type="text"]').replaceWith(
     							function() {
     								return "<div " +
-    									"  type='text' "+
+    									"  type='text' "+                                 
     									"  id='" + $(this).attr('id') +
     									"' child-id='" + $(this).attr('child-id') +
     									"' style='width:100%;height:100%;'>"+
     									$(this).val() +
     									"</div>";	
     						});
+                            destroyTinyMCE();
                         }
                     }
                 });
@@ -119,7 +169,10 @@
                 jsonstring = jsonstring.replace(/'/g,'"');
                 var elementsToAdd = JSON.parse(jsonstring);
                 
-                var elementstyles =  'display:block;cursor:pointer;position:relative;';
+                var elementstyles =  'display:block;position=absolute;';
+                {% if blog_owner %}
+                    elementstyles += 'cursor:pointer;'
+                {% endif %}
                 
                 var element, state, typestate, domstring;
                 $.each(elementsToAdd, function(index, elementdata) {
@@ -132,10 +185,10 @@
                                        " element-type='image'"+
                                        " style='" + elementstyles +
                                        " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                       " top:"+ (state.fields.position_y * gridArray[0]) + ";"+
+                                       " top:"+ (state.fields.position_y * gridArray[1]) + ";"+
                                        " width:" + (state.fields.position_width * gridArray[0]) +";"+
                                        " height:" + (state.fields.position_height * gridArray[1]) +";"+
-                                    "' title='" + state.pk +
+                                    "' state-id='" + state.pk +
                                     "' class='element-class " +
                                     {% if blog_owner %}
                                     " ui-state-disabled " +
@@ -152,10 +205,10 @@
                         domstring = "<div id='element" + element.pk +
                                     "' style='" + elementstyles +
                                        "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                       "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
+                                       "top:"+ (state.fields.position_y * gridArray[1]) + ";"+
                                        "width:" + (state.fields.position_width * gridArray[0]) +";"+
                                        "height:" + (state.fields.position_height * gridArray[1]) +";"+
-                                    "' title='" + state.pk +
+                                    "' state-id='" + state.pk +
                                     "' class='element-class " +
                                     {% if blog_owner %}
                                     " ui-state-disabled " +
@@ -190,10 +243,10 @@
                         domstring = "<div id='element" + element.pk +
                                     "' style='" + elementstyles +
                                        "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                       "top:"+ (state.fields.position_y * gridArray[0]) + ";"+
+                                       "top:"+ (state.fields.position_y * gridArray[1]) + ";"+
                                        "width:" + (state.fields.position_width * gridArray[0]) +";"+
                                        "height:" + (state.fields.position_height * gridArray[1]) +";"+
-                                       "' title='" + state.pk +
+                                       "' state-id='" + state.pk +
                                        "' class='element-class " +
                                        {% if blog_owner %}
                                        " ui-state-disabled " +
@@ -224,18 +277,29 @@
                         
                         domstring = "<div id='element" + element.pk + "'" +
                                        " element-type='text'"+
+                                       " state-id='" + state.pk + "'" +
                                        " style='" + elementstyles +
                                        " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
                                        " top:"+ (state.fields.position_y * gridArray[0]) + ";"+
                                        " width:" + (state.fields.position_width * gridArray[0]) +";"+
-                                       " height:" + (state.fields.position_height * gridArray[1]) +";"+
+                                       " height:" + (state.fields.position_height * gridArray[1]) +";"+                                       
                                         "'>"+domtext+"</div>";
                     }
 
                     $(pbid).append(domstring);
+                    
                     {% if blog_owner %}
                     make_element_interactive("#element"+ element.pk);
                     {% endif %}
+                    
+                    // For audio, set the height and width.
+                    if(element.fields.type == 'audio') {
+                        $("#element" + element.pk +" audio").css('height', parseInt($("#element" + element.pk).css('height')));
+                        $("#element" + element.pk +" audio").css('width', parseInt($("#element" + element.pk).css('width')));
+                    }
+                    
+                    // All elements need to be position: absolute.
+                    $("#element"+ element.pk).css("position","absolute");
                 });
                 
                 {% if blog_owner %}
@@ -290,6 +354,12 @@
                     eid = -1;
                 });
                 
+                $("#toggle-editing-help").click(function() {
+                    $("#editing-help").toggle('fast',function(){
+                        // Nothing much to do here.
+                    });
+                })
+                
                 $(sidebartab_id).click();
                 
                 {% endif %}
@@ -301,15 +371,16 @@
             function make_element_interactive(selector) {
                $(selector).draggable({ 
                     containment: pbid, 
-                    disabled: true,
+                    disabled: false,
                     scroll: false,
                     grid: gridArray,
-                    stack: pbid +" div,img,text",
+                    stack: pbid +" div,img,text,video,audio",
                     stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
-                }).resizable({
+                });
+                $(selector).resizable({
                     grid: gridArray,
                     containment: pbid,
-                    disabled: true,
+                    disabled: false,
                     stop: function(event, ui) {
                         var selector = "#"+$(this).attr('id'); 
                         // If there are video elements here, alter their width/height too.
@@ -318,6 +389,10 @@
                            $(selector +" video").attr('height', parseInt($(this).css('height')));
                            $(selector +" video").attr('width', parseInt($(this).css('width')));
                         }
+                        else if($(selector +" audio").length != 0) {
+                           $(selector +" audio").css('height', parseInt($(this).css('height')));
+                           $(selector +" audio").css('width', parseInt($(this).css('width')));
+                        }
                         update_element(selector); 
                     },
                     //animate: true,
@@ -325,13 +400,26 @@
                 
                 $(selector).mousedown(function(){
                     if(!sidebar_out) { return; }
+                    
+                    var subselector;
+                                    
                     // If element with id exists and is not the element selected, change the class.
                     if(selectedelementid != $(this).attr('id') && selectedelementid != "") {
-                        $('#'+selectedelementid).removeClass('selected-element');
+                        subselector = '#' + selectedelementid;
+                        /*if($(subselector).attr("element-type") == 'audio') {
+                            subselector += ' audio';
+                        }*/
+                        $(subselector).removeClass('selected-element');
                     }
-                    selectedelementid = $(this).attr('id');
+                    
+                    subselector = '#' + $(this).attr('id');
+                    /*if($(subselector).attr("element-type") == 'audio') {
+                        subselector += ' audio';
+                    }*/
+                    $(subselector).addClass('selected-element');
+                    
                     validselect = true;
-                    $('#'+selectedelementid).addClass('selected-element');
+                    selectedelementid = $(this).attr('id');
                 });
                     
                 if($(selector).attr('element-type') == 'text') {  
@@ -351,13 +439,13 @@
                     elementData['_action']='put';
                     elementData['element-type']=$(selector).attr('element-type');
                     elementData['element-id']=parseInt(selector.substr(8));
-                    elementData['state-id']=$(selector).attr('title');
+                    elementData['state-id']=$(selector).attr('state-id');
                     elementData['state-position_width']=parseInt($(selector).width() / gridArray[0]);
                     elementData['state-position_height']=parseInt($(selector).height() / gridArray[1]);
-                    elementData['state-position_x']=parseInt(($(selector).position().left - $(pbid).position().left) / gridArray[0]);
-                    elementData['state-position_y']=parseInt(($(selector).position().top - $(pbid).position().top) / gridArray[1]);
+                    elementData['state-position_x']=parseInt(($(selector).position().left) / gridArray[0]);
+                    elementData['state-position_y']=parseInt(($(selector).position().top) / gridArray[1]);
                     
-                    var child = $('#state'+$(selector).attr('title')); 
+                    var child = $('#state'+$(selector).attr('state-id')); 
                     if ($(selector).attr('element-type') == 'image') 
                     {
                         elementData['image-alt'] = child.attr('alt');
@@ -365,6 +453,10 @@
                     else if ($(selector).attr('element-type') == 'text')
                     {
                         elementData['text-content'] = child.val();
+                        if (child.val().length == 0 && child.html().length !=0) 
+                        {
+                            elementData['text-content'] = child.html();
+                        }
                     }
                     elementData['child-id']=child.attr('child-id');
                     
@@ -379,6 +471,7 @@
             {% endif %}
         </script>
     <div id='content'>
+       {% block editbar %}
        {% if blog_owner %}
        <div id="editbar">
            <a href="javascript:void(0);" id="edit_toggle"><span id="edit_toggle_text">Edit Bar</span></a>
@@ -409,7 +502,7 @@
        <div style="display:none" id="video_upload_form_wrapper">
            <p class="editing-mode-info" style="display:block;">
                Please be aware that your media will not appear on your posterboard
-               for up to a <strong>two minutes</strong>, to allow time for any re-encoding necessary
+               for up to <strong>three minutes</strong>, to allow time for any re-encoding necessary
                to finish. Your media will appear after that, whether or not the encoding
                was successful. Please do not attempt to re-upload your media, as it will result
                in unnecessary duplicate files. The maximum file size is 50MB.
@@ -435,7 +528,7 @@
        <div style="display:none" id="audio_upload_form_wrapper">
            <p class="editing-mode-info" style="display:block;">
                Please be aware that your media will not appear on your posterboard
-               for up to a <strong>two minutes</strong>, to allow time for any re-encoding necessary
+               for up to <strong>three minutes</strong>, to allow time for any re-encoding necessary
                to finish. Your media will appear after that, whether or not the encoding
                was successful. Please do not attempt to re-upload your media, as it will result
                in unnecessary duplicate files. The maximum file size is 50MB.
@@ -453,7 +546,7 @@
                <div class="form-submit-errors"></div>
                {% csrf_token %}
                <input type="hidden" name="element-type" value="audio">
-               audio: <input type="file" id="upload-audio-field" name="audio"><br>
+               Audio: <input type="file" id="upload-audio-field" name="audio"><br>
                <input type="submit" id="audio_upload_button" value="Upload audio">
            </form>
        </div>
@@ -468,19 +561,54 @@
            </form>
        </div>
        {% endif %}
-      <!--<canvas id="posterboard{{posterboard.id}}" width="960px" height="900px" class='grid pbgrid'>
-      </canvas>-->
+
       {% if blog_owner %}
       <p align='center' style="text-align:center" id="edit-status">Viewing Mode</p>
+      {% if converting %}
+      <p align='center' style='text-align:center' id='converting-info'>
+          <small>
+          <img src='{{ STATIC_URL }}images/jquery-modalbox-1.2.0/ajax-loader.gif' style='height: 2em;vertical-align:middle'> 
+          Converting uploaded media. The page will reload with updated information in a minute.
+          </small>
+      </p>
+      <script type="text/javascript">
+          setTimeout(function() {
+                window.location.reload();
+          },60000);
+      </script>
+      {% endif %}
       <p align='center' class="editing-mode-info" style="display:block;">
           Use left sidebar to switch modes.The elements <strong>cannot</strong> be edited while in <strong>Viewing Mode</strong>.<br>
-          This is to prevent accidental editing. Elements appear lighter in viewing mode.
-       </p>
-       <p align='center' class="editing-mode-info" style="display:block;">
-           Select an element by clicking on it. You can delete an element by hitting the Shift + Delete key after you select it. <br>
-           Feel free to drag and drop elements about. They can also be resized. They will be saved automatically.
+          This is to prevent accidental editing. Elements appear lighter in editing mode.
       </p>
+      
+      <div class="editing-mode-info" style="display:block;">
+          <a href="javascript:" id="toggle-editing-help">Help</a>
+      </div>
+      <div id='editing-help' class='editing-mode-help'>
+          <div>
+               Select an element by clicking on it. All changes to elements will be saved automatically.
+               <ul>
+                   <li><strong>Resize: </strong>
+                        Elements that are resizeable, such as images and video, can be resized using the bottom and right edges,
+                        as well as the bottom-left corner.
+                   </li>
+                   <li><strong>Drag-and-drop: </strong>
+                       Elements can be dragged and dropped about the posterboard.
+                   </li>
+                   <li><strong>Stack: </strong>
+                       Elements are stackable. You can intuitively drag an element out from underneath another element
+                       and place it on top and the stacking will work as expected.
+                   </li>
+                   <li><strong>Delete: </strong>
+                       You can delete an element by hitting the Shift + Delete key after you select it.
+                   </li>
+               </ul>
+          </div>
+      </div>
       {% endif %}
+      {% endblock %}
+      <br>
       <div id="posterboard{{posterboard.id}}" class='grid pbgrid'>
 	<!-- 
 	     There shouldn't be any hardcoded elements here.
