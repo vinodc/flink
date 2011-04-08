@@ -25,16 +25,16 @@
 #editbar{
     position: absolute;
     width: auto;
-    height: 300px;
+    height: 350px;
     top: 100px;
     left:0px;
     z-index: 200;
-    background:#000;
+    background:#000;    
 }
 
 #edit_toggle{
     float:right;
-    height:300px;
+    height:350px;
     width:25px;
     border:0;
 }
@@ -47,14 +47,14 @@
 #editbar_contents{
     float:right;
     width:100px;
-    height:300px;
+    height:350px;
     margin-left: 5px;
 }
 
 #editbar_contents_inner{
     float:right;
     width:auto;
-    height:300px;
+    height:350px;
 }
 
 #scrollbar_container {
@@ -69,7 +69,7 @@
     float:right;
     overflow:hidden;  
     width:auto;
-    height:300px;
+    height:350px;
     margin-left:0px;
     overflow-y: auto;
 }

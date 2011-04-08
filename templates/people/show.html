@@ -8,15 +8,16 @@
 {% endblock %}
 {% block content %}
 <div id="homepage-navigation">
-    {% if nexthomepage %}
-    <span id="text-align:right;float:right">
-        <a href="/people/{{blogger.username}}/homepages/{{nexthomepage.id}}">Newer</a>
-    </span>
+   {% if prevhomepage %}
+    <a href="/people/{{blogger.username}}/homepages/{{prevhomepage.id}}">
+        <span style="text-:left;float:left">Older</span>
+    </a>
     {% endif %}
-    {% if prevhomepage %}
-    <span id="text-align:left;float:left">    
-        <a href="/people/{{blogger.username}}/homepages/{{prevhomepage.id}}">Older</a>
-    </span>
+
+    {% if nexthomepage %}
+    <a href="/people/{{blogger.username}}/homepages/{{nexthomepage.id}}">
+        <span style="text-align:right;float:right">Newer</span>
+    </a>
     {% endif %}
 </div>
     {{ block.super }}   
