@@ -330,7 +330,7 @@
                         var answer = confirm('Are you sure you want to remove the element?')
                         if(!answer) { return; }
                         $.ajax({
-                            url: 'elements/'+selectedelementid.substr(7)+'.json',
+                            url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+selectedelementid.substr(7)+'.json',
                             data: {
                                 'csrfmiddlewaretoken': '{{csrf_token}}',
                                 '_action': 'delete'
@@ -348,7 +348,7 @@
                     }
                     
                     $.ajax({
-                       url: 'elements/'+eid+'.json',
+                       url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+eid+'.json',
                        dataType: 'json',
                        data: {
                            'opacity': 1,
@@ -467,7 +467,7 @@
                     elementData['child-id']=child.attr('child-id');
                     
                     $.ajax({
-                       url: 'elements/'+selector.substr(8)+'.json',
+                       url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+selector.substr(8)+'.json',
                        data: elementData,
                        dataType: 'json',
                        success: function() { $(selector).effect("highlight", {}, 1000); },

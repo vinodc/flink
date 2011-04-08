@@ -9,10 +9,13 @@ from django.conf import settings
 from django.core import serializers
 from django.forms.models import modelformset_factory
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from django.views.decorators.csrf import csrf_exempt
 
+import sys
 import json
+from datetime import datetime 
 
 from app.forms import PosterboardForm, ImageStateForm, StateForm, BlogSettingsForm, \
     ElementForm, TextStateForm, AudioStateForm, VideoStateForm
@@ -31,7 +34,6 @@ from settings import logger
 # http://docs.djangoproject.com/en/dev/topics/logging/
 
 from app.lib import title_to_path, jsonload
-from datetime import datetime 
 
 # Debugger:
 #import ipdb
@@ -360,16 +362,21 @@ def posterboards_handler(request, blogger=None, posterboard=None,
 
     # create, make sure to check user.id as only logged in user can create new posterboard
     elif user.id and request.method == 'POST':
-        pbForm = PosterboardForm(request.POST)
+        pbForm = PosterboardForm(request.POST)           
         if pbForm.is_valid():
             # commit=False creates and returns the model object but doesn't save it.
             # Remove it if unnecessary.
             posterboard = pbForm.save(commit=False)
-            if posterboard.is_user_home_page:
-                posterboard.title="userhomepage" # This will be cleaned up later in clean()
-            posterboard.full_clean()
-            user.posterboard_set.add(posterboard)
-            posterboard.save()
+            try:
+                posterboard.full_clean()
+                user.posterboard_set.add(posterboard)
+                posterboard.save()
+            except ValidationError, e:
+                return ErrorResponse(str(e), format)
+            except IntegrityError, e:
+                return ErrorResponse(str(e), format)
+            except:
+                return ErrorResponse(sys.exc_info()[0], format)
             
             if format == 'html':
                 # A redirect with this object will redirect to the url

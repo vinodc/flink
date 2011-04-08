@@ -54,13 +54,19 @@ class PosterboardHandlerTest (TestCase):
         self.homepath = '/people/'+self.user.username+'/posterboards/'
         self.title = 'testposterboardpost'
     
-    def create_posterboard(self, title, private):
+    def create_posterboard_general(self, title='', private=False, is_user_home_page=False):
+        if is_user_home_page:
+            title = "userhomepage"
         data = {
             'title': title,
-            'private': private
+            'private': private,
+            'is_user_home_page': is_user_home_page,
         }
         response = self.c.post(self.homepath[:-1]+'.json',data)
         return response
+    
+    def create_posterboard(self, title, private):
+        return self.create_posterboard_general(title=title, private=private)
 
     def delete_posterboard(self, path):
         data = {
@@ -84,6 +90,39 @@ class PosterboardHandlerTest (TestCase):
         title = 'four'
         response = self.create_posterboard(title, False)
         self.assertEqual(response.status_code, 400)
+        title = 'new'
+        response = self.create_posterboard(title, False)
+        self.assertEqual(response.status_code, 400)
+    
+    def test_create_bad_user_home_page(self):
+        title = 'userhomepage'
+        response = self.create_posterboard(title, False)
+        self.assertEqual(response.status_code, 400)
+        title = 'userhomepage123'
+        response = self.create_posterboard(title, False)
+        self.assertEqual(response.status_code, 400)
+    
+    def test_get_first_home_page(self):
+        self.user.posterboard_set.filter(is_user_home_page=True).delete()
+        uhpc = self.user.posterboard_set.filter(is_user_home_page=True).count()
+        self.assertEqual(uhpc, 0, 'There aren\'t any user home pages.')
+        
+        response = self.c.get('/people/'+self.user.username+'.json',{})
+        self.assertEqual(response.status_code, 200)
+        uhpc = self.user.posterboard_set.filter(is_user_home_page=True).count()
+        self.assertEqual(uhpc, 1, 'There shoudl be one user home page now.')
+        self.user.posterboard_set.filter(is_user_home_page=True).delete()
+    
+    def test_create_delete_one_user_home_page(self):
+        response = self.create_posterboard_general(is_user_home_page=True)
+        container = eval(response._container[0])
+        self.assertEqual(response.status_code, 200, container)
+        pb_id = container['posterboard-id']
+        pb_path = container['posterboard-path']
+        
+        self.assertEqual(Posterboard.objects.get(pk=pb_id).is_user_home_page, True)
+        self.assertEqual(self.delete_posterboard(pb_path).status_code, 200)
+        self.assertEqual(len(Posterboard.objects.filter(pk=pb_id)), 0)
     
     def test_create_two_posterboard(self):
         response = self.create_posterboard(self.title, False)
@@ -144,6 +183,7 @@ class PosterboardHandlerTest (TestCase):
         # Access Denied
         pb_page = self.c1.get(self.homepath+str(pb_path)+'/.json')
         self.assertEqual(pb_page.status_code, 403)
+        
              
 """
 List of Tests for Element Handler
@@ -211,7 +251,12 @@ class ElementHandlerTest (TestCase):
         response = self.c.post(self.pbpath[:-1]+'.json',data)
         video.close()
         # Give video time to convert
-        time.sleep(60)
+        sleeprange = range(0,60)
+        sleeprange.reverse()
+        for i in sleeprange:
+            if i % 10 == 0:
+                print str(i) + "..."
+            time.sleep(1)
         return response
 
     def create_audio(self):
@@ -227,16 +272,23 @@ class ElementHandlerTest (TestCase):
     def update_image_wrapper(self, state_id, alt):
         image = ImageState.objects.get(pk=state_id)
         beforeUpdateURL = image.image.url
+        h = image.state.position_height + 1
+        w = image.state.position_width + 1
         
         data = {
             '_action':'put',
             'element-type':'image',
             'state-id': state_id,
             'child-id': state_id,
-            'image-alt': alt
+            'image-alt': alt,
+            'state-position_height': h,
+            'state-position_width': w,
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
         image = ImageState.objects.get(pk=state_id)
+        state = image.state
+        self.assertEqual(h, state.position_height)
+        self.assertEqual(w, state.position_width)
         self.assertEqual(beforeUpdateURL,image.image.url)
         self.assertEqual(alt,image.alt)
         
@@ -244,32 +296,45 @@ class ElementHandlerTest (TestCase):
         video = VideoState.objects.get(pk=state_id)
         beforeUpdateUpdatedAt = video.updated_at
         beforeUpdateCreatedAt = video.created_at
+        h = video.state.position_height + 1
+        w = video.state.position_width + 1
         
         data = {
             '_action':'put',
             'element-type':'video',
             'state-id': state_id,
             'child-id': state_id,
+            'state-position_height': h,
+            'state-position_width': w,
         }
         response = self.c.post(self.pbpath[:-1]+'.json',data)
         video = VideoState.objects.get(pk=state_id)
-        self.assertGreater(video.updated_at, beforeUpdateUpdatedAt)
+        state = video.state
+        self.assertEqual(h, state.position_height)
+        self.assertEqual(w, state.position_width)
         self.assertEqual(video.created_at, beforeUpdateCreatedAt)
         
     def update_audio_wrapper(self, state_id):
         audio = AudioState.objects.get(pk=state_id)
         beforeUpdateUpdatedAt = audio.updated_at
         beforeUpdateCreatedAt = audio.created_at
+        h = audio.state.position_height + 1
+        w = audio.state.position_width + 1
         
         data = {
             '_action':'put',
             'element-type':'audio',
             'state-id': state_id,
             'child-id': state_id,
+            'state-position_height': h,
+            'state-position_width': w,
         }
+        
         response = self.c.post(self.pbpath[:-1]+'.json',data)
         audio = AudioState.objects.get(pk=state_id)
-        self.assertGreater(audio.updated_at, beforeUpdateUpdatedAt)
+        state = audio.state
+        self.assertEqual(h, state.position_height)
+        self.assertEqual(w, state.position_width)
         self.assertEqual(audio.created_at, beforeUpdateCreatedAt)
 
     def create_text(self):
@@ -396,7 +461,7 @@ class ElementHandlerTest (TestCase):
         state_id = container['state-id']
         self.assertEqual(self.pb.title,Element.objects.get(pk=element_id).posterboard.title)
         
-        self.update_video_wrapper(state_id,'test alt')
+        self.update_video_wrapper(state_id)
         
         self.assertEqual(self.delete_element(element_id).status_code, 200)
         self.assertEqual(len(Element.objects.filter(pk=element_id)), 0) 
@@ -495,7 +560,8 @@ class ElementHandlerTest (TestCase):
         self.assertEqual(response.status_code, 400)
         
     def tearDown(self):
-        os.remove(self.imagepath)
+        #os.remove(self.imagepath)
+        pass
 
 """
 List of Tests for Profile Handler
