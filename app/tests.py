@@ -52,7 +52,7 @@ class PeopleHandlerTest(TestCase):
     
     def setUp(self):
         [self.c, self.user] = login_user('test','test')
-        [self.c1, self.user1] = login_user('ted','ted')
+        [self.c1, self.user1] = login_user('vinod','vinod')
         self.peoplepath = '/people/'+self.user.username
         self.peoplepath1 = '/people/'+self.user1.username
 
@@ -71,18 +71,18 @@ class PeopleHandlerTest(TestCase):
 
     def test_get_user_home(self):
         data = { }
-        response = self.c.get(self.peoplepath+'.json',data)
+        response = self.c1.get(self.peoplepath1+'.json',data)
         self.assertEqual(response.status_code,200)
         container = eval(response._container[0])
         
         blogger = container['blogger']
-        self.assertEqual(self.user.username,blogger['username'])
-        self.assertEqual(self.user.first_name,blogger['first_name'])
-        self.assertEqual(self.user.last_name,blogger['last_name'])
-        self.assertEqual(self.user.get_full_name(),blogger['full_name'])
+        self.assertEqual(self.user1.username,blogger['username'])
+        self.assertEqual(self.user1.first_name,blogger['first_name'])
+        self.assertEqual(self.user1.last_name,blogger['last_name'])
+        self.assertEqual(self.user1.get_full_name(),blogger['full_name'])
         
         settings = container['settings']
-        userSettings = self.user.blogsettings
+        userSettings = self.user1.blogsettings
         self.assertEqual(userSettings.grid_size,settings['grid_size'])
         self.assertEqual(userSettings.blog_title,settings['blog_title'])        
         
@@ -652,6 +652,9 @@ List of Tests for Profile Handler
 - Get basic personal information from profile page
 - Change personal information and get basic personal information again to
     verify that it correctly display the updated information
+- Post a change in personal information and get
+    it to verify that post is successful
+- Check the page that modify settings
 
 # Bad Behavior Test
 - If a user tries to Get basic personal information when not logged in
@@ -675,6 +678,22 @@ class ProfileHandlerTest(TestCase):
         self.user.email = new_email
         self.user.save()
         self.test_get_profile()
+    
+    def test_good_post_get_profile(self):
+        new_blog_title = 'new_title!'
+        new_grid_size = 3
+        data = {
+                'blog_title': new_blog_title,
+                'grid_size': new_grid_size
+            }
+        response = self.c.post('/profile/.json',data)
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(self.user.blogsettings.blog_title,new_blog_title)
+        self.assertEqual(self.user.blogsettings.grid_size,new_grid_size)
+    
+    def test_settings_handler(self):
+        response = self.c.get('/profile/settings/.json')
+        self.assertEqual(response.status_code,200)
     
     def test_not_logged_in(self):
         self.c.logout()

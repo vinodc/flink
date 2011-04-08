@@ -3,9 +3,29 @@
     "pk": 1, 
     "model": "app.blogsettings", 
     "fields": {
-      "grid_size": 5, 
       "created_at": "2011-04-04 17:30:38", 
-      "updated_at": "2011-04-04 17:30:38",  
+      "grid_size": 5, 
+      "updated_at": "2011-04-04 17:30:38", 
+      "blog_title": "My Blog"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "app.blogsettings", 
+    "fields": {
+      "created_at": "2011-04-08 06:38:33", 
+      "grid_size": 5, 
+      "updated_at": "2011-04-08 06:38:33", 
+      "blog_title": "My Blog"
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "app.blogsettings", 
+    "fields": {
+      "created_at": "2011-04-08 07:21:28", 
+      "grid_size": 5, 
+      "updated_at": "2011-04-08 07:21:28", 
       "blog_title": "My Blog"
     }
   }, 
@@ -19,13 +39,14 @@
       "created_at": "2011-04-04 17:33:54", 
       "updated_at": "2011-04-04 17:33:54", 
       "private": false, 
-      "snapshot_height": 1, 
+      "is_user_home_page": false, 
       "display_set": null, 
       "snapshot": "", 
       "user": 2, 
-      "snapshot_width": 1
+      "snapshot_width": 1, 
+      "snapshot_height": 1
     }
-  },
+  }, 
   {
     "pk": 2, 
     "model": "app.posterboard", 
@@ -36,14 +57,69 @@
       "created_at": "2011-04-04 17:33:54", 
       "updated_at": "2011-04-04 17:33:54", 
       "private": false, 
-      "snapshot_height": 1, 
+      "is_user_home_page": true, 
       "display_set": null, 
       "snapshot": "", 
       "user": 2, 
-      "snapshot_width": 1,
-      "is_user_home_page": true
+      "snapshot_width": 1, 
+      "snapshot_height": 1
     }
-  },
+  }, 
+  {
+    "pk": 3, 
+    "model": "app.posterboard", 
+    "fields": {
+      "display_position": 0, 
+      "title_path": "userhomepage-1", 
+      "title": "userhomepage 1", 
+      "created_at": "2011-04-08 07:21:28", 
+      "updated_at": "2011-04-08 07:21:28", 
+      "private": false, 
+      "is_user_home_page": true, 
+      "display_set": 0, 
+      "snapshot": "", 
+      "user": 3, 
+      "snapshot_width": 1, 
+      "snapshot_height": 1
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "app.element", 
+    "fields": {
+      "posterboard": 3, 
+      "created_at": "2011-04-08 07:21:35", 
+      "type": "image", 
+      "updated_at": "2011-04-08 07:21:38"
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "app.state", 
+    "fields": {
+      "opacity": "1", 
+      "pb_element": 1, 
+      "created_at": "2011-04-08 07:21:35", 
+      "updated_at": "2011-04-08 07:21:38", 
+      "delay": 0.0, 
+      "position_height": 2, 
+      "position_x": 4, 
+      "position_y": 3, 
+      "speed": 400, 
+      "position_width": 4, 
+      "orientation": 0
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "app.imagestate", 
+    "fields": {
+      "created_at": "2011-04-08 07:21:35", 
+      "updated_at": "2011-04-08 07:21:38", 
+      "image": "images/mountains_7.jpg", 
+      "alt": ""
+    }
+  }, 
   {
     "pk": 22, 
     "model": "auth.permission", 
@@ -69,6 +145,114 @@
       "codename": "delete_logentry", 
       "name": "Can delete log entry", 
       "content_type": 8
+    }
+  }, 
+  {
+    "pk": 46, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_openidaccount", 
+      "name": "Can add open id account", 
+      "content_type": 16
+    }
+  }, 
+  {
+    "pk": 47, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_openidaccount", 
+      "name": "Can change open id account", 
+      "content_type": 16
+    }
+  }, 
+  {
+    "pk": 48, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_openidaccount", 
+      "name": "Can delete open id account", 
+      "content_type": 16
+    }
+  }, 
+  {
+    "pk": 25, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_profile", 
+      "name": "Can add profile", 
+      "content_type": 9
+    }
+  }, 
+  {
+    "pk": 26, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_profile", 
+      "name": "Can change profile", 
+      "content_type": 9
+    }
+  }, 
+  {
+    "pk": 27, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_profile", 
+      "name": "Can delete profile", 
+      "content_type": 9
+    }
+  }, 
+  {
+    "pk": 31, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_posterboard", 
+      "name": "Can add posterboard", 
+      "content_type": 11
+    }
+  }, 
+  {
+    "pk": 32, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_posterboard", 
+      "name": "Can change posterboard", 
+      "content_type": 11
+    }
+  }, 
+  {
+    "pk": 33, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_posterboard", 
+      "name": "Can delete posterboard", 
+      "content_type": 11
+    }
+  }, 
+  {
+    "pk": 37, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_state", 
+      "name": "Can add state", 
+      "content_type": 13
+    }
+  }, 
+  {
+    "pk": 38, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_state", 
+      "name": "Can change state", 
+      "content_type": 13
+    }
+  }, 
+  {
+    "pk": 39, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_state", 
+      "name": "Can delete state", 
+      "content_type": 13
     }
   }, 
   {
@@ -153,84 +337,57 @@
     }
   }, 
   {
-    "pk": 31, 
+    "pk": 49, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "add_posterboard", 
-      "name": "Can add posterboard", 
-      "content_type": 11
+      "codename": "add_openidstore", 
+      "name": "Can add open id store", 
+      "content_type": 17
     }
   }, 
   {
-    "pk": 32, 
+    "pk": 50, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "change_posterboard", 
-      "name": "Can change posterboard", 
-      "content_type": 11
+      "codename": "change_openidstore", 
+      "name": "Can change open id store", 
+      "content_type": 17
     }
   }, 
   {
-    "pk": 33, 
+    "pk": 51, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "delete_posterboard", 
-      "name": "Can delete posterboard", 
-      "content_type": 11
+      "codename": "delete_openidstore", 
+      "name": "Can delete open id store", 
+      "content_type": 17
     }
   }, 
   {
-    "pk": 25, 
+    "pk": 43, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "add_profile", 
-      "name": "Can add profile", 
-      "content_type": 9
+      "codename": "add_socialaccount", 
+      "name": "Can add social account", 
+      "content_type": 15
     }
   }, 
   {
-    "pk": 26, 
+    "pk": 44, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "change_profile", 
-      "name": "Can change profile", 
-      "content_type": 9
+      "codename": "change_socialaccount", 
+      "name": "Can change social account", 
+      "content_type": 15
     }
   }, 
   {
-    "pk": 27, 
+    "pk": 45, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "delete_profile", 
-      "name": "Can delete profile", 
-      "content_type": 9
-    }
-  }, 
-  {
-    "pk": 37, 
-    "model": "auth.permission", 
-    "fields": {
-      "codename": "add_state", 
-      "name": "Can add state", 
-      "content_type": 13
-    }
-  }, 
-  {
-    "pk": 38, 
-    "model": "auth.permission", 
-    "fields": {
-      "codename": "change_state", 
-      "name": "Can change state", 
-      "content_type": 13
-    }
-  }, 
-  {
-    "pk": 39, 
-    "model": "auth.permission", 
-    "fields": {
-      "codename": "delete_state", 
-      "name": "Can delete state", 
-      "content_type": 13
+      "codename": "delete_socialaccount", 
+      "name": "Can delete social account", 
+      "content_type": 15
     }
   }, 
   {
@@ -369,30 +526,84 @@
     }
   }, 
   {
-    "pk": 67, 
+    "pk": 76, 
     "model": "auth.permission", 
     "fields": {
       "codename": "add_emailaddress", 
       "name": "Can add e-mail address", 
-      "content_type": 23
+      "content_type": 26
     }
   }, 
   {
-    "pk": 68, 
+    "pk": 77, 
     "model": "auth.permission", 
     "fields": {
       "codename": "change_emailaddress", 
       "name": "Can change e-mail address", 
-      "content_type": 23
+      "content_type": 26
     }
   }, 
   {
-    "pk": 69, 
+    "pk": 78, 
     "model": "auth.permission", 
     "fields": {
       "codename": "delete_emailaddress", 
       "name": "Can delete e-mail address", 
-      "content_type": 23
+      "content_type": 26
+    }
+  }, 
+  {
+    "pk": 79, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_emailconfirmation", 
+      "name": "Can add e-mail confirmation", 
+      "content_type": 27
+    }
+  }, 
+  {
+    "pk": 80, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_emailconfirmation", 
+      "name": "Can change e-mail confirmation", 
+      "content_type": 27
+    }
+  }, 
+  {
+    "pk": 81, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_emailconfirmation", 
+      "name": "Can delete e-mail confirmation", 
+      "content_type": 27
+    }
+  }, 
+  {
+    "pk": 73, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_facebookaccount", 
+      "name": "Can add facebook account", 
+      "content_type": 25
+    }
+  }, 
+  {
+    "pk": 74, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_facebookaccount", 
+      "name": "Can change facebook account", 
+      "content_type": 25
+    }
+  }, 
+  {
+    "pk": 75, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_facebookaccount", 
+      "name": "Can delete facebook account", 
+      "content_type": 25
     }
   }, 
   {
@@ -423,30 +634,30 @@
     }
   }, 
   {
-    "pk": 64, 
+    "pk": 55, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "add_facebookaccount", 
-      "name": "Can add facebook account", 
-      "content_type": 22
+      "codename": "add_twitterapp", 
+      "name": "Can add twitter app", 
+      "content_type": 19
     }
   }, 
   {
-    "pk": 65, 
+    "pk": 56, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "change_facebookaccount", 
-      "name": "Can change facebook account", 
-      "content_type": 22
+      "codename": "change_twitterapp", 
+      "name": "Can change twitter app", 
+      "content_type": 19
     }
   }, 
   {
-    "pk": 66, 
+    "pk": 57, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "delete_facebookaccount", 
-      "name": "Can delete facebook account", 
-      "content_type": 22
+      "codename": "delete_twitterapp", 
+      "name": "Can delete twitter app", 
+      "content_type": 19
     }
   }, 
   {
@@ -477,84 +688,192 @@
     }
   }, 
   {
-    "pk": 46, 
+    "pk": 58, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "add_openidaccount", 
-      "name": "Can add open id account", 
-      "content_type": 16
+      "codename": "add_twitteraccount", 
+      "name": "Can add twitter account", 
+      "content_type": 20
     }
   }, 
   {
-    "pk": 47, 
+    "pk": 59, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "change_openidaccount", 
-      "name": "Can change open id account", 
-      "content_type": 16
+      "codename": "change_twitteraccount", 
+      "name": "Can change twitter account", 
+      "content_type": 20
     }
   }, 
   {
-    "pk": 48, 
+    "pk": 60, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "delete_openidaccount", 
-      "name": "Can delete open id account", 
-      "content_type": 16
+      "codename": "delete_twitteraccount", 
+      "name": "Can delete twitter account", 
+      "content_type": 20
     }
   }, 
   {
-    "pk": 52, 
+    "pk": 82, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "add_openidnonce", 
-      "name": "Can add open id nonce", 
-      "content_type": 18
+      "codename": "add_gallery", 
+      "name": "Can add gallery", 
+      "content_type": 28
     }
   }, 
   {
-    "pk": 53, 
+    "pk": 83, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "change_openidnonce", 
-      "name": "Can change open id nonce", 
-      "content_type": 18
+      "codename": "change_gallery", 
+      "name": "Can change gallery", 
+      "content_type": 28
     }
   }, 
   {
-    "pk": 54, 
+    "pk": 84, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "delete_openidnonce", 
-      "name": "Can delete open id nonce", 
-      "content_type": 18
+      "codename": "delete_gallery", 
+      "name": "Can delete gallery", 
+      "content_type": 28
     }
   }, 
   {
-    "pk": 49, 
+    "pk": 85, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "add_openidstore", 
-      "name": "Can add open id store", 
-      "content_type": 17
+      "codename": "add_galleryupload", 
+      "name": "Can add gallery upload", 
+      "content_type": 29
     }
   }, 
   {
-    "pk": 50, 
+    "pk": 86, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "change_openidstore", 
-      "name": "Can change open id store", 
-      "content_type": 17
+      "codename": "change_galleryupload", 
+      "name": "Can change gallery upload", 
+      "content_type": 29
     }
   }, 
   {
-    "pk": 51, 
+    "pk": 87, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "delete_openidstore", 
-      "name": "Can delete open id store", 
-      "content_type": 17
+      "codename": "delete_galleryupload", 
+      "name": "Can delete gallery upload", 
+      "content_type": 29
+    }
+  }, 
+  {
+    "pk": 88, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_photo", 
+      "name": "Can add photo", 
+      "content_type": 30
+    }
+  }, 
+  {
+    "pk": 89, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_photo", 
+      "name": "Can change photo", 
+      "content_type": 30
+    }
+  }, 
+  {
+    "pk": 90, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_photo", 
+      "name": "Can delete photo", 
+      "content_type": 30
+    }
+  }, 
+  {
+    "pk": 91, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_photoeffect", 
+      "name": "Can add photo effect", 
+      "content_type": 31
+    }
+  }, 
+  {
+    "pk": 92, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_photoeffect", 
+      "name": "Can change photo effect", 
+      "content_type": 31
+    }
+  }, 
+  {
+    "pk": 93, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_photoeffect", 
+      "name": "Can delete photo effect", 
+      "content_type": 31
+    }
+  }, 
+  {
+    "pk": 97, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_photosize", 
+      "name": "Can add photo size", 
+      "content_type": 33
+    }
+  }, 
+  {
+    "pk": 98, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_photosize", 
+      "name": "Can change photo size", 
+      "content_type": 33
+    }
+  }, 
+  {
+    "pk": 99, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_photosize", 
+      "name": "Can delete photo size", 
+      "content_type": 33
+    }
+  }, 
+  {
+    "pk": 94, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_watermark", 
+      "name": "Can add watermark", 
+      "content_type": 32
+    }
+  }, 
+  {
+    "pk": 95, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_watermark", 
+      "name": "Can change watermark", 
+      "content_type": 32
+    }
+  }, 
+  {
+    "pk": 96, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_watermark", 
+      "name": "Can delete watermark", 
+      "content_type": 32
     }
   }, 
   {
@@ -612,84 +931,192 @@
     }
   }, 
   {
-    "pk": 43, 
+    "pk": 52, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "add_socialaccount", 
-      "name": "Can add social account", 
-      "content_type": 15
+      "codename": "add_openidnonce", 
+      "name": "Can add open id nonce", 
+      "content_type": 18
     }
   }, 
   {
-    "pk": 44, 
+    "pk": 53, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "change_socialaccount", 
-      "name": "Can change social account", 
-      "content_type": 15
+      "codename": "change_openidnonce", 
+      "name": "Can change open id nonce", 
+      "content_type": 18
     }
   }, 
   {
-    "pk": 45, 
+    "pk": 54, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "delete_socialaccount", 
-      "name": "Can delete social account", 
-      "content_type": 15
+      "codename": "delete_openidnonce", 
+      "name": "Can delete open id nonce", 
+      "content_type": 18
     }
   }, 
   {
-    "pk": 58, 
+    "pk": 67, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "add_twitteraccount", 
-      "name": "Can add twitter account", 
-      "content_type": 20
+      "codename": "add_emailaddress", 
+      "name": "Can add e-mail address", 
+      "content_type": 23
     }
   }, 
   {
-    "pk": 59, 
+    "pk": 68, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "change_twitteraccount", 
-      "name": "Can change twitter account", 
-      "content_type": 20
+      "codename": "change_emailaddress", 
+      "name": "Can change e-mail address", 
+      "content_type": 23
     }
   }, 
   {
-    "pk": 60, 
+    "pk": 69, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "delete_twitteraccount", 
-      "name": "Can delete twitter account", 
-      "content_type": 20
+      "codename": "delete_emailaddress", 
+      "name": "Can delete e-mail address", 
+      "content_type": 23
     }
   }, 
   {
-    "pk": 55, 
+    "pk": 64, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "add_twitterapp", 
-      "name": "Can add twitter app", 
-      "content_type": 19
+      "codename": "add_facebookaccount", 
+      "name": "Can add facebook account", 
+      "content_type": 22
     }
   }, 
   {
-    "pk": 56, 
+    "pk": 65, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "change_twitterapp", 
-      "name": "Can change twitter app", 
-      "content_type": 19
+      "codename": "change_facebookaccount", 
+      "name": "Can change facebook account", 
+      "content_type": 22
     }
   }, 
   {
-    "pk": 57, 
+    "pk": 66, 
     "model": "auth.permission", 
     "fields": {
-      "codename": "delete_twitterapp", 
-      "name": "Can delete twitter app", 
-      "content_type": 19
+      "codename": "delete_facebookaccount", 
+      "name": "Can delete facebook account", 
+      "content_type": 22
+    }
+  }, 
+  {
+    "pk": 109, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_convertvideo", 
+      "name": "Can add convert video", 
+      "content_type": 37
+    }
+  }, 
+  {
+    "pk": 110, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_convertvideo", 
+      "name": "Can change convert video", 
+      "content_type": 37
+    }
+  }, 
+  {
+    "pk": 111, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_convertvideo", 
+      "name": "Can delete convert video", 
+      "content_type": 37
+    }
+  }, 
+  {
+    "pk": 100, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_gallery", 
+      "name": "Can add gallery", 
+      "content_type": 34
+    }
+  }, 
+  {
+    "pk": 101, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_gallery", 
+      "name": "Can change gallery", 
+      "content_type": 34
+    }
+  }, 
+  {
+    "pk": 102, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_gallery", 
+      "name": "Can delete gallery", 
+      "content_type": 34
+    }
+  }, 
+  {
+    "pk": 103, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_galleryupload", 
+      "name": "Can add gallery upload", 
+      "content_type": 35
+    }
+  }, 
+  {
+    "pk": 104, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_galleryupload", 
+      "name": "Can change gallery upload", 
+      "content_type": 35
+    }
+  }, 
+  {
+    "pk": 105, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_galleryupload", 
+      "name": "Can delete gallery upload", 
+      "content_type": 35
+    }
+  }, 
+  {
+    "pk": 106, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_video", 
+      "name": "Can add video", 
+      "content_type": 36
+    }
+  }, 
+  {
+    "pk": 107, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_video", 
+      "name": "Can change video", 
+      "content_type": 36
+    }
+  }, 
+  {
+    "pk": 108, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_video", 
+      "name": "Can delete video", 
+      "content_type": 36
     }
   }, 
   {
@@ -720,12 +1147,30 @@
       "is_active": true, 
       "is_superuser": false, 
       "is_staff": false, 
-      "last_login": "2011-04-04 17:31:46", 
+      "last_login": "2011-04-08 06:38:25", 
       "groups": [], 
       "user_permissions": [], 
       "password": "sha1$ae82d$0500d96d8c020e16ac179563481fa431a551a29b", 
       "email": "test@test.com", 
       "date_joined": "2011-04-04 17:31:32"
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "auth.user", 
+    "fields": {
+      "username": "vinod", 
+      "first_name": "vinod", 
+      "last_name": "vinod", 
+      "is_active": true, 
+      "is_superuser": false, 
+      "is_staff": false, 
+      "last_login": "2011-04-08 07:21:26", 
+      "groups": [], 
+      "user_permissions": [], 
+      "password": "sha1$5f851$4ae54ba6f1c5e49cddba2dcb2eeb9868fa81f3e7", 
+      "email": "vinod@vinod.com", 
+      "date_joined": "2011-04-08 07:21:12"
     }
   }
 ]

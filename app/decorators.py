@@ -64,7 +64,7 @@ def get_posterboard(func):
         pb = kwargs.get('posterboard')
 
         if blogger is None:
-            logger.info("Attempt to access PB without blogger o.O")
+            #logger.info("Attempt to access PB without blogger o.O")
             return HttpResponseForbidden('Please specify a blogger first.')
 
         # Find the PB that corresponds to PB
@@ -87,7 +87,7 @@ def get_element(func):
         element = kwargs.get('element')
         
         if pb is None:
-            logger.info("Attempt to access element without PB o.O")
+            #logger.info("Attempt to access element without PB o.O")
             return HttpResponseForbidden('Please specify a posterboard first.')
 
         # Find the element being referred to.
@@ -95,17 +95,16 @@ def get_element(func):
             try:
                 element = int(element)
             except ValueError:
-                logger.info('Attempt to access element '+ str(element)+
-                            ' for pb '+ str(pb.id))
-                return HttpResponseBadRequest('Element should be an id, '+
-                                              'which is a number.')
-            logger.debug('Trying to find element with id'+ str(element))
+                #logger.info('Attempt to access element '+ str(element)+
+                #            ' for pb '+ str(pb.id))
+                return HttpResponseBadRequest('Element should be an id, '+'which is a number.')
+            #logger.debug('Trying to find element with id'+ str(element))
             try:
                 element = pb.element_set.get(id=element)
             except:
                 return HttpResponseBadRequest('Element does not exist')
 
-            logger.debug('Found element!')
+            #logger.debug('Found element!')
 
         kwargs['element'] = element
         return func(*args, **kwargs)

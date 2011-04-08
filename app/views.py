@@ -70,8 +70,7 @@ def settings_handler(request, format='html'):
         data = {'profile':
                 {'username': user.username,
                  'email': user.email
-                 },
-                'blogsettingsform': blogsettingsform,
+                 }
                 }
         
         if format=='html':
@@ -88,7 +87,7 @@ def settings_handler(request, format='html'):
 def profile_handler(request, format='html'):
     current_user = request.user
     
-    #check to make sure that a BlogSettings object has been crated for the user
+    #check to make sure that a BlogSettings object has been created for the user
     try:
 	blogsettings = current_user.blogsettings
     except:
@@ -220,8 +219,8 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
                 type = e.type
                 if type == 'image':
                     ts = s.imagestate
-                else:
-                    logger.debug(u"Can't get type state for type %s" % type)
+                #else:
+                #    logger.debug(u"Can't get type state for type %s" % type)
             element_data.append(jsonload(serializers.serialize('json', [e, s, ts])))
         data['element_data'] = element_data
 
@@ -253,12 +252,7 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
-    if format == 'html':
-        return render_to_response('people/index.html', error,
-                                  context_instance=RequestContext(request))
-    elif format == 'json':
-        return HttpResponse(json.dumps(error), mimetype='application/json',
-                            status=400)
+    return ErrorResponse(error,format);    
 
 @handle_handlers
 @get_blogger
@@ -270,7 +264,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
 
     # Extra check for redundancy. This is already handled in the decorator.
     if blogger is None:
-        logger.info("Attempt to access PB without blogger o.O")
+        #logger.info("Attempt to access PB without blogger o.O")
         return HttpResponseForbidden('Please specify a blogger first.')
 
     # index
@@ -322,15 +316,15 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                         continue
                 elif type == 'text':
                     ts = s.textstate
-                else:
-                    logger.debug(u"Can't get type state for type %s" % type)
-            if settings.DEBUG:
-                logger.info("\nSerializing: "+ str(s.__dict__) + str(e.__dict__) + str(ts.__dict__))
-                logger.info("\nSerialized: "+ serializers.serialize('json', [e, s, ts]))
+                #else:
+                #    logger.debug(u"Can't get type state for type %s" % type)
+            #if settings.DEBUG:
+            #    logger.info("\nSerializing: "+ str(s.__dict__) + str(e.__dict__) + str(ts.__dict__))
+            #    logger.info("\nSerialized: "+ serializers.serialize('json', [e, s, ts]))
             element_data.append(jsonload(serializers.serialize('json', [e, s, ts])))
         data['element_data'] = element_data
-        if settings.DEBUG:
-            logger.info("\nElement data: "+ str(element_data))                    
+        #if settings.DEBUG:
+        #    logger.info("\nElement data: "+ str(element_data))                    
 
         #logger.debug('Element data passed to posterboard/show: '+ str(data['element_data'])) 
         #logger.debug('a random field: ' + data['element_data'][0][0]['fields']['type'])                   
@@ -526,7 +520,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 return HttpResponse(json.dumps(data), mimetype='application/json')
         else:
             data['errors'] = 'Element data isn\'t valid: ' + str(elementform.errors)
-            logger.debug('Errors creating Element: '+ data['errors'])
+            #logger.debug('Errors creating Element: '+ data['errors'])
             return ErrorResponse(data['errors'], format)
 
     # Batch update elements
