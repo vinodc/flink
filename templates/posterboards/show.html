@@ -160,6 +160,12 @@
                     $('#text_upload_form').submit();
                 });
                 
+                $('#pb_delete').click(function() {
+                    var answer = confirm('Are you sure you want to remove it?')
+                    if(!answer) { return; }
+                    $('#pb_delete_form').submit();
+                });
+                
                 {% endif %}
                 
                 /*-----------------------
@@ -483,6 +489,7 @@
                            <button id="text_upload">Add Text</button>
                            <button id="video_upload">Add Video</button>
                            <button id="audio_upload">Add Audio</button>
+                           <button id="pb_delete">Remove Posterboard</button>
                            <!--<button id="save-changes">Save Changes to Posterboard</button>-->
                        </div>
                    </div>
@@ -558,6 +565,14 @@
                <input type="hidden" name="element-type" value="text">
                <textarea name='text-content'>Enter Text Here.</textarea>
                <input type="submit" id="text_upload_button" value="Upload Text">
+           </form>
+       </div>
+      <div style="display:none" id="pb_delete_form_wrapper">
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/' id="pb_delete_form" name="pb_delete_form" method="get">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="_action" value="delete">
+               <input type="submit" id="pb_delete_button" value="Delete Posterboard">
            </form>
        </div>
        {% endif %}

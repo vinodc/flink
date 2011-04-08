@@ -30,3 +30,7 @@ Unit tests will load the test data on its own, but you can load the test data to
 
 To run the unit tests:
     $ python manager.py test app
+    
+To get the coverage report for the unit test:
+	$ coverage run --source=app/lib.py,app/views.py,app/decorators.py,urls.py ./manage.py test app
+	$ coverage report

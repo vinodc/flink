@@ -18,3 +18,5 @@ PIL # Python Imaging Library
 djangorestframework
 cherrypy
 django-cpserver
+coverage
+selenium
