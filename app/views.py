@@ -295,7 +295,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             pbs = blogger.posterboard_set.filter(is_user_home_page=False).all()
         else:
             pbs = blogger.posterboard_set.filter(private=False,
-                                                 user_home_page=False).all()
+                                                 is_user_home_page=False).all()
 
         if format == 'html':
             return render_to_response('posterboards/index.html',
