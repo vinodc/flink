@@ -371,7 +371,6 @@ def posterboards_handler(request, blogger=None, posterboard=None,
     elif user.id and request.method == 'POST':
         pbForm = PosterboardForm(request.POST,initial={'title':'userhomepage'})
         if (not pbForm.data.has_key('title')) or pbForm.data['title'] is None or pbForm.data['title'] == '':
-            import pdb; pdb.set_trace();
             pbForm.data = pbForm.data.copy()
             pbForm.data['title'] = 'userhomepage'
         if pbForm.is_valid():
