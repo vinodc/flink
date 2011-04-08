@@ -15,6 +15,7 @@ def clean():
 # setup
 def setup():
     local('sudo easy_install pip')
+    local('sudo apt-get install python-dev')
     local('sudo pip install -r requirements.txt')
     local('mkdir -p logs')
     local('python manage.py syncdb')

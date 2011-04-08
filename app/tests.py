@@ -10,7 +10,7 @@ from django.test.client import Client
 from django.contrib.auth.models import User
 from app.models import *
 from app.forms import *
-import os
+import os, coverage
 
 """
 To save a fixture using current database:
