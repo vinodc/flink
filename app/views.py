@@ -118,7 +118,6 @@ def profile_handler(request, format='html'):
         #so at this point: we got the form from the edit_settings page and now we'll
         #use it to save it to the user's settings object
         settingsForm = BlogSettingsForm(request.POST, instance=blogsettings)
-        import pdb; pdb.set_trace();
         if settingsForm.is_valid():
             settingsForm.save()
             data['message'] = 'New grid size is: ' + str(blogsettings.grid_size)
