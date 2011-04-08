@@ -39,7 +39,9 @@ def deploy():
 def test():
     with settings(warn_only=True):
         result = local('kill `cat /tmp/flink-cherrypy.pid`', capture=True)
-        
+
+    local('yes no | python manage.py syncdb')
+    local('python manage.py loaddata test_fixture.json')
     local('java -jar testing-utilities/selenium-server.jar &')
     local('python cherrypy_static_server.py')
     
