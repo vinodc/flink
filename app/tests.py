@@ -29,6 +29,61 @@ def login_user (username, password):
     return [c, user]
 
 """
+# Normal Behavior Test
+- Get a list of users
+- Get user homepage, and if one does not exist,
+    one has to be created
+
+# Bad Behavior Test
+- Attempts to delete a user
+"""
+class PeopleHandlerTest(TestCase):
+    fixtures = ['test_fixture.json']
+    
+    def setUp(self):
+        [self.c, self.user] = login_user('test','test')
+        [self.c1, self.user1] = login_user('ted','ted')
+        self.peoplepath = '/people/'+self.user.username
+        self.peoplepath1 = '/people/'+self.user1.username
+
+    def test_get_all_users(self):
+        data = { }
+        response = self.c.get('/people/.json',data)
+        self.assertEqual(response.status_code,200)
+        container = eval(response._container[0])
+        for blogger in container['bloggers']:
+            blogger_name = blogger['username']
+            user = User.objects.get(username=blogger_name)
+            self.assertEqual(user.username,blogger['username'])            
+            self.assertEqual(user.first_name,blogger['first_name'])
+            self.assertEqual(user.last_name,blogger['last_name'])
+            self.assertEqual(user.get_full_name(),blogger['full_name'])
+
+    def test_get_user_home(self):
+        data = { }
+        response = self.c1.get(self.peoplepath1+'.json',data)
+        self.assertEqual(response.status_code,200)
+        container = eval(response._container[0])
+        
+        blogger = container['blogger']
+        user = self.user1
+        self.assertEqual(self.user1.username,blogger['username'])
+        self.assertEqual(self.user1.first_name,blogger['first_name'])
+        self.assertEqual(self.user1.last_name,blogger['last_name'])
+        self.assertEqual(self.user1.get_full_name(),blogger['full_name'])
+        
+        settings = container['settings']
+        userSettings = self.user1.blogsettings
+        self.assertEqual(userSettings.grid_size,settings['grid_size'])
+        self.assertEqual(userSettings.blog_title,settings['blog_title'])        
+        
+    def test_delete_user(self):
+        data = {'_action':'delete'
+                }
+        response = self.c.get(self.peoplepath+'.json',data)
+        self.assertEqual(response.status_code,400)
+
+"""
 List of Tests for Posterboard Handler
 # Normal Behavior Test
 - Create a new Posterboard with good parameters, 

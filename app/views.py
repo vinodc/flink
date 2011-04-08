@@ -170,7 +170,7 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
             return HttpResponse(json.dumps(data), mimetype='application/json')
 
     # GET request with a specific user, so show that user's blog.
-    elif request.method == 'GET' and blogger is not None:
+    elif request.method == 'GET' and not request.GET.has_key('_action') and blogger is not None:
         data = {'blogger':
                 {'first_name': blogger.first_name,
                  'last_name': blogger.last_name,
@@ -242,18 +242,14 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
             return HttpResponse(json.dumps(data), mimetype='application/json')
         
     # DELETE request, to delete that specific blog and user. Error for now.
-    elif request.method == 'DELETE' and blogger is not None and \
-            (blogger.id == user.id and blogger.username == user.username):
+    elif request.method == 'GET' and request.GET.has_key('_action') and request.GET['_action']=='delete' \
+        and blogger is not None and (blogger.id == user.id and blogger.username == user.username):
         # Trying to delete themselves? Not handling it for now.
         data = {'blogger':
                 {'username': blogger.username,
                  'full_name': blogger.get_full_name()},
                 'errors': 'User deletion not supported this way.'}
-        if format == 'html':
-            return render_to_response('people/show.html', data,
-                                      context_instance=RequestContext(request))
-        elif format == 'json':
-            return HttpResponse(json.dumps(data), mimetype='application/json')
+        return ErrorResponse(data,format);
 
     # All other types of requests are invalid for this specific scenario.
     error = {'errors': 'Invalid request'}
