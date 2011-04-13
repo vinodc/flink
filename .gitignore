@@ -4,6 +4,7 @@
 logs/*
 media/*
 *.*#
+.sass-cache
 .project
 .pydevproject
 .settings

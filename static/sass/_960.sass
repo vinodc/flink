@@ -1,0 +1,27 @@
+// 960 css grid in sass
+
+$col: 40px
+$pad: 20px
+$cols: 16
+
+$full: (($col + $pad) * $cols) + $pad
+
+//@for $i from 1 through $cols {
+  $col#{$i}: ($col * #{$i}) + ($pad * #{$i} - 1) }
+
+$col1: ($col * 1)
+$col2: ($col * 2) + $pad
+$col3: ($col * 3) + ($pad * 2)
+$col4: ($col * 4) + ($pad * 3)
+$col5: ($col * 5) + ($pad * 4)
+$col6: ($col * 6) + ($pad * 5)
+$col7: ($col * 7) + ($pad * 6)
+$col8: ($col * 8) + ($pad * 7)
+$col9: ($col * 9) + ($pad * 8)
+$col10: ($col * 10) + ($pad * 9)
+$col11: ($col * 11) + ($pad * 10)
+$col12: ($col * 12) + ($pad * 11)
+$col13: ($col * 13) + ($pad * 12)
+$col14: ($col * 14) + ($pad * 13)
+$col15: ($col * 15) + ($pad * 14)
+$col16: ($col * 16) + ($pad * 15)
