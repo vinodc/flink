@@ -48,7 +48,7 @@ td
       height: 119px
   #topnav
     float: right
-    margin-top: 30px
+    margin: 30px 20px 0 0
     ul
       li
         list-style: none
@@ -79,6 +79,9 @@ td
     max-width: 200px
     li
       a
+        color: #444
+        &:hover
+          color: #777
         margin: 0px 10px
         font-size: 15px
   .header
@@ -122,72 +125,3 @@ ul.tabs
   padding: 20px
   font-size: 16px
 
-
-/* CLEARS
-
-.clearboth
-  clear: both
-
-.clearfix
-  min-height: 1%
-  &:after
-    content: "."
-    display: block
-    height: 0
-    clear: both
-    visibility: hidden
-
-/* FORMS
-
-form
-  th
-    text-align: left
-  &.signup input[type="submit"], &.login input[type="submit"]
-    margin: 20px 0
-    font-size: 14pt
-
-input
-  &[type="text"], &[type="password"]
-    padding: 3px
-    margin: 3px
-    border: solid 1px #C6C6C6
-    border-bottom: solid 1px #E3E3E3
-    color: #666
-    font-size: 12pt
-    background: #f3f3f3 url('../img/form-shadow.png') left top repeat-x
-
-textarea
-  padding: 3px
-  margin: 3px
-  border: solid 1px #C6C6C6
-  border-bottom: solid 1px #E3E3E3
-  color: #666
-  font-size: 12pt
-  background: #f3f3f3 url('../img/form-shadow.png') left top repeat-x
-
-/* FORM TOGGLE
-
-.form-toggle
-  p
-    margin-bottom: 2px
-    span
-      background: #DEF
-      padding: 3px 6px
-      border-top: 1px solid #9BC
-      border-left: 1px solid #9BC
-      border-right: 1px solid #9BC
-      cursor: pointer
-  form
-    padding: 3px 6px
-    margin: 0
-    background: #DEF
-    border: 1px solid #9BC
-
-/* EXTRAS TO CLEAN UP
-
-.warning
-  color: red
-  font-weight: bold
-
-account #div_id_email label
-  width: 50px

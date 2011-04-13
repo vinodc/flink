@@ -1,4 +1,4 @@
-from django.views.generic.simple import redirect_to
+from django.views.generic.simple import redirect_to, direct_to_template
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib.auth.views import login, logout
 from django.conf.urls.defaults import *
@@ -24,8 +24,8 @@ posterboardpatterns = patterns(
     'app.views',
     url(r'^$', 'posterboards_handler', name='posterboards_url'),
     url(r'^new[/$]', 'new_posterboards_handler'),
-    
-    # Get a particular set of posterboards.    
+
+    # Get a particular set of posterboards.
     url(r'^(?P<posterboard>[^./]+)/?(\.(?P<format>(json|html)))?$',
         'posterboards_handler', name='posterboard_url'),
     (r'^(?P<posterboard>[^./]+)/elements(/|/?\.(?P<format>(json|html))$)',
@@ -53,12 +53,14 @@ urlpatterns = patterns(
     '',
     (r'^$', 'app.views.index'),
     (r'^(people|users)[/$]', include(peoplepatterns)),
+    url(r"^help", direct_to_template, {"template": "help.html",}, name="help"),
+    url(r"^about", direct_to_template, {"template": "about.html",}, name="about"),
     (r'^admin[/$]', include(admin.site.urls)),
     (r'^profile[/$]', include(profilepatterns)),
     (r'^accounts[/$]', include('allauth.urls')),
-    (r'^'+ MEDIA_URL[1:] + '(?P<media>.*)$', redirect_to, 
+    (r'^'+ MEDIA_URL[1:] + '(?P<media>.*)$', redirect_to,
      {'url': MEDIA_SERVER['PROTOCOL'] + '://' +
-             MEDIA_SERVER['HOST'] +':'+ 
+             MEDIA_SERVER['HOST'] +':'+
              str(MEDIA_SERVER['PORT']) + '/%(media)s'})
 
     #(r'^person/', include('account.person_urls')),
