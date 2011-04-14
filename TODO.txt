@@ -2,25 +2,12 @@ Modify this list with updated information.
 
 * Make rest of the models and forms.
 * Add in functionality for orientation of images.
-* Add functionality supporting addition of text elements.
-* Add functionality supporting addition of audio and video elements.
-    * Use HTML5 tags.
 * Defaults! And adjusting defaults and settings.
     * Grid size (gridArray variable in posterboards/show should not be hardcoded
       but should comprise template variables that are pulled from the DB).
     * Default layout
 * User Home Page
     * On PB Creation, user adds it to a location on the home page.
-    * Adjusting the content of the user home page (draggable, resizable).
-        * Pretty much just dragging and resizing images.
-    * One way would be to have a button on the PB that says 'render home page
-      image' and this would generate the html of the page, create an image
-      (dunno how lol, there are utilities that will generate an image though,
-      google it).
-    * Each posterboard is in a 'set'. A set is basically a posterboard of
-      posterboards. On posterboard creation, it should be put in an appropriate
-      set. If a set is full, it should go to the next set. The blogger can 
-      change which set posterboards appear in. 
 * Comments    
 * Details
    * Timestamps for posterboards
@@ -28,9 +15,6 @@ Modify this list with updated information.
      posterboard? We should limit that right? Refer to the design doc and spec.
      What if the user tries making the grid size 1x1 pixels... that's not good,
      neither is 500x500 pixels.
-   * Handle deletion of uploaded images and stuff properly. Right now it tries 
-     to nuke images when the imagestate is deleted, but I dont think it works 
-     correctly for some reason.
    * Use Amazon S3 to store content such as images, audio, video and retrieve 
      the content properly.
       * Use django plugins to help with this, or their native implementation 
@@ -40,11 +24,6 @@ Modify this list with updated information.
      with a second level of hashes for the actual posterboard, so as to 
      preserve privacy of private posterboards. Use a secret key hashed with 
      user id and posterboard id.
-   * Make elements draggable (disabled, of course) while *viewing* posterboard.
-     This is only to preserve the stacking aspect (+ z index) OR store the 
-     z index and render it properly.
-   * Handle pointing to 3rd party URLs for content, rather than actually 
-     uploading it.
 * Web page styling
    * Right now, the website looks pretty ugly. It needs to look much better.
    * Make posterboard page shinier. Editing toolbar needs to look better.
