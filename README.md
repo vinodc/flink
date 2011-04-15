@@ -7,8 +7,9 @@ All commands starting with 'fab' use python fabric and run the method
 connection to install the app's dependencies.
 
 ## Dependencies
-
-Some of the more important dependencies that need to be installed on your *nix system:
+Installing dependencies for your system varies by package manager. Yum, Apt, 
+Pacman, etc. are a few you can use. Some of the more important dependencies that 
+need to be installed on your *nix system:
 
     * python 2.7+
     * not django (the app will take care of installing a specific version of 
