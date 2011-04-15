@@ -73,7 +73,9 @@
                         <p>Errors: {{ errors }}</p>
                     {% endif %}
                 {% endblock %}
-                {% block content %} {% endblock %}
+                <div id="content">
+                    {% block content %} {% endblock %}
+                </div>
                 <hr>
                 <div id='footer'>
                     {% block footer %}

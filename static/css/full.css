@@ -11,7 +11,7 @@ body {
   font-family: "Helvetica Neue", Arial, sans-serif;
   font-size: 16px; }
 
-a {
+a, li {
   list-style: none;
   text-decoration: none; }
 
@@ -43,18 +43,19 @@ td {
       height: 119px; }
   #header #topnav {
     float: right;
-    margin: 30px 20px 0 0; }
+    margin: 30px 20px 0 10px;
+    padding-right: 10px; }
     #header #topnav ul li {
       list-style: none;
       display: inline; }
       #header #topnav ul li a {
         font-size: 22px;
         display: inline;
-        padding: 5px;
+        padding: 9px;
         margin: 5px;
         color: #842637; }
         #header #topnav ul li a:visited {
-          color: #733742; }
+          color: #6b4047; }
         #header #topnav ul li a:hover {
           color: white;
           background-color: #842637; }
@@ -89,8 +90,10 @@ td {
   background: url("/static/img/dots.gif") repeat-x center;
   height: 5px; }
 
-.dark-blue {
-  color: #001d3f; }
+.login, .signup {
+  margin: 0 auto;
+  width: 450px;
+  border: 0; }
 
 ul.tabs {
   border: 1px solid #999999;
@@ -116,3 +119,24 @@ ul.tabs {
 .tab_content {
   padding: 20px;
   font-size: 16px; }
+
+input[type="submit"] {
+  background-color: #95032b;
+  color: white;
+  font-size: 12pt;
+  padding: 2px 15px; }
+
+input[type="text"], input[type="password"] {
+  padding: 3px;
+  margin: 3px;
+  font-size: 12pt;
+  width: 250px; }
+
+label {
+  width: 70px;
+  text-align: right; }
+
+.errorlist, .errorField {
+  text-align: center;
+  margin: 0;
+  padding: 0; }
