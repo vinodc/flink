@@ -1,8 +1,12 @@
+# Flink
+
 This is intended to be deployed on a *nix system.
 
 All commands starting with 'fab' use python fabric and run the method
 ('setup', 'deploy', etc.) that is in fabfile.py. You will need an internet
 connection to install the app's dependencies.
+
+## Dependencies
 
 Some of the more important dependencies that need to be installed on your *nix system:
 
@@ -21,7 +25,7 @@ Some of the more important dependencies that need to be installed on your *nix s
     Video conversion will not be handled correctly if ffmpeg, libvorbis and
     libtheora aren't installed. 
 
-To install:
+## Install
 
     # On some systems, easy_install might be easy_install.py
     $ sudo easy_install fabric
@@ -30,7 +34,7 @@ To install:
     # If prompted to create a superuser, it is not necessary.
     $ fab setup
 
-To deploy:
+## Deploy
 
     $ fab deploy
 
@@ -42,7 +46,7 @@ Your account has been successfully created.
 There is test media (such as pictures, audio and video) in the test-media directory
 that you can use to upload to the app.
 
-Testing:
+## Testing
 
 To load the test data:
     
@@ -59,3 +63,6 @@ To get the coverage report for the unit test only:
 	$ coverage run --source=app/lib.py,app/views.py,app/decorators.py,urls.py ./manage.py test app.PeopleHandlerTest app.ProfileHandlerTest app.PosterboardHandlerTest app.ElementHandlerTest
 	$ coverage report
 	 
+## TODO
+
+See TODO.txt. There are a bunch of features needed to be implemented in there.
