@@ -43,15 +43,16 @@ td {
       height: 119px; }
   #header #topnav {
     float: right;
-    margin: 30px 20px 0 10px;
-    padding-right: 10px; }
+    margin: 30px 10px 0 10px;
+    padding-right: 10px;
+    font-size: 14px; }
     #header #topnav ul li {
       list-style: none;
       display: inline; }
       #header #topnav ul li a {
         font-size: 22px;
         display: inline;
-        padding: 9px;
+        padding: 3px;
         margin: 5px;
         color: #842637; }
         #header #topnav ul li a:visited {
