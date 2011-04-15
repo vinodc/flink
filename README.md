@@ -20,7 +20,7 @@ Without the dependencies above, video/audio conversion will not be handled
 correctly. 
 
 To deploy:
-    $ fab deploy
+     $ fab deploy
 
 Then go to http://localhost:8000, or whatever server it started, in your 
 browser.
@@ -31,12 +31,12 @@ Your account has been successfully created.
 Testing:
 
 To load the test data:
-    $ python manage.py loaddata app/fixtures/test_fixture.json 
+     $ python manage.py loaddata app/fixtures/test_fixture.json 
 Unit tests will load the test data on its own, but you can load the test data to probe the database.
 
 To just run the unit tests + selenium test:
-    $ fab test
+     $ fab test
     
 To get the coverage report for the unit test only:
-	$ coverage run --source=app/lib.py,app/views.py,app/decorators.py,urls.py ./manage.py test app.PeopleHandlerTest app.ProfileHandlerTest app.PosterboardHandlerTest app.ElementHandlerTest
-	$ coverage report
+	 $ coverage run --source=app/lib.py,app/views.py,app/decorators.py,urls.py ./manage.py test app.PeopleHandlerTest app.ProfileHandlerTest app.PosterboardHandlerTest app.ElementHandlerTest
+	 $ coverage report
