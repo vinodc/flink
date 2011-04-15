@@ -1,6 +1,25 @@
+This is intended to be deployed on a *nix system.
+
 All commands starting with 'fab' use python fabric and run the method
-('setup','deploy',etc.) that is in fabfile.py. You will need an internet
+('setup', 'deploy', etc.) that is in fabfile.py. You will need an internet
 connection to install the app's dependencies.
+
+Some of the more important dependencies that need to be installed on your *nix system:
+
+    * python 2.7+
+    * not django (the app will take care of installing a specific version of 
+      django on your system: 1.3rc1)
+    * Firefox 3.6+.
+    * python-dev (aka python-devel in some repos) 
+    * ffmpeg
+      This might require the use of 3rd party repos. Fedora, for example, will
+      only have packages in the official repo that are completely open source.
+      The RPM Fusion repository comes in useful here. Ubuntu makes this easier.
+    * libvorbis
+    * libtheora
+    
+    Video conversion will not be handled correctly if ffmpeg, libvorbis and
+    libtheora aren't installed. 
 
 To install:
 
@@ -8,16 +27,6 @@ To install:
     $ sudo easy_install fabric
     # If asked about facebook-sdk, say wipe(w) to proceed
     $ fab setup
-
-Dependencies that need to be installed:
-    * ffmpeg
-      This might require the use of 3rd party repos. Fedora, for example, will
-      only have packages in the official repo that are completely open source.
-      The RPM Fusion repository comes in useful here. Ubuntu makes this easier.
-    * libvorbis
-    * libtheora
-Without the dependencies above, video/audio conversion will not be handled
-correctly. 
 
 To deploy:
 
@@ -43,6 +52,6 @@ To just run the unit tests + selenium test:
     
 To get the coverage report for the unit test only:
 
-	 $ coverage run --source=app/lib.py,app/views.py,app/decorators.py,urls.py ./manage.py test app.PeopleHandlerTest app.ProfileHandlerTest app.PosterboardHandlerTest app.ElementHandlerTest
-	 $ coverage report
+	$ coverage run --source=app/lib.py,app/views.py,app/decorators.py,urls.py ./manage.py test app.PeopleHandlerTest app.ProfileHandlerTest app.PosterboardHandlerTest app.ElementHandlerTest
+	$ coverage report
 	 
