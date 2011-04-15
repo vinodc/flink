@@ -82,6 +82,18 @@
             $(document).ready(function(){
                 
                 {% if blog_owner %}
+                
+                /*
+                 * Editbar
+                 */
+                
+                $(sidebartab_id).mousedown(function(){
+                   $(sidebartab_id).css('border-style','inset'); 
+                });
+                $(sidebartab_id).mouseup(function(){
+                   $(sidebartab_id).css('border-style','outset'); 
+                });
+                
                 $(sidebartab_id).click(function(){
                     $(sidebarcontent_id).animate({ "width":"toggle"},{duration:400,queue:false});
      

@@ -25,18 +25,22 @@ To install:
 
     # On some systems, easy_install might be easy_install.py
     $ sudo easy_install fabric
+    
     # If asked about facebook-sdk, say wipe(w) to proceed
+    # If prompted to create a superuser, it is not necessary.
     $ fab setup
 
 To deploy:
 
     $ fab deploy
 
-Then go to http://localhost:8000, or whatever server it started, in your 
-browser.
+Then go to http://localhost:8000, or whatever server it started, in your browser.
 Not a bug: when you signup, the app tries to send a confirmation email.
-if your laptop isnt running a mailserver, it will fail, but just ignore it:
+If your laptop isnt running a mailserver, it will fail, but just ignore it:
 Your account has been successfully created.
+
+There is test media (such as pictures, audio and video) in the test-media directory
+that you can use to upload to the app.
 
 Testing:
 
