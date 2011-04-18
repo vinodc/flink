@@ -1,20 +1,14 @@
 Modify this list with updated information.
 
-* Make rest of the models and forms.
-* Add in functionality for orientation of images.
+* Timeline functionality.
+* Add in functionality for orientation of images and opacity possibly?
 * Defaults! And adjusting defaults and settings.
     * Grid size (gridArray variable in posterboards/show should not be hardcoded
       but should comprise template variables that are pulled from the DB).
     * Default layout
-* User Home Page
-    * On PB Creation, user adds it to a location on the home page.
 * Comments    
 * Details
    * Timestamps for posterboards
-   * LOTS of validation... what if a user tries adding 50 objects to a 
-     posterboard? We should limit that right? Refer to the design doc and spec.
-     What if the user tries making the grid size 1x1 pixels... that's not good,
-     neither is 500x500 pixels.
    * Use Amazon S3 to store content such as images, audio, video and retrieve 
      the content properly.
       * Use django plugins to help with this, or their native implementation 
@@ -24,10 +18,11 @@ Modify this list with updated information.
      with a second level of hashes for the actual posterboard, so as to 
      preserve privacy of private posterboards. Use a secret key hashed with 
      user id and posterboard id.
+   * More client-side and server-side validation.
 * Web page styling
    * Right now, the website looks pretty ugly. It needs to look much better.
    * Make posterboard page shinier. Editing toolbar needs to look better.
    * Header and footer especially.
-* Patch vlprocess for pad options.
-* Patch django_cron for syncdb errors.
-* ***********TESTS!!!!!****************
+* Patch vlprocess for pad options (done in our app, pull request?).
+* Patch django_cron for syncdb errors (done in our app, pull request?).
+* ***********MORE TESTS!!!!!****************
