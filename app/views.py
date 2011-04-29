@@ -10,7 +10,7 @@ from django.core import serializers
 from django.forms.models import modelformset_factory
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-
+from django.utils.html import escape
 from django.views.decorators.csrf import csrf_exempt
 
 import sys
@@ -33,7 +33,7 @@ from settings import logger
 # More info:
 # http://docs.djangoproject.com/en/dev/topics/logging/
 
-from app.lib import title_to_path, jsonload
+from app.lib import title_to_path, jsonload, strip
 
 # Debugger:
 #import ipdb
@@ -338,6 +338,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                         continue
                 elif type == 'text':
                     ts = s.textstate
+                    ts.content = escape(strip(ts.content))
+                    
                 #else:
                 #    logger.debug(u"Can't get type state for type %s" % type)
             #if settings.DEBUG:

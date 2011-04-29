@@ -115,7 +115,7 @@
                                         "  id='" + $(this).attr('id') +
                                         "' child-id='" + $(this).attr('child-id') +
                                         "' style='width:100%;height:100%;'>"+
-                                        $(this).html() +
+                                        $('<div>').text($(this).html()).html() +
                                         "</textarea>";
     							});
                             initTinyMCE();
@@ -132,7 +132,7 @@
                         if($('textarea[type="text"]').length != 0) {
     						$('textarea[type="text"]').replaceWith(
     							function() {
-    								return "<div " +
+                                    return "<div " +
     									"  type='text' "+                                 
     									"  id='" + $(this).attr('id') +
     									"' child-id='" + $(this).attr('child-id') +
@@ -140,7 +140,7 @@
     									$(this).val() +
     									"</div>";	
     						});
-                            destroyTinyMCE();
+                            destroyTinyMCE();                    
                         }
                     }
                 });
@@ -304,7 +304,7 @@
                                     "  id='state" + state.pk +
                                     "' child-id='" + typestate.pk +
                                     "' style='width:100%;height:100%;'>"+
-                                    typestate.fields.content +
+                                    $('<div>').html(typestate.fields.content).text() +
                                     "</div>";
                         
                         domstring = "<div id='element" + element.pk + "'" +
