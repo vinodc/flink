@@ -10,6 +10,11 @@
         {% if blog_owner %}
         <link href="{{ STATIC_URL }}css/editbar.css" type='text/css' rel='stylesheet' />
         <script type="text/javascript" src="{{ STATIC_URL }}js/tiny_mce/tiny_mce.js"></script>
+<!--        
+	<link href="{{ STATIC_URL }}css/horinaja.css" type='text/css' rel='stylesheet' />
+	<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.mousewheel.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.horinaja.js"></script> 
+-->
         <script type="text/javascript">
         
             function textareaUpdateMce(id) {
@@ -38,7 +43,7 @@
                         mode : "specific_textareas",
                         editor_selector : "mceEditor",
 
-                        init_instance_callback : "showTextArea",
+                        //init_instance_callback : "showTextArea",
                         
                         setup : function(ed) {
                                 ed.onKeyUp.add(mceUpdateTextArea);
@@ -106,19 +111,22 @@
                         sidebar_out = true;
                         
                         if($('div[type="text"]').length != 0) {
-                            $('div[type="text"]').replaceWith(
-    							function() {
-    								return "<textarea " +
-                            			"  type='text' "+
-                                        "  class='mceEditor' "+ 
-                                        "  onKeyUp=\"textareaUpdateMce('"+$(this).attr('id')+"');\"" +
-                                        "  id='" + $(this).attr('id') +
-                                        "' child-id='" + $(this).attr('child-id') +
-                                        "' style='width:100%;height:100%;'>"+
-                                        $('<div>').text($(this).html()).html() +
-                                        "</textarea>";
-    							});
+                            $('div[type="text"]').replaceWith(function() {
+								return "<textarea " +
+                        			"  type='text' "+
+                                    "  class='mceEditor' "+ 
+                                    "  onKeyUp=\"textareaUpdateMce('"+$(this).attr('id')+"');\"" +
+                                    "  id='" + $(this).attr('id') +
+                                    "' child-id='" + $(this).attr('child-id') +
+                                    "' style='width:"+ $(this).parent().width()+"px;height:"+ $(this).parent().height()+"px;'>"+
+                                    $('<div>').text($(this).html()).html() +
+                                    "</textarea>";
+    						});
                             initTinyMCE();
+                            $('.mceEditor,.mceLayout').css('width','100%');
+                            $('.mceEditor,.mceLayout').css('height','100%');
+                            $("span.mceEditor").parent().resizable( "option", "minWidth", 240 );
+                            $("span.mceEditor").parent().resizable( "option", "minHeight", 170 );
                         }
                     }
                     else{
@@ -136,7 +144,7 @@
     									"  type='text' "+                                 
     									"  id='" + $(this).attr('id') +
     									"' child-id='" + $(this).attr('child-id') +
-    									"' style='width:100%;height:100%;'>"+
+    									"' style='width:"+ $(this).parent().width()+"px;height:"+ $(this).parent().height()+"px;'>"+
     									$(this).val() +
     									"</div>";	
     						});
@@ -303,7 +311,7 @@
                         			"  type='text' "+
                                     "  id='state" + state.pk +
                                     "' child-id='" + typestate.pk +
-                                    "' style='width:100%;height:100%;'>"+
+                                    "' style='width:"+ $(this).parent().width()+"px;height:"+ $(this).parent().height()+"px;'>"+
                                     $('<div>').html(typestate.fields.content).text() +
                                     "</div>";
                         
@@ -426,6 +434,12 @@
                            $(selector +" audio").css('height', parseInt($(this).css('height')));
                            $(selector +" audio").css('width', parseInt($(this).css('width')));
                         }
+                        /*else if($(selector +" .mceEditor").length != 0) {
+                            console.log("setting height to "+parseInt($(this).css('height')));
+                            console.log("setting width to "+parseInt($(this).css('width')));
+                            $(selector +" .mceEditor").css('height', parseInt($(this).css('height')));
+                            $(selector +" .mceEditor").css('width', parseInt($(this).css('width')));
+                        }*/
                         update_element(selector); 
                     },
                     //animate: true,
