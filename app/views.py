@@ -299,8 +299,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         if blogger.id == user.id:
             pbs = blogger.posterboard_set.filter(is_user_home_page=False).all()
         else:
-            # Put redirect/whatever here instead of pass. thx.
-            pass
+            return redirect('/people/'+user.username)
 
         if format == 'html':
             return render_to_response('posterboards/index.html',
