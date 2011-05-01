@@ -36,7 +36,11 @@ from settings import logger
 from app.lib import title_to_path, jsonload, strip
 
 # Debugger:
-#import ipdb
+# from ipdb import pm; pm()
+# or
+# from ipdb import set_trace; set_trace()
+# pdb:
+# import pdb; pdb.set_trace()
 
 # Error
 def ErrorResponse(data, format):
@@ -222,7 +226,7 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
                             
         element_data = []
         for e in posterboard.element_set.all():
-            sset = e.state_set.all()
+            sset = e.state_set.all().order_by('order')
             sset = list(sset[:1])
             s = None
             if sset:
@@ -319,7 +323,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         data['converting'] = False
         element_data = []
         for e in posterboard.element_set.all():
-            sset = e.state_set.all()
+            sset = e.state_set.all().order_by('order')
             state_data =[]
             typestate = None
             for s in sset:

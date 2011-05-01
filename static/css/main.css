@@ -143,11 +143,17 @@ body {
     float: right;
 }
 #opacity-slider {
-    
     height: 80%;
     margin-top: 15px;
     margin-bottom: auto;
     left: 10px;
+}
+#opacity-slider-label {
+    -webkit-transform: rotate(-90deg); 
+    -moz-transform: rotate(-90deg);
+    bottom: 60px;
+    left: 10px;
+    position: relative;
 }
 
 /* TIMELINE END */

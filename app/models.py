@@ -180,6 +180,12 @@ class State(CommonInfo):
                                     MinValueValidator(1),
                                     MaxValueValidator(10000)
                                 ], blank=True)
+    order = models.IntegerField(default=1,
+                                validators=[
+                                    MinValueValidator(1)
+                                ],
+                                blank=True) 
+    
     def delete(self):
         element = self.pb_element
         for state in ImageState.objects.filter(state=self):
@@ -202,6 +208,14 @@ class State(CommonInfo):
         if self.position_y is None: self.position_y = 1
         if self.position_width is None: self.position_width = 4
         if self.position_height is None: self.position_height = 2
+        try:
+            max_order = State.objects.filter(pb_element=self.pb_element).aggregate(models.Max('order'))['order__max']
+        except:
+            max_order = None
+        if max_order is None:
+            self.order = 1
+        if self.order is None:
+            self.order = max_order + 1
         
 class ImageState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)

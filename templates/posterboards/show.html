@@ -157,7 +157,7 @@
     									$(this).val() +
     									"</div>";	
     						});
-                            destroyTinyMCE();                    
+                            destroyTinyMCE();
                         }
                         
                         $(".element-class").each(function(index) {
@@ -214,11 +214,11 @@
                     elementstyles += 'cursor:pointer;'
                 {% endif %}
                 
-                var element, state, typestate, linkedpb, domstring;
+                var element, state, states, typestate, linkedpb, statestring, domstring;
                 $.each(elementsToAdd, function(index, elementdata) {
                     element = elementdata[0];
                     typestate = elementdata[1];
-                    state = elementdata[2][0];
+                    states = elementdata[2];
                     if(elementdata.length > 3) {
                         linkedpb = elementdata[3];
                     }
@@ -228,14 +228,8 @@
                     
                     if(element.fields.type == 'image') {
                         domstring = "<div id='element" + element.pk + "'" +
-                                       " opacity='"+ state.fields.opacity +"'"+ 
-                                       " element-type='image'"+
-                                       " style='" + elementstyles +
-                                       " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                       " top:"+ (state.fields.position_y * gridArray[1]) + ";"+
-                                       " width:" + (state.fields.position_width * gridArray[0]) +";"+
-                                       " height:" + (state.fields.position_height * gridArray[1]) +";"+
-                                    "' state-id='" + state.pk +
+                                    " element-type='image'"+
+                                    " style='" + elementstyles +
                                     "' class='element-class " +
                                     {% if blog_owner %}
                                     " ui-state-disabled " +
@@ -245,7 +239,7 @@
                                         domstring += "<a href='/people/{{blogger.username}}/posterboards/"+linkedpb.fields.title_path+"'>";
                                     }
                                     domstring +=
-                                    "<img id='state" + state.pk + 
+                                    "<img id='state-1" + 
                                     "' child-id='" + typestate.pk + 
                                     "' src='{{ MEDIA_URL }}"+ typestate.fields.image +
                                     "' style='width:100%;height:100%;"+
@@ -259,23 +253,15 @@
                     }
                     else if(element.fields.type == 'video') {
                         domstring = "<div id='element" + element.pk + "'" +
-                                       " opacity='"+ state.fields.opacity +"'"+ 
-                                       " style='" + elementstyles +
-                                       "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                       "top:"+ (state.fields.position_y * gridArray[1]) + ";"+
-                                       "width:" + (state.fields.position_width * gridArray[0]) +";"+
-                                       "height:" + (state.fields.position_height * gridArray[1]) +";"+
-                                    "' state-id='" + state.pk +
+                                    " style='" + elementstyles +
                                     "' class='element-class " +
                                     {% if blog_owner %}
                                     " ui-state-disabled " +
                                     {% endif %}
                                     "' element-type='video'>"+
-                                    "<video id='state" + state.pk + 
+                                    "<video id='state-1" + 
                                     "' child-id='" + typestate.pk + 
                                     "' class='child-element-class "+
-                                    "' height='"+ state.fields.position_height * gridArray[1] +
-                                    "' width='"+ state.fields.position_width * gridArray[0] +
                                     "'  preload='auto' controls='video_controls"+element.pk+"'>";
                                     if(typestate.fields.ogv_video != "") {
                                         domstring +=
@@ -299,53 +285,39 @@
                     }
                     else if(element.fields.type == 'audio') {
                         domstring = "<div id='element" + element.pk + "'"+
-                                       " opacity='"+ state.fields.opacity +"'"+
-                                       " style='" + elementstyles +
-                                       "left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                       "top:"+ (state.fields.position_y * gridArray[1]) + ";"+
-                                       "width:" + (state.fields.position_width * gridArray[0]) +";"+
-                                       "height:" + (state.fields.position_height * gridArray[1]) +";"+
-                                       "' state-id='" + state.pk +
-                                       "' class='element-class " +
-                                       {% if blog_owner %}
-                                       " ui-state-disabled " +
-                                       {% endif %}
-                                       "' element-type='audio'>"+
-                                       "<audio id='state" + state.pk + 
-                                       "' child-id='" + typestate.pk +
-                                       "' class='child-element-class "+
-                                       "' preload='auto' controls='audio_controls"+element.pk+"'>";
-                                       if(typestate.fields.original_audio != "") {
-                                           domstring +=
-                                           "<source src='"+ {{MEDIA_URL}} + typestate.fields.original_audio +
-                                           "'>";
-                                       }
-                                           domstring +=
-                                           "Your browser does not support the <code>audio</code> element."+
-                                       "</audio>"+
-                                       "</div>";
-                    }
-
-                    else if(element.fields.type == 'text') {
-                        var domtext =   "<div " +
-                        			"  type='text' "+
-                                    "  id='state" + state.pk +
+                                    " style='" + elementstyles +
+                                    "' class='element-class " +
+                                    {% if blog_owner %}
+                                    " ui-state-disabled " +
+                                    {% endif %}
+                                    "' element-type='audio'>"+
+                                    "<audio id='state-1" + 
                                     "' child-id='" + typestate.pk +
                                     "' class='child-element-class "+
-                                    "' style='width:"+ $(this).parent().width()+"px;height:"+ $(this).parent().height()+"px;'>"+
+                                    "' preload='auto' controls='audio_controls"+element.pk+"'>";
+                                    if(typestate.fields.original_audio != "") {
+                                        domstring +=
+                                        "<source src='"+ {{MEDIA_URL}} + typestate.fields.original_audio +
+                                        "'>";
+                                    }
+                                        domstring +=
+                                        "Your browser does not support the <code>audio</code> element."+
+                                    "</audio>"+
+                                    "</div>";
+                    }
+                    else if(element.fields.type == 'text') {
+                        var domtext =   "<div " +
+                        			"  type='text"+
+                                    "' child-id='" + typestate.pk +
+                                    "' class='child-element-class "+
+                                    "' style='width:100%;height:100%;'>"+
                                     $('<div>').html(typestate.fields.content).text() +
                                     "</div>";
                         
                         domstring = "<div id='element" + element.pk + "'" +
-                                       " opacity='"+ state.fields.opacity +"'"+
                                        " element-type='text'"+
-                                       " state-id='" + state.pk + "'" +
                                        " class='element-class' " +                                       
                                        " style='" + elementstyles +
-                                       " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                       " top:"+ (state.fields.position_y * gridArray[0]) + ";"+
-                                       " width:" + (state.fields.position_width * gridArray[0]) +";"+
-                                       " height:" + (state.fields.position_height * gridArray[1]) +";"+                                       
                                         "'>"+domtext+"</div>";
                     }
 
@@ -361,13 +333,51 @@
                         $("#element" + element.pk +" audio").css('width', parseInt($("#element" + element.pk).css('width')));
                     }
                     
-                    // Set opacity of all elements if anyone but the blog is viewing it
-                    {% if not blog_owner %}
-                    $("#element"+element.pk).css('opacity', state.fields.opacity);
-                    {% endif %}
                     
                     // All elements need to be position: absolute.
                     $("#element"+ element.pk).css("position","absolute");
+                    
+                    // Populate states and set event handlers if not in editing mode.
+                    // If in editing mode, populate first state for all elements instead.
+                    $.each(states, function(index, state){
+                        statestring = "<state id='stateinfo"+ state.pk +
+                                      "' opacity='"+ state.fields.opacity +
+                                      "' state-id='" + state.pk +
+                                      "' delay='" + state.fields.delay +
+                                      "' speed='" + state.fields.speed +
+                                      "' style='" +
+                                      " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                                      " top:"+ (state.fields.position_y * gridArray[1]) + ";"+
+                                      " width:" + (state.fields.position_width * gridArray[0]) +";"+
+                                      " height:" + (state.fields.position_height * gridArray[1]) +";"+
+                                      " display:none;"+
+                                      "'></state>";
+                        $("#element"+element.pk).append(statestring);
+                    });
+                    state = elementdata[2][0]; // First state.
+                    
+                    // Update element with state info.
+                    switch_element_to_state("#element"+element.pk, "#stateinfo"+ state.pk)
+                    
+                    /*
+                     // Set opacity of all elements if anyone but the blog owner is viewing it
+                     {% if not blog_owner %}
+                     $("#element"+element.pk).css('opacity', state.fields.opacity);
+                     {% endif %}                   
+                     * Element Attr:
+                     " opacity='"+ state.fields.opacity +"'"+
+                     " state-id='" + state.pk + "'" +
+                     * Element Styles:                                        
+                     " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                     " top:"+ (state.fields.position_y * gridArray[1]) + ";"+
+                     " width:" + (state.fields.position_width * gridArray[0]) +";"+
+                     " height:" + (state.fields.position_height * gridArray[1]) +";"+
+                     * Child Element Attr:
+                     "  id='state" + state.pk +
+                     * Video Element Styles:
+                     "' height='"+ state.fields.position_height * gridArray[1] +
+                     "' width='"+ state.fields.position_width * gridArray[0] +
+                    */
                 });
                 
                 {% if blog_owner %}
@@ -379,7 +389,7 @@
                 });
                
                 var blockmap = {
-                    message: '<h2>Please select an element.</h2>',
+                    message: '<h2>Please select an element to edit its properties.</h2>',
                     css: { 
                           border: '5px solid #a00',
                           width: '70%',
@@ -393,7 +403,9 @@
                             $('#'+selectedelementid).removeClass('selected-element');
                         }
                         selectedelementid = '';
-                        $("#timeline-editor").block(blockmap);
+                        if($("#timeline-editor").children(".blockUI").length <= 0) {
+                            $("#timeline-editor").block(blockmap);
+                        }
                     }
                     validselect = false; 
                });
@@ -460,13 +472,17 @@
                     min: 0,
                     max: 100,
                     slide: function(event, ui) {
-                        $("#"+selectedelementid).children(".child-element-class").css('opacity', ui.value/100);
-                        $("#"+selectedelementid).attr('opacity', ui.value/100);
+                        if(selectedelementid != null) {
+                            $("#"+selectedelementid).children(".child-element-class").css('opacity', ui.value/100);
+                            $("#"+selectedelementid).attr('opacity', ui.value/100);
+                        }
                     },
                     change: function(event, ui) {
-                        $("#"+selectedelementid).children(".child-element-class").css('opacity', 0.75);
-                        $("#"+selectedelementid).attr('opacity', ui.value/100);
-                        update_element("#"+selectedelementid);
+                        if(selectedelementid != null) {
+                            $("#"+selectedelementid).children(".child-element-class").css('opacity', 0.75);
+                            $("#"+selectedelementid).attr('opacity', ui.value/100);
+                            update_element("#"+selectedelementid);
+                        }
                     }
                 });
 
@@ -481,8 +497,44 @@
 
             });
             
+            function switch_element_to_state(eselector, sselector) {
+                $(eselector).attr('opacity', $(sselector).attr('opacity'));
+                $(eselector).attr('state-id', $(sselector).attr('state-id'));
+                $(eselector).css('height', $(sselector).css('height'));
+                $(eselector).css('width', $(sselector).css('width'));
+                $(eselector).css('left', $(sselector).css('left'));
+                $(eselector).css('top', $(sselector).css('top'));
+                {% if not blog_owner %}
+                $(eselector).css('opacity', $(sselector).attr('opacity'));
+                {% endif %} 
+                $(eselector).children('.child-element-class').attr('id', "state"+$(sselector).attr('state-id'));
+                $(eselector).children('video').css('height', $(sselector).css('height'));
+                $(eselector).children('video').css('width', $(sselector).css('width'));
+            }
+            
             {% if blog_owner %}
-                        
+
+            function set_timeline_info(obj) {
+                $("#state-description #element-type").text($(obj).attr("element-type"));
+                $("#state-description #number-of-states").text($(obj).children("state").length);
+                var step = state_position(obj, $(obj).attr("state-id"));
+                $("#state-description #timeline-step-label").text(step);
+                $("#timeline-slider").slider( "option", "value", step);
+                $("#timeline-slider").slider( "option", "max", $("#state-description #number-of-states").text());
+                $("#opacity-slider").slider("option", "value", $(obj).attr("opacity")*100);
+            }
+            
+            // State id is a number.
+            function state_position(elementobj, stateid) {
+                var pos = 0;
+                $(elementobj).children("state").each(function(index) {
+                    if($(this).attr('state-id') == stateid) {
+                        pos = index + 1;
+                    }
+                });
+                return pos;
+            }
+                                 
             function make_element_interactive(selector) {
                $(selector).draggable({ 
                     containment: pbid, 
@@ -543,8 +595,7 @@
                     selectedelementid = $(this).attr('id');
 
                     // Timeline                    
-                    $("#state-description #element-type").text($(this).attr("element-type"));
-                    $("#state-description #number-of-states").text($(this).attr("element-type"));
+                    set_timeline_info(this);
                     $("#timeline-editor").unblock();
                 });
                     
@@ -761,12 +812,13 @@
                 <h3 style="text-align:center;margin:0"><span id="element-type"></span></h3>
               <p>
                 Number of States: <span id="number-of-states">1</span><br>
-                State <span id="timeline-step-label">1</span><br>
+                State: <span id="timeline-step-label">1</span><br>
               </p>
           </div>
           <div id="state-properties" class="state-boxes timeline-editor">
               
               <div id="opacity-slider"></div>
+              <span id="opacity-slider-label">Opacity</span>
           </div>
           <div id="timeline-slider"></div>
       </div>
