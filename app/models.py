@@ -188,6 +188,10 @@ class State(CommonInfo):
     
     def delete(self):
         element = self.pb_element
+        if element.state_set.count() <= 1:
+            delete_element_flag = True
+        else:
+            delete_element_flag = False
         for state in ImageState.objects.filter(state=self):
             state.delete()
         for state in TextState.objects.filter(state=self):
@@ -197,7 +201,8 @@ class State(CommonInfo):
         for state in VideoState.objects.filter(state=self):
             state.delete()
         super(State,self).delete()
-        element.delete()
+        if delete_element_flag:
+            element.delete()
     
     def clean(self):
         if self.delay is None: self.delay = 0.0
@@ -214,8 +219,8 @@ class State(CommonInfo):
             max_order = None
         if max_order is None:
             self.order = 1
-        if self.order is None:
-            self.order = max_order + 1
+        #if self.order is None:
+        #    self.order = max_order + 1
         
 class ImageState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)

@@ -12,12 +12,23 @@ admin.autodiscover()
 #import django_cron
 #django_cron.autodiscover()
 
+statepatterns = patterns(
+    'app.views',
+    url(r'^$', 'states_handler', name='states_url'),
+    #url(r'^(\.(?P<format>(json|html)))?$', 'elements_handler', name='elements_url'),
+    url(r'^(?P<state>\d+)/?(\.(?P<format>(json|html)))?$',
+        'states_handler', name='state_url'),
+    )
+
+
 elementpatterns = patterns(
     'app.views',
     url(r'^$', 'elements_handler', name='elements_url'),
     #url(r'^(\.(?P<format>(json|html)))?$', 'elements_handler', name='elements_url'),
     url(r'^(?P<element>\d+)/?(\.(?P<format>(json|html)))?$',
         'elements_handler', name='element_url'),
+    (r'^(?P<element>[^./]+)/states(/|/?\.(?P<format>(json|html))$)',
+     include(statepatterns)),
     )
 
 posterboardpatterns = patterns(

@@ -340,18 +340,7 @@
                     // Populate states and set event handlers if not in editing mode.
                     // If in editing mode, populate first state for all elements instead.
                     $.each(states, function(index, state){
-                        statestring = "<state id='stateinfo"+ state.pk +
-                                      "' opacity='"+ state.fields.opacity +
-                                      "' state-id='" + state.pk +
-                                      "' delay='" + state.fields.delay +
-                                      "' speed='" + state.fields.speed +
-                                      "' style='" +
-                                      " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
-                                      " top:"+ (state.fields.position_y * gridArray[1]) + ";"+
-                                      " width:" + (state.fields.position_width * gridArray[0]) +";"+
-                                      " height:" + (state.fields.position_height * gridArray[1]) +";"+
-                                      " display:none;"+
-                                      "'></state>";
+                        statestring = get_state_string(state);
                         $("#element"+element.pk).append(statestring);
                     });
                     state = elementdata[2][0]; // First state.
@@ -413,7 +402,7 @@
                $(document).keydown(function(event) {
                     // Shift + DEL
                     if (event.shiftKey && event.keyCode == 46 && selectedelementid != '') {
-                        var answer = confirm('Are you sure you want to remove the element?')
+                        var answer = confirm('Are you sure you want to remove the element and all its states?')
                         if(!answer) { return; }
                         $.ajax({
                             url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+selectedelementid.substr(7)+'.json',
@@ -455,7 +444,15 @@
                 /*-----------------------
                         Timeline
                 ----------------------- */
-               
+                
+                $("#new-state-button").click(function(){
+                    create_new_state("#"+selectedelementid);
+                })
+                
+                $("#delete-state-button").click(function(){
+                    delete_current_state("#"+selectedelementid); 
+                });
+                               
                 $("#timeline-slider").slider({
                     value:1,
                     min: 1,
@@ -463,6 +460,10 @@
                     step: 1,
                     slide: function( event, ui ) {
                         $("#timeline-step-label").text(ui.value);
+                        var es = "#"+selectedelementid;
+                        var stateid = state_id_from_position(es, ui.value-1);
+                        switch_element_to_state(es, "#"+stateid);
+                        set_timeline_properties_info(es);
                     }
                 });
                 $("#opacity-slider").slider({
@@ -481,7 +482,9 @@
                         if(selectedelementid != null) {
                             $("#"+selectedelementid).children(".child-element-class").css('opacity', 0.75);
                             $("#"+selectedelementid).attr('opacity', ui.value/100);
-                            update_element("#"+selectedelementid);
+                            if(event.originalEvent != null) {
+                                update_element("#"+selectedelementid);
+                            }
                         }
                     }
                 });
@@ -497,9 +500,29 @@
 
             });
             
+            function get_state_string(state) {
+                var statestring = "<state id='stateinfo"+ state.pk +
+                                  "' opacity='"+ state.fields.opacity +
+                                  "' state-id='" + state.pk +
+                                  "' delay='" + state.fields.delay +
+                                  "' speed='" + state.fields.speed +
+                                  "' order='" + state.fields.order +
+                                  "' style='" +
+                                  " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                                  " top:"+ (state.fields.position_y * gridArray[1]) + ";"+
+                                  " width:" + (state.fields.position_width * gridArray[0]) +";"+
+                                  " height:" + (state.fields.position_height * gridArray[1]) +";"+
+                                  " display:none;"+
+                                  "'></state>";
+                return statestring;
+            }
+            
             function switch_element_to_state(eselector, sselector) {
                 $(eselector).attr('opacity', $(sselector).attr('opacity'));
+                $(eselector).attr('speed', $(sselector).attr('speed'));
+                $(eselector).attr('delay', $(sselector).attr('delay'));
                 $(eselector).attr('state-id', $(sselector).attr('state-id'));
+                $(eselector).attr('order', $(sselector).attr('order'));
                 $(eselector).css('height', $(sselector).css('height'));
                 $(eselector).css('width', $(sselector).css('width'));
                 $(eselector).css('left', $(sselector).css('left'));
@@ -514,14 +537,88 @@
             
             {% if blog_owner %}
 
+            // Use current state to create a new state.
+            function create_new_state(eselector) {
+                var stateData = {};
+                stateData['csrfmiddlewaretoken'] = '{{csrf_token}}';
+                stateData['state-position_width']=parseInt($(eselector).width() / gridArray[0]);
+                stateData['state-position_height']=parseInt($(eselector).height() / gridArray[1]);
+                stateData['state-position_x']=parseInt(($(eselector).position().left) / gridArray[0]);
+                stateData['state-position_y']=parseInt(($(eselector).position().top) / gridArray[1]);
+                stateData['state-opacity']=parseFloat($(eselector).attr('opacity'));
+                stateData['state-order']=parseInt($(eselector).children("state").last().attr('order')) + 1;
+                $.ajax({
+                   url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+eselector.substr(8)+'/states.json',
+                   data: stateData,
+                   dataType: 'json',
+                   beforeSend: function() { $("#new-state-button").attr("disabled", "1"); },
+                   success: function(data) { 
+                        $(eselector).effect("highlight", {}, 1000);
+                        console.log(data);
+                        var statestring = get_state_string(data.state);
+                        var state = $(eselector).append(statestring);
+                        switch_element_to_state(eselector, "#"+ state.id);
+                        set_timeline_info(eselector);
+                   },
+                   error: function() { alert('State creation failed!'); },
+                   complete: function() {;},
+                   type: 'post',
+                });
+            }
+
+            function delete_current_state(eselector) {
+                if($(eselector).children('state').length <= 1) {
+                    alert('Cannot remove the only state that exists. You can delete the element if you need to.');
+                    return;
+                }
+                
+                var answer = confirm('Are you sure you want to remove the state?')
+                if(!answer) { return; }
+
+                var stateid = $(eselector).attr("state-id");  
+                var stateData = {};
+                stateData['csrfmiddlewaretoken'] = '{{csrf_token}}';
+                stateData['_action'] = 'delete';
+                $.ajax({
+                   url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+eselector.substr(8)+'/states/'+stateid+'.json',
+                   data: stateData,
+                   beforeSend: function() { $("#delete-state-button").attr("disabled", "1"); },
+                   success: function(data) {
+                       var sselector = "#stateinfo"+stateid;
+                       var new_stateid = $(sselector).prev('state').attr('state-id');
+                       if(new_stateid == null) {
+                           new_stateid = $(sselector).next('state').attr('state-id');
+                       }
+                       $("#stateinfo"+stateid).remove();
+                       switch_element_to_state(eselector, "#stateinfo"+new_stateid);
+                       set_timeline_info(eselector);
+                   },
+                   error: function() { alert('State deletion failed!'); },
+                   complete: function() {;},
+                   type: 'get',
+                });
+            }
+
             function set_timeline_info(obj) {
                 $("#state-description #element-type").text($(obj).attr("element-type"));
                 $("#state-description #number-of-states").text($(obj).children("state").length);
                 var step = state_position(obj, $(obj).attr("state-id"));
                 $("#state-description #timeline-step-label").text(step);
-                $("#timeline-slider").slider( "option", "value", step);
                 $("#timeline-slider").slider( "option", "max", $("#state-description #number-of-states").text());
+                $("#timeline-slider").slider( "option", "value", step);
+                $("#new-state-button").removeAttr("disabled");
+                if($(obj).children('state').length > 1) { 
+                    $("#delete-state-button").removeAttr("disabled");
+                }
+                else {
+                    $("#delete-state-button").attr("disabled","1");
+                }
+                set_timeline_properties_info(obj);
+            }
+
+            function set_timeline_properties_info(obj) {
                 $("#opacity-slider").slider("option", "value", $(obj).attr("opacity")*100);
+                // TODO: add delay and speed here.
             }
             
             // State id is a number.
@@ -534,6 +631,11 @@
                 });
                 return pos;
             }
+            
+            // State pos is the *index* of the state in the list of states.
+            function state_id_from_position(elementobj, statepos) {
+                return $(elementobj).children("state").slice(statepos, statepos+1).attr("id");
+            } 
                                  
             function make_element_interactive(selector) {
                $(selector).draggable({ 
@@ -542,7 +644,9 @@
                     scroll: false,
                     grid: gridArray,
                     stack: pbid +" div,img,text,video,audio",
-                    stop: function(event, ui) { update_element("#"+$(this).attr('id')); },
+                    stop: function(event, ui) { 
+                        update_element("#"+$(this).attr('id')); 
+                    },
                 });
                 $(selector).resizable({
                     grid: gridArray,
@@ -561,8 +665,6 @@
                            $(selector +" audio").css('width', parseInt($(this).css('width')));
                         }
                         /*else if($(selector +" .mceEditor").length != 0) {
-                            console.log("setting height to "+parseInt($(this).css('height')));
-                            console.log("setting width to "+parseInt($(this).css('width')));
                             $(selector +" .mceEditor").css('height', parseInt($(this).css('height')));
                             $(selector +" .mceEditor").css('width', parseInt($(this).css('width')));
                         }*/
@@ -608,6 +710,19 @@
                 }
             }
                 
+            function update_stateinfo(eselector) {
+                var sselector = "#stateinfo"+$(eselector).attr("state-id");
+                console.log("CALLED. selector: "+ sselector);
+                $(sselector).attr('opacity', $(eselector).attr("opacity"));
+                $(sselector).attr('delay', $(eselector).attr("delay"));
+                $(sselector).attr('speed', $(eselector).attr("speed"));
+                $(sselector).attr('order', $(eselector).attr("order"));              
+                $(sselector).css('left', $(eselector).css("left"));
+                $(sselector).css('width', $(eselector).css("width"));
+                $(sselector).css('height', $(eselector).css("height"));
+                $(sselector).css('top', $(eselector).css("top"));
+            }
+            
             function update_element(selector) 
                 {
                     // Populate Appropriate Fields
@@ -622,6 +737,9 @@
                     elementData['state-position_x']=parseInt(($(selector).position().left) / gridArray[0]);
                     elementData['state-position_y']=parseInt(($(selector).position().top) / gridArray[1]);
                     elementData['state-opacity']=parseFloat($(selector).attr('opacity'));
+                    elementData['state-order']=parseInt($(selector).attr('order'));
+                    elementData['state-delay']=parseInt($(selector).attr('delay'));
+                    elementData['state-speed']=parseInt($(selector).attr('speed'));
                     
                     var child = $('#state'+$(selector).attr('state-id')); 
                     if ($(selector).attr('element-type') == 'image') 
@@ -642,7 +760,10 @@
                        url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+selector.substr(8)+'.json',
                        data: elementData,
                        dataType: 'json',
-                       success: function() { $(selector).effect("highlight", {}, 1000); },
+                       success: function() { 
+                            $(selector).effect("highlight", {}, 1000);
+                            update_stateinfo(selector); 
+                       },
                        type: 'post',
                     });
                 }
@@ -801,7 +922,10 @@
                        by viewing the object in Viewing Mode.
                    </li>
                    <li><strong>Timeline: </strong>
-                       An element's timeline can be modified in Editing Mode.
+                       An element's timeline can be modified in Editing Mode. Creating a new state for an element will add
+                       that state to the add of the timeline. The new state's properties will be set to the same as that of 
+                       the state that the element was in when the new state was created. States can only be deleted when an
+                       element has more than one state.
                    </li>
                </ul>
           </div>
@@ -814,6 +938,8 @@
                 Number of States: <span id="number-of-states">1</span><br>
                 State: <span id="timeline-step-label">1</span><br>
               </p>
+              <button id="new-state-button">New State</button>
+              <button id="delete-state-button">Delete State</button>
           </div>
           <div id="state-properties" class="state-boxes timeline-editor">
               

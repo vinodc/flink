@@ -97,7 +97,7 @@ def get_element(func):
             except ValueError:
                 #logger.info('Attempt to access element '+ str(element)+
                 #            ' for pb '+ str(pb.id))
-                return HttpResponseBadRequest('Element should be an id, '+'which is a number.')
+                return HttpResponseBadRequest('Element should be an id, which is a number.')
             #logger.debug('Trying to find element with id'+ str(element))
             try:
                 element = pb.element_set.get(id=element)
@@ -107,5 +107,40 @@ def get_element(func):
             #logger.debug('Found element!')
 
         kwargs['element'] = element
+        return func(*args, **kwargs)
+    return _dec
+
+def get_state(func):
+    """
+    Get the element being referred to.
+    """
+    def _dec(*args, **kwargs):
+        pb = kwargs.get('posterboard')
+        element = kwargs.get('element')
+        state = kwargs.get('state')
+        
+        if pb is None:
+            #logger.info("Attempt to access element without PB o.O")
+            return HttpResponseForbidden('Please specify a posterboard first.')
+        elif element is None:
+            return HttpResponseForbidden('Please specify an element first.')
+        
+        # Find the element being referred to.
+        if state is not None:
+            try:
+                state = int(state)
+            except ValueError:
+                #logger.info('Attempt to access element '+ str(element)+
+                #            ' for pb '+ str(pb.id))
+                return HttpResponseBadRequest('State should be an id, which is a number.')
+            #logger.debug('Trying to find element with id'+ str(element))
+            try:
+                state = element.state_set.get(id=state)
+            except:
+                return HttpResponseBadRequest('State does not exist')
+
+            #logger.debug('Found element!')
+
+        kwargs['state'] = state
         return func(*args, **kwargs)
     return _dec

@@ -22,7 +22,7 @@ from app.forms import PosterboardForm, ImageStateForm, StateForm, BlogSettingsFo
 from app.models import Posterboard, BlogSettings, Element, State, \
     ImageState, TextState, AudioState, VideoState
 from app.decorators import get_blogger, get_element, get_posterboard, \
-    handle_handlers, get_blogger_settings
+    handle_handlers, get_blogger_settings, get_state
 
 # Logger:
 from settings import logger
@@ -226,7 +226,7 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
                             
         element_data = []
         for e in posterboard.element_set.all():
-            sset = e.state_set.all().order_by('order')
+            sset = e.state_set.all().order_by('order','created_at')
             sset = list(sset[:1])
             s = None
             if sset:
@@ -322,28 +322,31 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         data['converting'] = False
         element_data = []
         for e in posterboard.element_set.all():
-            sset = e.state_set.all().order_by('order')
+            sset = e.state_set.all().order_by('order','created_at')
             state_data =[]
             typestate = None
             for s in sset:
                 ts = None
                 if s is not None:
                     type = e.type
-                    if type == 'image':
-                        ts = s.imagestate
-                    elif type == 'audio':
-                        ts = s.audiostate
-                    elif type == 'video':
-                        ts = s.videostate
-                        if( ts.original_video.name[-3:] != 'ogv' and ts.original_video.name[-3:] != 'ogg' and
-                           (datetime.now() - ts.created_at).seconds < settings.CONVERSION_TIME):
-                            # Don't want to display the video before conversion safely over.
-                            data['converting'] = True
-                            continue
-                    elif type == 'text':
-                        ts = s.textstate
-                        ts.content = escape(strip(ts.content))
-                    state_data.append(jsonload(serializers.serialize('json', [s])))
+                    try:
+                        if type == 'image':
+                            ts = s.imagestate
+                        elif type == 'audio':
+                            ts = s.audiostate
+                        elif type == 'video':
+                            ts = s.videostate
+                            if( ts.original_video.name[-3:] != 'ogv' and ts.original_video.name[-3:] != 'ogg' and
+                               (datetime.now() - ts.created_at).seconds < settings.CONVERSION_TIME):
+                                # Don't want to display the video before conversion safely over.
+                                data['converting'] = True
+                                continue
+                        elif type == 'text':
+                            ts = s.textstate
+                            ts.content = escape(strip(ts.content))
+                    except:
+                        pass
+                    state_data += (jsonload(serializers.serialize('json', [s])))
                 if ts is not None:
                     typestate = ts
                 #else:
@@ -352,7 +355,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             #    logger.info("\nSerializing: "+ str(s.__dict__) + str(e.__dict__) + str(ts.__dict__))
             #    logger.info("\nSerialized: "+ serializers.serialize('json', [e, s, ts]))
             
-            element_data.append(jsonload(serializers.serialize('json', [e, typestate])) + state_data)
+            element_data.append(jsonload(serializers.serialize('json', [e, typestate])) + [state_data])
         data['element_data'] = element_data
         #if settings.DEBUG:
         #    logger.info("\nElement data: "+ str(element_data))                    
@@ -435,6 +438,76 @@ def posterboards_handler(request, blogger=None, posterboard=None,
     elif format == 'json':
         return HttpResponse(json.dumps(error), mimetype='application/json',
                             status=400)
+
+@handle_handlers
+@get_blogger
+@get_posterboard
+@get_element
+@get_state
+def states_handler(request, blogger=None, posterboard=None, element=None, state=None,
+                   format='html'):
+    user = request.user
+    data = {"message":""}
+    
+    if not user.id == blogger.id and user and blogger:
+        return HttpResponseForbidden('Posterboard Only Available for Blogger to Edit')
+    
+    if posterboard is None or element is None:
+        return HttpResponseBadRequest('Specify posterboard and element')
+    
+    if request.method == 'GET' and not request.GET.has_key('_action'):
+        return HttpResponseBadRequest()
+    # create
+    elif request.method == 'POST' and not request.POST.has_key('_action') and state is None:
+        stateform = StateForm(request.POST, prefix='state')
+        if stateform.is_valid():
+            state = stateform.save(commit=False)
+            
+            if state.order is None:
+                try:
+                    max_order = State.objects.filter(pb_element=self.pb_element).aggregate(models.Max('order'))['order__max']
+                except:
+                    max_order = None
+                if max_order is not None:
+                    self.order = max_order + 1
+                    
+            element.state_set.add(state)
+            element.save()
+            state.save()
+            
+            data['element-id'] = element.pk
+            data['state-id'] = state.id
+            
+            if format == 'html':
+                return redirect(posterboard)
+            elif format == 'json':
+                data['message'] = 'State created successfully.'
+                data['state'] = jsonload(serializers.serialize('json', [state]))[0]
+                return HttpResponse(json.dumps(data), mimetype='application/json')
+        else:
+            data['errors'] = 'State data isn\'t valid: ' + str(stateform.errors)
+            #logger.debug('Errors creating Element: '+ data['errors'])
+            return ErrorResponse(data['errors'], format)
+    # destroy
+    elif request.method == 'GET' and request.GET.has_key('_action') and request.GET['_action']=='delete' and \
+    element is not None and blogger.id == user.id and element.posterboard_id == posterboard.id and \
+    state is not None and state.pb_element_id == element.id:
+        # Make sure element has more than one state.
+        if element.state_set.count() <= 1:
+            data['error'] = 'Cannot remove an element that has only one state'
+            return ErrorResponse(data['error'], format)
+
+        data['message'] = 'Successfully removed state '+ str(state.id)
+        state.delete()
+        
+        if format == 'html':
+            return redirect(posterboard)
+        elif format == 'json':
+            return HttpResponse(json.dumps(data), mimetype='application/json')
+
+    # All other types of requests are invalid for this specific scenario.
+    error = {'errors': 'Invalid request'}
+    return ErrorResponse(error, format)
 
 @handle_handlers
 @get_blogger
