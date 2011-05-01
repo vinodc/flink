@@ -235,7 +235,9 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
                     p = ts.linkedposterboard
                 #else:
                 #    logger.debug(u"Can't get type state for type %s" % type)
-            element_data.append(jsonload(serializers.serialize('json', [e, s, ts, p])))
+            element_data.append(jsonload(serializers.serialize('json', [e, ts])) + 
+                                [jsonload(serializers.serialize('json', [s]))] + 
+                                jsonload(serializers.serialize('json', [p])))
 
         data['element_data'] = element_data
 
@@ -318,34 +320,36 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         element_data = []
         for e in posterboard.element_set.all():
             sset = e.state_set.all()
-            sset = list(sset[:1])
-            s = None
-            if sset:
-                s = sset[0]
-            ts = None
-            if s is not None:
-                type = e.type
-                if type == 'image':
-                    ts = s.imagestate
-                elif type == 'audio':
-                    ts = s.audiostate
-                elif type == 'video':
-                    ts = s.videostate
-                    if( ts.original_video.name[-3:] != 'ogv' and ts.original_video.name[-3:] != 'ogg' and
-                       (datetime.now() - ts.created_at).seconds < settings.CONVERSION_TIME):
-                        # Don't want to display the video before conversion safely over.
-                        data['converting'] = True
-                        continue
-                elif type == 'text':
-                    ts = s.textstate
-                    ts.content = escape(strip(ts.content))
-                    
+            state_data =[]
+            typestate = None
+            for s in sset:
+                ts = None
+                if s is not None:
+                    type = e.type
+                    if type == 'image':
+                        ts = s.imagestate
+                    elif type == 'audio':
+                        ts = s.audiostate
+                    elif type == 'video':
+                        ts = s.videostate
+                        if( ts.original_video.name[-3:] != 'ogv' and ts.original_video.name[-3:] != 'ogg' and
+                           (datetime.now() - ts.created_at).seconds < settings.CONVERSION_TIME):
+                            # Don't want to display the video before conversion safely over.
+                            data['converting'] = True
+                            continue
+                    elif type == 'text':
+                        ts = s.textstate
+                        ts.content = escape(strip(ts.content))
+                    state_data.append(jsonload(serializers.serialize('json', [s])))
+                if ts is not None:
+                    typestate = ts
                 #else:
                 #    logger.debug(u"Can't get type state for type %s" % type)
             #if settings.DEBUG:
             #    logger.info("\nSerializing: "+ str(s.__dict__) + str(e.__dict__) + str(ts.__dict__))
             #    logger.info("\nSerialized: "+ serializers.serialize('json', [e, s, ts]))
-            element_data.append(jsonload(serializers.serialize('json', [e, s, ts])))
+            
+            element_data.append(jsonload(serializers.serialize('json', [e, typestate])) + state_data)
         data['element_data'] = element_data
         #if settings.DEBUG:
         #    logger.info("\nElement data: "+ str(element_data))                    
@@ -362,11 +366,11 @@ def posterboards_handler(request, blogger=None, posterboard=None,
         if format == 'html':
             return render_to_response('posterboards/show.html',
                                       {'blogger': blogger,
-                                        'posterboard': posterboard,
-                                        'linked': linked,
-                                        'converting': data['converting'],
-                                        'element_data': data['element_data'],
-                                        'blog_owner': blogger.id == user.id},
+                                       'posterboard': posterboard,
+                                       'linked': linked,
+                                       'converting': data['converting'],
+                                       'element_data': data['element_data'],
+                                       'blog_owner': blogger.id == user.id},
                                       context_instance=RequestContext(request))
         elif format == 'json':
             return HttpResponse(json.dumps(data), mimetype='application/json')
@@ -465,6 +469,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 data['errors'] = 'State data isn\'t valid: ' + str(stateform.errors)
                 return ErrorResponse(data['errors'], format)
             state = stateform.save(commit=False)
+            state.speed = 1 # Appear super fast.
             element.state_set.add(state)
 
             if element.type == 'image':
