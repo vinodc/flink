@@ -1,7 +1,5 @@
 Modify this list with updated information.
 
-* Timeline functionality.
-* Add in functionality for orientation of images and opacity possibly?
 * Defaults! And adjusting defaults and settings.
     * Grid size (gridArray variable in posterboards/show should not be hardcoded
       but should comprise template variables that are pulled from the DB).
@@ -18,11 +16,6 @@ Modify this list with updated information.
      with a second level of hashes for the actual posterboard, so as to 
      preserve privacy of private posterboards. Use a secret key hashed with 
      user id and posterboard id.
-   * More client-side and server-side validation.
-* Web page styling
-   * Right now, the website looks pretty ugly. It needs to look much better.
-   * Make posterboard page shinier. Editing toolbar needs to look better.
-   * Header and footer especially.
 * Patch vlprocess for pad options (done in our app, pull request?).
 * Patch django_cron for syncdb errors (done in our app, pull request?).
 * ***********MORE TESTS!!!!!****************
