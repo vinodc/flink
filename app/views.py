@@ -187,6 +187,7 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
                 }
         if blogger.id == user.id:
             pbs = blogger.posterboard_set
+            linkedpbs = blogger.posterboard_set.filter(is_user_home_page=False).all()
         else:
             pbs = blogger.posterboard_set.filter(private=False)
         pbs = pbs.filter(is_user_home_page=True).order_by('-created_at').all()
@@ -260,6 +261,7 @@ def people_handler(request, blogger=None, homepageid=None, format='html', settin
                                        'nexthomepage': nexthomepage,
                                        'prevhomepage': prevhomepage,
                                        'posterboard': posterboard,
+                                       'linkedpbs': linkedpbs,
                                        'unlinkedposterboards': unlinked_pbs,
                                        'element_data': data['element_data'],
                                        'blog_owner': blogger.id == user.id},
