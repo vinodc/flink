@@ -318,6 +318,10 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             return HttpResponseForbidden('Private Posterboard.')
         elif posterboard.is_user_home_page:
             return HttpResponseRedirect('/people/'+blogger.username+'/homepages/'+str(posterboard.id)+'/')
+        
+        preview = False
+        if request.GET.has_key('preview') and request.GET['preview'] == 'true':
+            preview = True
 
         data['converting'] = False
         element_data = []
@@ -376,7 +380,7 @@ def posterboards_handler(request, blogger=None, posterboard=None,
                                        'linked': linked,
                                        'converting': data['converting'],
                                        'element_data': data['element_data'],
-                                       'blog_owner': blogger.id == user.id},
+                                       'blog_owner': (blogger.id == user.id) and not preview},
                                       context_instance=RequestContext(request))
         elif format == 'json':
             return HttpResponse(json.dumps(data), mimetype='application/json')
@@ -497,8 +501,16 @@ def states_handler(request, blogger=None, posterboard=None, element=None, state=
             data['error'] = 'Cannot remove an element that has only one state'
             return ErrorResponse(data['error'], format)
 
+        typestate = state.typestate()
+        if typestate is not None:
+            next_state = element.state_set.filter(order__gt=state.order).order_by('order','created_at')[0]
+            typestate.state = next_state
+            state.delete(delete_typestate=False)
+            typestate.save()
+        else:
+            state.delete()
         data['message'] = 'Successfully removed state '+ str(state.id)
-        state.delete()
+        
         
         if format == 'html':
             return redirect(posterboard)
@@ -546,6 +558,7 @@ def elements_handler(request, blogger=None, posterboard=None, element=None,
                 return ErrorResponse(data['errors'], format)
             state = stateform.save(commit=False)
             state.speed = 1 # Appear super fast.
+            state.order = 1
             element.state_set.add(state)
 
             if element.type == 'image':

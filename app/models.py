@@ -140,6 +140,11 @@ class Element(CommonInfo):
     type = models.CharField(max_length=5, choices=ELEMENT_TYPE_CHOICES)
     posterboard = models.ForeignKey(Posterboard, editable=False)
 
+    start = models.IntegerField(default=7000,
+                                validators = [
+                                    MinValueValidator(0),
+                                    MaxValueValidator(9999999)
+                                ], blank=True)
     def __unicode__(self):
        return self.posterboard.title + ' element' + str(self.id)
    
@@ -147,6 +152,10 @@ class Element(CommonInfo):
         for state in State.objects.filter(pb_element=self):            
             state.delete()
         super(Element,self).delete()
+        
+    def clean(self):
+        if self.start is None: self.start = 7000
+        return True
 
 class State(CommonInfo):
     pb_element = models.ForeignKey(Element, verbose_name='posterboard element', editable=False)
@@ -170,15 +179,16 @@ class State(CommonInfo):
                                       MinValueValidator(Decimal('0.00'))
                                   ], blank=True)
     # Time before this state occurs.
-    delay = models.FloatField(default=0.0, 
+    delay = models.IntegerField(default=0, 
                               validators = [
-                                  MinValueValidator(0.0)
+                                  MinValueValidator(0),
+                                  MaxValueValidator(999999)
                               ], blank=True)
     # Speed of transition into this state in milliseconds.
     speed = models.IntegerField(default=400,
                                 validators = [
                                     MinValueValidator(1),
-                                    MaxValueValidator(10000)
+                                    MaxValueValidator(9999)
                                 ], blank=True)
     order = models.IntegerField(default=1,
                                 validators=[
@@ -186,26 +196,44 @@ class State(CommonInfo):
                                 ],
                                 blank=True) 
     
-    def delete(self):
+    def typestate(self):
+        element = self.pb_element
+        if element is None:
+            return None
+        ts = None
+        try:
+            if element.type == 'image':
+                ts = self.imagestate
+            elif element.type == 'video':
+                ts = self.videostate
+            elif element.typ == 'audio':
+                ts = self.audiostate
+            elif element.type == 'text':
+                ts = self.textstate
+        except:
+            pass
+        return ts
+    
+    def delete(self, delete_typestate=True):
         element = self.pb_element
         if element.state_set.count() <= 1:
             delete_element_flag = True
         else:
             delete_element_flag = False
         for state in ImageState.objects.filter(state=self):
-            state.delete()
+            state.delete(delete_file=delete_typestate)
         for state in TextState.objects.filter(state=self):
             state.delete()
         for state in AudioState.objects.filter(state=self):
-            state.delete()
+            state.delete(delete_file=delete_typestate)
         for state in VideoState.objects.filter(state=self):
-            state.delete()
+            state.delete(delete_file=delete_typestate)
         super(State,self).delete()
         if delete_element_flag:
             element.delete()
     
     def clean(self):
-        if self.delay is None: self.delay = 0.0
+        if self.delay is None: self.delay = 0
         if self.speed is None: self.speed = 400
         if self.opacity is None: self.opacity = Decimal('1.00')
         if self.orientation is None: self.orientation = 0
@@ -213,12 +241,6 @@ class State(CommonInfo):
         if self.position_y is None: self.position_y = 1
         if self.position_width is None: self.position_width = 4
         if self.position_height is None: self.position_height = 2
-        try:
-            max_order = State.objects.filter(pb_element=self.pb_element).aggregate(models.Max('order'))['order__max']
-        except:
-            max_order = None
-        if max_order is None:
-            self.order = 1
         #if self.order is None:
         #    self.order = max_order + 1
         
@@ -230,9 +252,10 @@ class ImageState(CommonInfo):
     linkedposterboard = models.OneToOneField(Posterboard, editable=False, 
                                              null=True, blank=True)
     
-    def delete(self):
+    def delete(self, delete_file=True):
         state = self.state
-        self.image.delete()
+        if delete_file:
+            self.image.delete()
         super(ImageState,self).delete()
         state.delete()
         
@@ -256,21 +279,21 @@ class VideoState(VideoModel):
       self.updated_at = datetime.datetime.today()
       super(VideoState, self).save(*args, **kwargs)
         
-    def delete(self):
-      # Remove video files?
-      try:
-          if self.image is not None: 
-              self.image.delete()
-          if self.original_video is not None: 
-              self.original_video.delete()
-          if self.mp4_video is not None: 
-              self.mp4_video.delete()
-          if self.ogv_video is not None: 
-              self.ogv_video.delete()
-          if self.flv_video is not None: 
-              self.flv_video.delete()
-      except:
-          pass
+    def delete(self, delete_file=True):
+      if delete_file:
+          try:
+              if self.image is not None: 
+                  self.image.delete()
+              if self.original_video is not None: 
+                  self.original_video.delete()
+              if self.mp4_video is not None: 
+                  self.mp4_video.delete()
+              if self.ogv_video is not None: 
+                  self.ogv_video.delete()
+              if self.flv_video is not None: 
+                  self.flv_video.delete()
+          except:
+              pass
       super(VideoState, self).delete()
       
     def clean(self):
@@ -287,12 +310,13 @@ class AudioState(CommonInfo):
     state = models.OneToOneField(State, editable=False, primary_key=True)
     original_audio = models.ImageField(upload_to='audios', editable=False)
     
-    def delete(self):
-      try:
-          if self.original_audio is not None: self.original_audio.delete()
-      except:
-          pass
-      super(AudioState, self).delete()
+    def delete(self, delete_file=True):
+        if delete_file:
+          try:
+              if self.original_audio is not None: self.original_audio.delete()
+          except:
+              pass
+        super(AudioState, self).delete()
     
     def clean(self):
         return True

@@ -85,14 +85,17 @@ body {
     height: 960px;
 }
 
+#play-timeline-wrapper, .grid {
+    width: 900px;
+    height: 960px;    
+}
+
 .grid{
     -moz-box-shadow: 0 0 1em grey;
     -webkit-box-shadow: 0 0 1em grey;
     box-shadow: 0 0 1em grey; 
     margin-left: auto;
     margin-right: auto;
-    width: 900px;
-    height: 960px;
 }
 
 /* TIMELINE START */
@@ -154,6 +157,105 @@ body {
     bottom: 60px;
     left: 10px;
     position: relative;
+}
+
+#delay-slider, #speed-slider {
+    margin-left: auto;
+    width: 60%;
+}
+#delay-slider {
+    bottom: 140px;
+}
+#speed-slider {
+    bottom: 120px;
+}
+
+#delay-slider-label, #speed-slider-label {
+    position: relative;
+    vertical-align: middle;
+    margin-left: 60px;
+    display: block;
+    width: 100px;
+    float: left;
+}
+#delay-slider-label {
+    bottom: 135px;
+}
+#speed-slider-label {
+    bottom: 125px;
+}
+
+#delay-input, #speed-input {
+    height: 20px;
+    position: relative;
+    width: 60px;  
+    vertical-align: middle;
+    text-align: center;
+}
+#delay-input {
+    bottom: 137px;
+}
+#speed-input {
+    bottom: 126px;
+}
+
+#delay-speed-text {
+    width: 230px; 
+    font-size: small;
+    position: relative; 
+    bottom: 170px; 
+    left: 230px;
+}
+#update-delay-speed-button {
+    position:relative;
+    bottom:150px;
+    left: 60px
+}
+
+#preview-timeline-button {
+    position: relative;
+    bottom: 140px;
+    left: 60px;
+    display: block;
+    font-size: 19px;
+}
+#preview-timeline-link {
+    text-align: center;
+    text-decoration: underline;
+}
+
+#play-timeline-wrapper {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    cursor: auto;
+}
+#play-timeline {
+    height: 150px;
+    width: 150px;
+    cursor: pointer;
+}
+
+.media-start {
+    display: none;
+}
+#media-start-label {
+    position:relative; 
+    right:10px;
+    text-align:right;
+    bottom:75px;
+}
+#media-start-input {
+    position: relative; 
+    bottom: 70px; 
+    left: 240px; 
+    text-align: center; 
+    width: 70px;
+}
+#media-start-button {
+    position: relative; 
+    bottom: 40px; 
+    left: 150px;
 }
 
 /* TIMELINE END */

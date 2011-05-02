@@ -7,11 +7,13 @@
 
 {% endblock %}
 {% block content %}
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.blockUI.js"></script>
         {% if blog_owner %}
         <link href="{{ STATIC_URL }}css/editbar.css" type='text/css' rel='stylesheet' />
         <script type="text/javascript" src="{{ STATIC_URL }}js/tiny_mce/tiny_mce.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.corner.js"></script>
-        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.blockUI.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.jstepper.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.mousewheel.min.js"></script>
 <!--        
 	<link href="{{ STATIC_URL }}css/horinaja.css" type='text/css' rel='stylesheet' />
 	<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.mousewheel.min.js"></script>
@@ -87,6 +89,21 @@
             {% endif %}
             
             $(document).ready(function(){
+                
+                {% if not blog_owner and not userhomepages %}
+                var pb_blockmap = {
+                    message: '<div id="play-timeline-wrapper">'+
+                             '<img id="play-timeline" align="center" src="{{ STATIC_URL }}images/play.png" alt="Go!">'+
+                             '</div>',
+                    css: { 
+                          border: '5px solid #a00',
+                          width: '100%',
+                          height: '100%',
+                         }
+                };
+                $(pbid).block(pb_blockmap);
+            
+                {% endif %}
                 
                 {% if blog_owner %}
                 
@@ -253,6 +270,7 @@
                     }
                     else if(element.fields.type == 'video') {
                         domstring = "<div id='element" + element.pk + "'" +
+                                    " start ='"+ element.fields.start + "'" +
                                     " style='" + elementstyles +
                                     "' class='element-class " +
                                     {% if blog_owner %}
@@ -285,6 +303,7 @@
                     }
                     else if(element.fields.type == 'audio') {
                         domstring = "<div id='element" + element.pk + "'"+
+                                    " start ='"+ element.fields.start + "'" +
                                     " style='" + elementstyles +
                                     "' class='element-class " +
                                     {% if blog_owner %}
@@ -345,8 +364,15 @@
                     });
                     state = elementdata[2][0]; // First state.
                     
+                    
+                    {% if blog_owner %}
                     // Update element with state info.
                     switch_element_to_state("#element"+element.pk, "#stateinfo"+ state.pk)
+                    {% endif %}
+                    
+                    {% if not blog_owner and not userhomepages %}
+                    $("#element"+element.pk).css('opacity',0);
+                    {% endif %}
                     
                     /*
                      // Set opacity of all elements if anyone but the blog owner is viewing it
@@ -378,7 +404,10 @@
                 });
                
                 var blockmap = {
-                    message: '<h2>Please select an element to edit its properties.</h2>',
+                    message: '<h2>Please select an element to edit its properties.</h2>' +
+                             '<p><a id="preview-timeline-link" href="?preview=true" target="_blank">'+
+                             'Preview Timeline'+
+                             '</a></p>',
                     css: { 
                           border: '5px solid #a00',
                           width: '70%',
@@ -452,7 +481,19 @@
                 $("#delete-state-button").click(function(){
                     delete_current_state("#"+selectedelementid); 
                 });
-                               
+                   
+                $("#update-delay-speed-button").click(function(){
+                   update_delay_and_speed("#"+selectedelementid); 
+                });
+                
+                $("#preview-timeline-button").click(function(){
+                    window.open('?preview=true');
+                });
+                       
+                $("#media-start-button").click(function(){
+                   update_start("#"+selectedelementid); 
+                });
+                
                 $("#timeline-slider").slider({
                     value:1,
                     min: 1,
@@ -488,17 +529,95 @@
                         }
                     }
                 });
-
+                
                 $("#state-description").corner();
                 $("#state-properties").corner();
                 $("#timeline-editor").corner();
+                $("#delay-input").jStepper({
+                   maxValue: 999999,
+                   minValue: 0,
+                   defaultValue: 0,
+                   allowDecimals: false
+                });
+                $("#speed-input").jStepper({
+                   maxValue: 9999,
+                   minValue: 1,
+                   defaultValue: 400,
+                   allowDecimals: false
+                });
+                $("#media-start-input").jStepper({
+                   maxValue: 9999999,
+                   minValue: 0,
+                   defaultValue: 1000,
+                   allowDecimals: false
+                });
                 
                 $(sidebartab_id).click();
                 $("#timeline-editor").block(blockmap);
                 
                 {% endif %}
-
+                
+                {% if not blog_owner and not userhomepages %}
+                
+                $("#play-timeline").click(function(){
+                   $(pbid).unblock();
+                   launch(); 
+                });
+                
+                {% endif %}
+    
             });
+            
+            {% if not blog_owner and not userhomepages %}
+            
+            function launch() {
+                transition_elements();
+            }
+            
+            function transition_elements() {
+                $(".element-class").each(function(index){
+                   var nextstateid;
+                   var stateid = $(this).attr("state-id");
+                   if(stateid == null) {
+                       nextstateid = $(this).children("state").first().attr("state-id");
+                   }
+                   else {
+                       nextstateid = $("#stateinfo"+stateid).next().attr("#state-id");
+                   }
+                   if($(this).attr('element-type') == 'video' || $(this).attr('element-type') == 'audio') {
+                       var start = parseInt($(this).attr('start'));
+                       var eid = $(this).attr("id");
+                       setTimeout('$("#'+eid+' '+$(this).attr('element-type')+'")[0].play();', start);
+                   }
+                   transition_element(this, nextstateid);
+                });
+            }
+            
+            function transition_element(e, nextstateid) {
+
+                if(nextstateid == null) { return; }
+                var ns = "#stateinfo"+ nextstateid;
+                
+                var css_map = {
+                    opacity: $(ns).attr('opacity'),
+                    width: $(ns).css('width'),
+                    height: $(ns).css('height'),
+                    top: $(ns).css('top'),
+                    left: $(ns).css('left'),
+                };
+                
+                console.log("Transitioning "+nextstateid+" with delay "+ $(ns).attr("delay"));
+                
+                $(e).delay(parseInt($(ns).attr("delay")))
+                    .animate(css_map, 
+                             parseInt($(ns).attr("speed")),
+                             'swing',
+                             function() { 
+                                transition_element(e, $(ns).next('state').attr("state-id"));
+                             });
+            }
+            
+            {% endif %}
             
             function get_state_string(state) {
                 var statestring = "<state id='stateinfo"+ state.pk +
@@ -547,6 +666,7 @@
                 stateData['state-position_y']=parseInt(($(eselector).position().top) / gridArray[1]);
                 stateData['state-opacity']=parseFloat($(eselector).attr('opacity'));
                 stateData['state-order']=parseInt($(eselector).children("state").last().attr('order')) + 1;
+                stateData['state-delay']=10000;
                 $.ajax({
                    url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+eselector.substr(8)+'/states.json',
                    data: stateData,
@@ -599,6 +719,17 @@
                 });
             }
 
+            function update_delay_and_speed(eselector) {
+                $(eselector).attr("speed", $("#speed-input").val());
+                $(eselector).attr("delay", $("#delay-input").val());
+                update_element(eselector);
+            }
+
+            function update_start(eselector) {
+                $(eselector).attr("start", $("#media-start-input").val());
+                update_element(eselector);
+            }
+
             function set_timeline_info(obj) {
                 $("#state-description #element-type").text($(obj).attr("element-type"));
                 $("#state-description #number-of-states").text($(obj).children("state").length);
@@ -613,12 +744,20 @@
                 else {
                     $("#delete-state-button").attr("disabled","1");
                 }
+                if($(obj).attr('element-type') == 'video' || $(obj).attr('element-type') == 'audio') {
+                    $("#media-start-input").val(parseInt($(obj).attr("start")));
+                    $(".media-start").show();
+                }
+                else{
+                    $(".media-start").hide();
+                }
                 set_timeline_properties_info(obj);
             }
 
             function set_timeline_properties_info(obj) {
                 $("#opacity-slider").slider("option", "value", $(obj).attr("opacity")*100);
-                // TODO: add delay and speed here.
+                $("#delay-input").val($(obj).attr("delay"));
+                $("#speed-input").val($(obj).attr("speed"));
             }
             
             // State id is a number.
@@ -657,8 +796,8 @@
                         // If there are video elements here, alter their width/height too.
                         if($(selector +" video").length != 0) {
                            // Only 1 element anyway.
-                           $(selector +" video").attr('height', parseInt($(this).css('height')));
-                           $(selector +" video").attr('width', parseInt($(this).css('width')));
+                           $(selector +" video").css('height', parseInt($(this).css('height')));
+                           $(selector +" video").css('width', parseInt($(this).css('width')));
                         }
                         else if($(selector +" audio").length != 0) {
                            $(selector +" audio").css('height', parseInt($(this).css('height')));
@@ -712,7 +851,6 @@
                 
             function update_stateinfo(eselector) {
                 var sselector = "#stateinfo"+$(eselector).attr("state-id");
-                console.log("CALLED. selector: "+ sselector);
                 $(sselector).attr('opacity', $(eselector).attr("opacity"));
                 $(sselector).attr('delay', $(eselector).attr("delay"));
                 $(sselector).attr('speed', $(eselector).attr("speed"));
@@ -740,6 +878,7 @@
                     elementData['state-order']=parseInt($(selector).attr('order'));
                     elementData['state-delay']=parseInt($(selector).attr('delay'));
                     elementData['state-speed']=parseInt($(selector).attr('speed'));
+                    elementData['element-start']=parseInt($(selector).attr('start'));
                     
                     var child = $('#state'+$(selector).attr('state-id')); 
                     if ($(selector).attr('element-type') == 'image') 
@@ -753,6 +892,9 @@
                         {
                             elementData['text-content'] = child.html();
                         }
+                    }
+                    else if($(selector).attr('element-type') == 'video' || $(selector).attr('element-type') == 'audio') {
+                        elementData[$(selector).attr('element-type')+'-start'] = parseInt($(selector).attr('start'));
                     }
                     elementData['child-id']=child.attr('child-id');
                     
@@ -925,12 +1067,12 @@
                        An element's timeline can be modified in Editing Mode. Creating a new state for an element will add
                        that state to the add of the timeline. The new state's properties will be set to the same as that of 
                        the state that the element was in when the new state was created. States can only be deleted when an
-                       element has more than one state.
+                       element has more than one state. The delay before that state appears as well as the speed of the transition
+                       can be specified too.
                    </li>
                </ul>
           </div>
       </div>
-      {% endif %}
       <div id="timeline-editor" class="timeline-editor">
           <div id="state-description" class="state-boxes timeline-editor">
                 <h3 style="text-align:center;margin:0"><span id="element-type"></span></h3>
@@ -940,14 +1082,26 @@
               </p>
               <button id="new-state-button">New State</button>
               <button id="delete-state-button">Delete State</button>
+              <div id="media-start-label" class="media-start">Start Time (in ms)</div>
+              <input type="number" id="media-start-input" class="numerical-input media-start" maxlength="7">
+              <button id="media-start-button" class="media-start">Update Start</button>
           </div>
           <div id="state-properties" class="state-boxes timeline-editor">
-              
               <div id="opacity-slider"></div>
               <span id="opacity-slider-label">Opacity</span>
+              <div id="delay-slider"></div>
+              <span id="delay-slider-label">Delay (in ms)</span>
+              <input type="number" id="delay-input" class="numerical-input" maxlength="6">
+              <div id="speed-slider"></div>
+              <span id="speed-slider-label">Speed (in ms)</span>
+              <input type="number" id="speed-input" class="numerical-input" maxlength="4">
+              <div id="delay-speed-text">Use mousewheel or ctrl/shift with arrow keys to ajdust values faster.</div>
+              <button id="update-delay-speed-button">Update Delay and Speed</button>
+              <button id="preview-timeline-button">Preview Timeline</button>
           </div>
           <div id="timeline-slider"></div>
       </div>
+      {% endif %}
       {% endblock %}
       <br>
       <div id="posterboard{{posterboard.id}}" class='grid pbgrid'>
