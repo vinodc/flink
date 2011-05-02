@@ -360,8 +360,8 @@ def posterboards_handler(request, blogger=None, posterboard=None,
             #if settings.DEBUG:
             #    logger.info("\nSerializing: "+ str(s.__dict__) + str(e.__dict__) + str(ts.__dict__))
             #    logger.info("\nSerialized: "+ serializers.serialize('json', [e, s, ts]))
-            
-            element_data.append(jsonload(serializers.serialize('json', [e, typestate])) + [state_data])
+            if typestate is not None:
+                element_data.append(jsonload(serializers.serialize('json', [e, typestate])) + [state_data])
         data['element_data'] = element_data
         #if settings.DEBUG:
         #    logger.info("\nElement data: "+ str(element_data))                    
