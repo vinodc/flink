@@ -1,0 +1,20 @@
+Readymade CherryPy static server, for development purposes.
+
+Use this when your Django development server just doesn't cut,
+and you're too lazy to install XAMPP/Apache.
+
+I wrote this server when I started working with HTML5 <video>.
+I found out that Django's dev server doesn't support byte-range downloads (for progressive downloads and such).
+This made the served videos totally unseekable.
+
+So, I wrote this server, and added a URL redirect inside my Django app to serve
+all video content through CherryPy (instead of Django) ... and VOILA! Everything worked!
+
+Baking instructions:
+1. Install CherryPy: `pip install cherrypy` or `easy_install cherrypy`, and make sure it's installed: `python -c 'import cherrypy'`
+2. You can edit the listening URL/port inside the cherrypy_static_server.py file.
+3. The root directory is the directory where you executed the script.
+
+Eating instructions:
+1. Just execute the file on your shell/terminal: `python cherrypy_static_server.py`
+

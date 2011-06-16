@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 28
+/svn/!svn/ver/14/trunk/taino
+END
+admin.py
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/svn/!svn/ver/8/trunk/taino/admin.py
+END
+api.py
+K 25
+svn:wc:ra_dav:version-url
+V 35
+/svn/!svn/ver/14/trunk/taino/api.py
+END
+views.py
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/svn/!svn/ver/2/trunk/taino/views.py
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/2/trunk/taino/__init__.py
+END
+COPYING
+K 25
+svn:wc:ra_dav:version-url
+V 35
+/svn/!svn/ver/2/trunk/taino/COPYING
+END
+tests.py
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/svn/!svn/ver/2/trunk/taino/tests.py
+END
+models.py
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/14/trunk/taino/models.py
+END
+demo.py
+K 25
+svn:wc:ra_dav:version-url
+V 35
+/svn/!svn/ver/2/trunk/taino/demo.py
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 35
+/svn/!svn/ver/10/trunk/taino/README
+END

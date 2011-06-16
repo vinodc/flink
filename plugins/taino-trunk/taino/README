@@ -1,0 +1,76 @@
+Taíno is a system for developing interfaces and components within Django.
+
+An interface is a class that defines a set of methods that a component can
+be trusted to implement. A component is a singleton that implements one or
+more interfaces.
+
+See demo.py for an example of how to create Interfaces/Components.
+
+To define interfaces:
+
+* Create a file api.py in your app. It should at the least:
+
+  > from taino.api import Interface
+ 
+* Create a class that subclasses Interface. It needs to define methods without
+a "self" attribute whose body consists solely of a docstring that describes the
+input the method expects, the side-effects it creates, and the output it returns
+
+Once defined, there are two special methods for each Interface class:
+
+* Interface.get_component_by_id(component_id): Returns the component object
+implementing that interface or None if no such component is registered.
+
+* Interface.get_registered_components(): Returns a list of 2-tuples, each
+2-tuple being a component_id and component_description pair.
+
+You can also use taino.models.ComponentField in your model definitions to permit
+selection of one of the registered components for an Interface. For example:
+
+  > from django.db import models
+  > from taino.models import ComponentField
+  > from hr.api import IEmployeeType
+  > 
+  > class Employee(models.Model):
+  >     name = models.CharField(u'Name', max_length=50)
+  >     employee_type = ComponentField(IEmployeeType)
+
+In the above case, a ModelForm for employee would give a select box for the
+available registered components, and accessing the employee_type attribute on
+an instance of the Employee class would yield the appropriate Component
+singleton.
+
+To define components:
+
+* Create a directory "plugins" in your app. Give it an __init__.py that defines
+an __all__ attribute for each of the Python source files containing components
+within it. This can be done automatically -- see the plugins/__init__.py in this
+application for an example of how.
+
+* In the Python source files in your plugins directory, implement interfaces.
+At the very least this entails:
+
+  > from taino.api import Component
+  > from myapp.api import IMyInterface
+
+Be very judicious in importing any app's models.py in one of these files; it
+could create circular import problems. You can often bypass this problem by
+loading the models within a Component's methods as opposed to in the module's
+global scope.
+
+* A Component should:
+
+  # subclass the taino.api.Component class
+  # have an attribute "component_id" which uniquely identifies this component.
+  As un-pythonic as it may be, I recommend using reversed-FQDN for namespace
+  with the name of your app and the class name appended. For example, if you
+  are writing code produced by example.com for an app called Foobar and your
+  component is a class called MonkeyButler, you might make your component_id
+  attribute = 'com.example.foobar.MonkeyButler'
+  # have an attribute "component_description" which describes your component and
+  should be short enough to fit in <select> widget.
+  # have an attribute "implements" which contains a Python list with each 
+  Interface subclass this Component implements.
+  # implement each of the methods defined by each interface.
+ 
+ 

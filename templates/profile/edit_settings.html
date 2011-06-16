@@ -1,0 +1,25 @@
+{% extends "site_base.html" %}
+
+{% block title %} Settings {% endblock %}
+
+{% block content %}
+<h1>Edit Personal Settings</h1>
+
+<p>
+<div id='edit_settings'>
+	<form action="/profile/" method="post">{% csrf_token %} 
+	<p><label for="id_grid_size">Size of grid: </label>
+	    <select id="id_grid_size" name="grid_size">
+	    	<option value="1"> Grid Size 1 </option>
+	    	<option value="2"> Grid Size 2 </option>
+	    	<option value="3"> Grid Size 3 </option>
+	    	<option value="4"> Grid Size 4 </option>
+	    	<option value="5"> Grid Size 5 </option>
+	    </select>
+	</p>
+	<input type="submit" value="Submit" />
+	</form>
+</div>
+</p>
+
+{% endblock %}

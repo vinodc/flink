@@ -1,0 +1,54 @@
+Canarreos Cron Daemon for Django
+================================
+
+To install
+----------
+
+* Download and install [Taino](http://code.google.com/p/django-components/)
+* Place the canarreos app in directory in your PYTHONPATH
+* Add 'canarreos' to your INSTALLED_APPS
+
+That was easy. :)
+
+To run the daemon
+-----------------
+
+From your project directory, run:
+
+    python manage.py crond --pidfile=/var/run/myprojectcrond.pid
+    
+To restart the daemon
+---------------------
+
+    kill -HUP `cat /var/run/myprojectcrond.pid`
+ 
+To write a cron job
+-------------------
+
+* In your app, make a directory called `plugins`
+* Copy `taino/plugins/__init__.py` to your new `plugins` directory
+* Make a python source file in `plugins` for your cron job, e.g. `cronjob.py`
+
+Example:
+
+    from taino.api import Component
+    from canarreos.api import ICronJob
+    
+    class MyCronJob(Component):
+        component_id = 'com.example.myapp.MyCronJob'
+        component_description = 'Demonstrates cron jobs'
+        implements = [ICronJob,]
+        
+        def timing(self):
+      	  # Runs every 5 minutes
+            return '*/5 * * * *'
+        
+        def run(self):
+            from myapp import utils
+            utils.run_maintenance()
+
+
+That's it. Taino will automatically register the component, and Canarreos will
+start executing it, though you'll need to kill and start the daemon if it's
+already running.
+

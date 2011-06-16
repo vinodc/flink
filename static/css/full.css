@@ -1,0 +1,142 @@
+/* GENERAL */
+html {
+  height: 100%; }
+
+body {
+  height: 100%;
+  background-color: white;
+  margin: 0;
+  padding: 0;
+  color: #333333;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px; }
+
+a, li {
+  list-style: none;
+  text-decoration: none; }
+
+img {
+  border: 0; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  border: 0;
+  font-size: inherit; }
+
+td {
+  margin: 0;
+  border: 0;
+  padding: 0; }
+
+#wrapper {
+  width: 960px;
+  margin: 0 auto;
+  padding: 0; }
+
+#header {
+  height: 120px; }
+  #header #logo {
+    float: left; }
+    #header #logo img {
+      margin: -5px 30px;
+      height: 119px; }
+  #header #topnav {
+    float: right;
+    margin: 30px 10px 0 10px;
+    padding-right: 10px;
+    font-size: 14px; }
+    #header #topnav ul li {
+      list-style: none;
+      display: inline; }
+      #header #topnav ul li a {
+        font-size: 22px;
+        display: inline;
+        padding: 3px;
+        margin: 5px;
+        color: #842637; }
+        #header #topnav ul li a:visited {
+          color: #6b4047; }
+        #header #topnav ul li a:hover {
+          color: white;
+          background-color: #842637; }
+
+#content {
+  margin: 20px;
+  min-height: 400px; }
+
+#footer {
+  color: #444444;
+  height: 150px; }
+  #footer ul {
+    float: left;
+    margin: 15px 20px;
+    max-width: 200px; }
+    #footer ul li a {
+      color: #444444;
+      margin: 0px 10px;
+      font-size: 15px; }
+      #footer ul li a:hover {
+        color: #777777; }
+  #footer .header {
+    color: #787878;
+    font-weight: bold;
+    font-size: 16px; }
+  #footer #copyright {
+    float: right;
+    font-size: 14px;
+    margin: 15px 30px; }
+
+.hr {
+  background: url("/static/img/dots.gif") repeat-x center;
+  height: 5px; }
+
+.login, .signup {
+  margin: 0 auto;
+  width: 450px;
+  border: 0; }
+
+ul.tabs {
+  border: 1px solid #999999;
+  height: 28px; }
+  ul.tabs li {
+    border: 2px solid;
+    float: left; }
+    ul.tabs li a {
+      display: block;
+      font-size: 19px;
+      padding: 0 20px; }
+      ul.tabs li a:hover {
+        background: #cccccc; }
+
+.login_container {
+  border: 2px solid;
+  width: 600px; }
+
+.form_container {
+  clear: both;
+  border: 3px; }
+
+.tab_content {
+  padding: 20px;
+  font-size: 16px; }
+
+input[type="submit"] {
+  background-color: #95032b;
+  font-size: 12pt;
+  padding: 2px 15px; }
+
+input[type="text"], input[type="password"] {
+  padding: 3px;
+  margin: 3px;
+  font-size: 12pt;
+  width: 250px; }
+
+label {
+  width: 70px;
+  text-align: right; }
+
+.errorlist, .errorField {
+  text-align: center;
+  margin: 0;
+  padding: 0; }

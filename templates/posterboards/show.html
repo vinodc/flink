@@ -1,0 +1,1121 @@
+{% extends "site_base.html" %}
+{% block title %}
+    {{ posterboard.title }} | Flink
+{% endblock %}
+{% block extra_head %}
+    {{ block.super }}
+
+{% endblock %}
+{% block content %}
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.blockUI.js"></script>
+        {% if blog_owner %}
+        <link href="{{ STATIC_URL }}css/editbar.css" type='text/css' rel='stylesheet' />
+        <script type="text/javascript" src="{{ STATIC_URL }}js/tiny_mce/tiny_mce.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.corner.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.jstepper.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.mousewheel.min.js"></script>
+<!--        
+	<link href="{{ STATIC_URL }}css/horinaja.css" type='text/css' rel='stylesheet' />
+	<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.mousewheel.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.horinaja.js"></script> 
+-->
+        <script type="text/javascript">
+        
+            function textareaUpdateMce(id) {
+                $('#'+id+'_ifr').contents().find('body').html($('textarea[id="'+id+'"]').val());
+                $('textarea[id="'+id+'"]').val($('#'+id+'_ifr').contents().find('body').html());
+            }
+            
+            function mceUpdateTextArea(ed) {
+                $('textarea[id="'+ed.id+'"]').val(ed.getBody().innerHTML);
+            }
+            
+            function mcePostChange(ed) {
+                var state_id = ed.id.substr(5);
+                var element_id = $('div[state-id="'+state_id+'"]').attr('id');
+                update_element('#'+element_id);
+            }
+            
+            function showTextArea() {
+                $('textarea[type="text"]').show();
+            }
+            
+            function initTinyMCE() {
+                tinyMCE.init({
+                        // General options
+                        theme : "simple",
+                        mode : "specific_textareas",
+                        editor_selector : "mceEditor",
+
+                        //init_instance_callback : "showTextArea",
+                        
+                        setup : function(ed) {
+                                ed.onKeyUp.add(mceUpdateTextArea);
+                                ed.onChange.add(mceUpdateTextArea); 
+                                ed.onRedo.add(mceUpdateTextArea); 
+                                ed.onUndo.add(mceUpdateTextArea);                                
+                                ed.onRemove.add(mcePostChange);
+                        }
+                });
+            }
+            
+            function destroyTinyMCE() {
+                while (tinyMCE.editors.length > 0) { 
+                    tinyMCE.activeEditor.remove();
+                }
+            }
+        </script>
+
+        {% endif %}
+        <script type="text/javascript">
+            var pbid = "#posterboard{{posterboard.id}}";
+            var canvas;
+            var ctx;
+            //var gridArray = [{{gridwidth}}, {{gridheight}}];
+            var gridArray = [40,40];
+            
+            {% if blog_owner %}
+            var sidebar_out = false;
+            
+            // Changing this will break css.
+            var sidebartab_id = "#edit_toggle";
+            var sidebarcontent_id = "#editbar_contents";
+            
+            var elementsthatchanged= [];
+            var eid = -1;
+            
+            var selectedelementid = '';
+            var validselect = false;
+            {% endif %}
+            
+            $(document).ready(function(){
+                
+                {% if not blog_owner and not userhomepages %}
+                var pb_blockmap = {
+                    message: '<div id="play-timeline-wrapper">'+
+                             '<img id="play-timeline" align="center" src="{{ STATIC_URL }}images/play.png" alt="Go!">'+
+                             '</div>',
+                    css: { 
+                          border: '5px solid #a00',
+                          width: '100%',
+                          height: '100%',
+                         }
+                };
+                $(pbid).block(pb_blockmap);
+            
+                {% endif %}
+                
+                {% if blog_owner %}
+                
+                /*
+                 * Editbar
+                 */
+                
+                $(sidebartab_id).mousedown(function(){
+                   $(sidebartab_id).css('border-style','inset'); 
+                });
+                $(sidebartab_id).mouseup(function(){
+                   $(sidebartab_id).css('border-style','outset'); 
+                });
+                
+                $(sidebartab_id).click(function(){
+                    $(sidebarcontent_id).animate({ "width":"toggle"},{duration:400,queue:false});
+     
+                    if(!sidebar_out){
+                        $(sidebartab_id).html($(sidebartab_id).html().replace(/(\.[^.]+)$/, '-active$1'));
+                        $( ".element-class" ).draggable( "option", "disabled", false );
+                        $( ".element-class" ).resizable( "option", "disabled", false );
+                        $( '#edit-status' ).text('Editing Mode');
+                        
+                        sidebar_out = true;
+                        
+                        if($('div[type="text"]').length != 0) {
+                            $('div[type="text"]').replaceWith(function() {
+								return "<textarea " +
+                        			"  type='text' "+
+                                    "  class='mceEditor child-element-class' "+ 
+                                    "  onKeyUp=\"textareaUpdateMce('"+$(this).attr('id')+"');\"" +
+                                    "  id='" + $(this).attr('id') +
+                                    "' child-id='" + $(this).attr('child-id') +
+                                    "' style='width:"+ $(this).parent().width()+"px;height:"+ $(this).parent().height()+"px;'>"+
+                                    $('<div>').text($(this).html()).html() +
+                                    "</textarea>";
+    						});
+                            initTinyMCE();
+                            $('.mceEditor,.mceLayout').css('width','100%');
+                            $('.mceEditor,.mceLayout').css('height','100%');
+                            $("span.mceEditor").parent().resizable( "option", "minWidth", 240 );
+                            $("span.mceEditor").parent().resizable( "option", "minHeight", 170 );
+                        }
+                        
+                        $(".element-class").each(function(index) {
+                            $(this).children(".child-element-class").css('opacity', '0.75');
+                            $(this).css('opacity', 1);
+                        });
+                        
+                    }
+                    else{
+                        $(sidebartab_id).html($(sidebartab_id).html().replace(/-active(\.[^.]+)$/, '$1'));
+                        $( ".element-class" ).draggable( "option", "disabled", true );
+                        $( ".element-class" ).resizable( "option", "disabled", true );
+                        $( '#edit-status' ).text('Viewing Mode');
+                        
+                        sidebar_out = false;
+
+                        if($('textarea[type="text"]').length != 0) {
+    						$('textarea[type="text"]').replaceWith(
+    							function() {
+                                    return "<div " +
+    									"  type='text' "+                                 
+    									"  id='" + $(this).attr('id') +
+    									"' child-id='" + $(this).attr('child-id') +
+                                        "' class='child-element-class "+
+    									"' style='width:"+ $(this).parent().width()+"px;height:"+ $(this).parent().height()+"px;'>"+
+    									$(this).val() +
+    									"</div>";	
+    						});
+                            destroyTinyMCE();
+                        }
+                        
+                        $(".element-class").each(function(index) {
+                            $(this).children(".child-element-class").css('opacity', $(this).attr('opacity'));
+                            $(this).css('opacity', 1);
+                        });
+                    }
+                });
+                // http://www.kelvinluck.com/assets/jquery/jScrollPane/jScrollPane.html
+                // $("#scrollbar_container").jScrollPane();
+                
+                $('#image_upload').click(function() {
+                    jQuery.fn.modalBox("close");
+                    jQuery.fn.modalBox({
+                        directCall : { element: '#image_upload_form_wrapper' }
+                    });
+                });
+                
+                $("#video_upload").click(function() {
+                    jQuery.fn.modalBox("close");
+                    jQuery.fn.modalBox({
+                        directCall : { element: '#video_upload_form_wrapper' }
+                    });
+                });
+                
+                $("#audio_upload").click(function() {
+                    jQuery.fn.modalBox("close");
+                    jQuery.fn.modalBox({
+                        directCall : { element: '#audio_upload_form_wrapper' }
+                    });
+                });
+    
+                $('#text_upload').click(function() {
+                    $('#text_upload_form').submit();
+                });
+                
+                $('#pb_delete').click(function() {
+                    var answer = confirm('Are you sure you want to remove it?')
+                    if(!answer) { return; }
+                    $('#pb_delete_form').submit();
+                });
+                
+                {% endif %}
+                
+                /*-----------------------
+                  Populating elements
+                ----------------------- */
+                var jsonstring = "{% autoescape off %}{{ element_data }}{%  endautoescape %}";
+                jsonstring = jsonstring.replace(/'/g,'"');
+                var elementsToAdd = JSON.parse(jsonstring);
+                
+                var elementstyles =  'display:block;position=absolute;';
+                {% if blog_owner %}
+                    elementstyles += 'cursor:pointer;'
+                {% endif %}
+                
+                var element, state, states, typestate, linkedpb, statestring, domstring;
+                $.each(elementsToAdd, function(index, elementdata) {
+                    element = elementdata[0];
+                    typestate = elementdata[1];
+                    states = elementdata[2];
+                    if(elementdata.length > 3) {
+                        linkedpb = elementdata[3];
+                    }
+                    else {
+                        linkedpb = null;
+                    }
+                    
+                    if(element.fields.type == 'image') {
+                        domstring = "<div id='element" + element.pk + "'" +
+                                    " element-type='image'"+
+                                    " style='" + elementstyles +
+                                    "' class='element-class " +
+                                    {% if blog_owner %}
+                                    " ui-state-disabled " +
+                                    {% endif %}
+                                    "'>";
+                                    if(linkedpb != null) {
+                                        domstring += "<a href='/people/{{blogger.username}}/posterboards/"+linkedpb.fields.title_path+"'>";
+                                    }
+                                    domstring +=
+                                    "<img id='state-1" + 
+                                    "' child-id='" + typestate.pk + 
+                                    "' src='{{ MEDIA_URL }}"+ typestate.fields.image +
+                                    "' style='width:100%;height:100%;"+
+                                    "' alt='"+ typestate.fields.alt +
+                                    "' class='child-element-class " +
+                                    "'>";
+                                    if(linkedpb != null) {
+                                        domstring += "</a>";
+                                    }
+                                    domstring += "</div>";
+                    }
+                    else if(element.fields.type == 'video') {
+                        domstring = "<div id='element" + element.pk + "'" +
+                                    " start ='"+ element.fields.start + "'" +
+                                    " style='" + elementstyles +
+                                    "' class='element-class " +
+                                    {% if blog_owner %}
+                                    " ui-state-disabled " +
+                                    {% endif %}
+                                    "' element-type='video'>"+
+                                    "<video id='state-1" + 
+                                    "' child-id='" + typestate.pk + 
+                                    "' class='child-element-class "+
+                                    "'  preload='auto' controls='video_controls"+element.pk+"'>";
+                                    if(typestate.fields.ogv_video != "") {
+                                        domstring +=
+                                        "<source src='"+ {{MEDIA_URL}} + typestate.fields.ogv_video +
+                                        "' type='video/ogg'>";
+                                    }
+                                    if(typestate.fields.mp4_video != "") {
+                                        domstring +=
+                                        "<source src='"+ {{MEDIA_URL}} + typestate.fields.mp4_video +
+                                        "' type='video/mp4'>";
+                                    }
+                                    if(typestate.fields.original_video != "") {
+                                        domstring +=
+                                        "<source src='"+ {{MEDIA_URL}} + typestate.fields.original_video +
+                                        "'>";
+                                    }
+                                        domstring +=
+                                        "Your browser does not support the <code>video</code> element."+
+                                    "</video>"+
+                                    "</div>";
+                    }
+                    else if(element.fields.type == 'audio') {
+                        domstring = "<div id='element" + element.pk + "'"+
+                                    " start ='"+ element.fields.start + "'" +
+                                    " style='" + elementstyles +
+                                    "' class='element-class " +
+                                    {% if blog_owner %}
+                                    " ui-state-disabled " +
+                                    {% endif %}
+                                    "' element-type='audio'>"+
+                                    "<audio id='state-1" + 
+                                    "' child-id='" + typestate.pk +
+                                    "' class='child-element-class "+
+                                    "' preload='auto' controls='audio_controls"+element.pk+"'>";
+                                    if(typestate.fields.original_audio != "") {
+                                        domstring +=
+                                        "<source src='"+ {{MEDIA_URL}} + typestate.fields.original_audio +
+                                        "'>";
+                                    }
+                                        domstring +=
+                                        "Your browser does not support the <code>audio</code> element."+
+                                    "</audio>"+
+                                    "</div>";
+                    }
+                    else if(element.fields.type == 'text') {
+                        var domtext =   "<div " +
+                        			"  type='text"+
+                                    "' child-id='" + typestate.pk +
+                                    "' class='child-element-class "+
+                                    "' style='width:100%;height:100%;'>"+
+                                    $('<div>').html(typestate.fields.content).text() +
+                                    "</div>";
+                        
+                        domstring = "<div id='element" + element.pk + "'" +
+                                       " element-type='text'"+
+                                       " class='element-class' " +                                       
+                                       " style='" + elementstyles +
+                                        "'>"+domtext+"</div>";
+                    }
+
+                    $(pbid).append(domstring);
+                    
+                    {% if blog_owner %}
+                    make_element_interactive("#element"+ element.pk);
+                    {% endif %}
+                    
+                    // For audio, set the height and width.
+                    if(element.fields.type == 'audio') {
+                        $("#element" + element.pk +" audio").css('height', parseInt($("#element" + element.pk).css('height')));
+                        $("#element" + element.pk +" audio").css('width', parseInt($("#element" + element.pk).css('width')));
+                    }
+                    
+                    
+                    // All elements need to be position: absolute.
+                    $("#element"+ element.pk).css("position","absolute");
+                    
+                    // Populate states and set event handlers if not in editing mode.
+                    // If in editing mode, populate first state for all elements instead.
+                    $.each(states, function(index, state){
+                        statestring = get_state_string(state);
+                        $("#element"+element.pk).append(statestring);
+                    });
+                    state = elementdata[2][0]; // First state.
+                    
+                    
+                    {% if blog_owner %}
+                    // Update element with state info.
+                    switch_element_to_state("#element"+element.pk, "#stateinfo"+ state.pk)
+                    {% endif %}
+                    
+                    {% if not blog_owner and not userhomepages %}
+                    $("#element"+element.pk).css('opacity',0);
+                    {% endif %}
+                    
+                    /*
+                     // Set opacity of all elements if anyone but the blog owner is viewing it
+                     {% if not blog_owner %}
+                     $("#element"+element.pk).css('opacity', state.fields.opacity);
+                     {% endif %}                   
+                     * Element Attr:
+                     " opacity='"+ state.fields.opacity +"'"+
+                     " state-id='" + state.pk + "'" +
+                     * Element Styles:                                        
+                     " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                     " top:"+ (state.fields.position_y * gridArray[1]) + ";"+
+                     " width:" + (state.fields.position_width * gridArray[0]) +";"+
+                     " height:" + (state.fields.position_height * gridArray[1]) +";"+
+                     * Child Element Attr:
+                     "  id='state" + state.pk +
+                     * Video Element Styles:
+                     "' height='"+ state.fields.position_height * gridArray[1] +
+                     "' width='"+ state.fields.position_width * gridArray[0] +
+                    */
+                });
+                
+                {% if blog_owner %}
+                /*-----------------------
+                  Changing elements
+                ----------------------- */
+                $('#timeline-editor').mousedown(function(){
+                    validselect = true;
+                });
+               
+                var blockmap = {
+                    message: '<h2>Please select an element to edit its properties.</h2>' +
+                             '<p><a id="preview-timeline-link" href="?preview=true" target="_blank">'+
+                             'Preview Timeline'+
+                             '</a></p>',
+                    css: { 
+                          border: '5px solid #a00',
+                          width: '70%',
+                         }
+                };
+               
+                $(document).mousedown(function(){
+                    if(!sidebar_out) { return; }
+                    if(!validselect) {
+                        if(selectedelementid != "") {
+                            $('#'+selectedelementid).removeClass('selected-element');
+                        }
+                        selectedelementid = '';
+                        if($("#timeline-editor").children(".blockUI").length <= 0) {
+                            $("#timeline-editor").block(blockmap);
+                        }
+                    }
+                    validselect = false; 
+               });
+               
+               $(document).keydown(function(event) {
+                    // Shift + DEL
+                    if (event.shiftKey && event.keyCode == 46 && selectedelementid != '') {
+                        var answer = confirm('Are you sure you want to remove the element and all its states?')
+                        if(!answer) { return; }
+                        $.ajax({
+                            url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+selectedelementid.substr(7)+'.json',
+                            data: {
+                                'csrfmiddlewaretoken': '{{csrf_token}}',
+                                '_action': 'delete'
+                            },
+                            method: 'get',
+                            success: function() {$('#'+selectedelementid).remove(); },
+                        });
+                    } 
+                });
+               
+                $("#save-changes").click(function(){
+                    // Assumes eid is set to some value.
+                    if(eid == -1) {
+                        return;
+                    }
+                    
+                    $.ajax({
+                       url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+eid+'.json',
+                       dataType: 'json',
+                       data: {
+                           'opacity': 1,
+                           'position_width': $("#element"+eid).width(),
+                           'position_height': $("#element"+eid).height(),
+                       }                        
+                    });
+                    
+                    eid = -1;
+                });
+                
+                $("#toggle-editing-help").click(function() {
+                    $("#editing-help").toggle('fast',function(){
+                        // Nothing much to do here.
+                    });
+                })
+                
+                /*-----------------------
+                        Timeline
+                ----------------------- */
+                
+                $("#new-state-button").click(function(){
+                    create_new_state("#"+selectedelementid);
+                })
+                
+                $("#delete-state-button").click(function(){
+                    delete_current_state("#"+selectedelementid); 
+                });
+                   
+                $("#update-delay-speed-button").click(function(){
+                   update_delay_and_speed("#"+selectedelementid); 
+                });
+                
+                $("#preview-timeline-button").click(function(){
+                    window.open('?preview=true');
+                });
+                       
+                $("#media-start-button").click(function(){
+                   update_start("#"+selectedelementid); 
+                });
+                
+                $("#timeline-slider").slider({
+                    value:1,
+                    min: 1,
+                    max: 1,
+                    step: 1,
+                    slide: function( event, ui ) {
+                        $("#timeline-step-label").text(ui.value);
+                        var es = "#"+selectedelementid;
+                        var stateid = state_id_from_position(es, ui.value-1);
+                        switch_element_to_state(es, "#"+stateid);
+                        set_timeline_properties_info(es);
+                    }
+                });
+                $("#opacity-slider").slider({
+                    orientation: "vertical",
+                    value: 100,
+                    range: 'min',
+                    min: 0,
+                    max: 100,
+                    slide: function(event, ui) {
+                        if(selectedelementid != null) {
+                            $("#"+selectedelementid).children(".child-element-class").css('opacity', ui.value/100);
+                            $("#"+selectedelementid).attr('opacity', ui.value/100);
+                        }
+                    },
+                    change: function(event, ui) {
+                        if(selectedelementid != null) {
+                            $("#"+selectedelementid).children(".child-element-class").css('opacity', 0.75);
+                            $("#"+selectedelementid).attr('opacity', ui.value/100);
+                            if(event.originalEvent != null) {
+                                update_element("#"+selectedelementid);
+                            }
+                        }
+                    }
+                });
+                
+                $("#state-description").corner();
+                $("#state-properties").corner();
+                $("#timeline-editor").corner();
+                $("#delay-input").jStepper({
+                   maxValue: 999999,
+                   minValue: 0,
+                   defaultValue: 0,
+                   allowDecimals: false
+                });
+                $("#speed-input").jStepper({
+                   maxValue: 9999,
+                   minValue: 1,
+                   defaultValue: 400,
+                   allowDecimals: false
+                });
+                $("#media-start-input").jStepper({
+                   maxValue: 9999999,
+                   minValue: 0,
+                   defaultValue: 1000,
+                   allowDecimals: false
+                });
+                
+                $(sidebartab_id).click();
+                $("#timeline-editor").block(blockmap);
+                
+                {% endif %}
+                
+                {% if not blog_owner and not userhomepages %}
+                
+                $("#play-timeline").click(function(){
+                   $(pbid).unblock();
+                   launch(); 
+                });
+                
+                {% endif %}
+    
+            });
+            
+            {% if not blog_owner and not userhomepages %}
+            
+            function launch() {
+                transition_elements();
+            }
+            
+            function transition_elements() {
+                $(".element-class").each(function(index){
+                   var nextstateid;
+                   var stateid = $(this).attr("state-id");
+                   if(stateid == null) {
+                       nextstateid = $(this).children("state").first().attr("state-id");
+                   }
+                   else {
+                       nextstateid = $("#stateinfo"+stateid).next().attr("#state-id");
+                   }
+                   if($(this).attr('element-type') == 'video' || $(this).attr('element-type') == 'audio') {
+                       var start = parseInt($(this).attr('start'));
+                       var eid = $(this).attr("id");
+                       setTimeout('$("#'+eid+' '+$(this).attr('element-type')+'")[0].play();', start);
+                   }
+                   transition_element(this, nextstateid);
+                });
+            }
+            
+            function transition_element(e, nextstateid) {
+
+                if(nextstateid == null) { return; }
+                var ns = "#stateinfo"+ nextstateid;
+                
+                var css_map = {
+                    opacity: $(ns).attr('opacity'),
+                    width: $(ns).css('width'),
+                    height: $(ns).css('height'),
+                    top: $(ns).css('top'),
+                    left: $(ns).css('left'),
+                };
+                
+                console.log("Transitioning "+nextstateid+" with delay "+ $(ns).attr("delay"));
+                
+                $(e).delay(parseInt($(ns).attr("delay")))
+                    .animate(css_map, 
+                             parseInt($(ns).attr("speed")),
+                             'swing',
+                             function() { 
+                                transition_element(e, $(ns).next('state').attr("state-id"));
+                             });
+            }
+            
+            {% endif %}
+            
+            function get_state_string(state) {
+                var statestring = "<state id='stateinfo"+ state.pk +
+                                  "' opacity='"+ state.fields.opacity +
+                                  "' state-id='" + state.pk +
+                                  "' delay='" + state.fields.delay +
+                                  "' speed='" + state.fields.speed +
+                                  "' order='" + state.fields.order +
+                                  "' style='" +
+                                  " left:"+ (state.fields.position_x * gridArray[0]) + ";"+
+                                  " top:"+ (state.fields.position_y * gridArray[1]) + ";"+
+                                  " width:" + (state.fields.position_width * gridArray[0]) +";"+
+                                  " height:" + (state.fields.position_height * gridArray[1]) +";"+
+                                  " display:none;"+
+                                  "'></state>";
+                return statestring;
+            }
+            
+            function switch_element_to_state(eselector, sselector) {
+                $(eselector).attr('opacity', $(sselector).attr('opacity'));
+                $(eselector).attr('speed', $(sselector).attr('speed'));
+                $(eselector).attr('delay', $(sselector).attr('delay'));
+                $(eselector).attr('state-id', $(sselector).attr('state-id'));
+                $(eselector).attr('order', $(sselector).attr('order'));
+                $(eselector).css('height', $(sselector).css('height'));
+                $(eselector).css('width', $(sselector).css('width'));
+                $(eselector).css('left', $(sselector).css('left'));
+                $(eselector).css('top', $(sselector).css('top'));
+                {% if not blog_owner %}
+                $(eselector).css('opacity', $(sselector).attr('opacity'));
+                {% endif %} 
+                $(eselector).children('.child-element-class').attr('id', "state"+$(sselector).attr('state-id'));
+                $(eselector).children('video').css('height', $(sselector).css('height'));
+                $(eselector).children('video').css('width', $(sselector).css('width'));
+            }
+            
+            {% if blog_owner %}
+
+            // Use current state to create a new state.
+            function create_new_state(eselector) {
+                var stateData = {};
+                stateData['csrfmiddlewaretoken'] = '{{csrf_token}}';
+                stateData['state-position_width']=parseInt($(eselector).width() / gridArray[0]);
+                stateData['state-position_height']=parseInt($(eselector).height() / gridArray[1]);
+                stateData['state-position_x']=parseInt(($(eselector).position().left) / gridArray[0]);
+                stateData['state-position_y']=parseInt(($(eselector).position().top) / gridArray[1]);
+                stateData['state-opacity']=parseFloat($(eselector).attr('opacity'));
+                stateData['state-order']=parseInt($(eselector).children("state").last().attr('order')) + 1;
+                stateData['state-delay']=10000;
+                $.ajax({
+                   url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+eselector.substr(8)+'/states.json',
+                   data: stateData,
+                   dataType: 'json',
+                   beforeSend: function() { $("#new-state-button").attr("disabled", "1"); },
+                   success: function(data) { 
+                        $(eselector).effect("highlight", {}, 1000);
+                        console.log(data);
+                        var statestring = get_state_string(data.state);
+                        var state = $(eselector).append(statestring);
+                        switch_element_to_state(eselector, "#"+ state.id);
+                        set_timeline_info(eselector);
+                   },
+                   error: function() { alert('State creation failed!'); },
+                   complete: function() {;},
+                   type: 'post',
+                });
+            }
+
+            function delete_current_state(eselector) {
+                if($(eselector).children('state').length <= 1) {
+                    alert('Cannot remove the only state that exists. You can delete the element if you need to.');
+                    return;
+                }
+                
+                var answer = confirm('Are you sure you want to remove the state?')
+                if(!answer) { return; }
+
+                var stateid = $(eselector).attr("state-id");  
+                var stateData = {};
+                stateData['csrfmiddlewaretoken'] = '{{csrf_token}}';
+                stateData['_action'] = 'delete';
+                $.ajax({
+                   url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+eselector.substr(8)+'/states/'+stateid+'.json',
+                   data: stateData,
+                   beforeSend: function() { $("#delete-state-button").attr("disabled", "1"); },
+                   success: function(data) {
+                       var sselector = "#stateinfo"+stateid;
+                       var new_stateid = $(sselector).prev('state').attr('state-id');
+                       if(new_stateid == null) {
+                           new_stateid = $(sselector).next('state').attr('state-id');
+                       }
+                       $("#stateinfo"+stateid).remove();
+                       switch_element_to_state(eselector, "#stateinfo"+new_stateid);
+                       set_timeline_info(eselector);
+                   },
+                   error: function() { alert('State deletion failed!'); },
+                   complete: function() {;},
+                   type: 'get',
+                });
+            }
+
+            function update_delay_and_speed(eselector) {
+                $(eselector).attr("speed", $("#speed-input").val());
+                $(eselector).attr("delay", $("#delay-input").val());
+                update_element(eselector);
+            }
+
+            function update_start(eselector) {
+                $(eselector).attr("start", $("#media-start-input").val());
+                update_element(eselector);
+            }
+
+            function set_timeline_info(obj) {
+                $("#state-description #element-type").text($(obj).attr("element-type"));
+                $("#state-description #number-of-states").text($(obj).children("state").length);
+                var step = state_position(obj, $(obj).attr("state-id"));
+                $("#state-description #timeline-step-label").text(step);
+                $("#timeline-slider").slider( "option", "max", $("#state-description #number-of-states").text());
+                $("#timeline-slider").slider( "option", "value", step);
+                $("#new-state-button").removeAttr("disabled");
+                if($(obj).children('state').length > 1) { 
+                    $("#delete-state-button").removeAttr("disabled");
+                }
+                else {
+                    $("#delete-state-button").attr("disabled","1");
+                }
+                if($(obj).attr('element-type') == 'video' || $(obj).attr('element-type') == 'audio') {
+                    $("#media-start-input").val(parseInt($(obj).attr("start")));
+                    $(".media-start").show();
+                }
+                else{
+                    $(".media-start").hide();
+                }
+                set_timeline_properties_info(obj);
+            }
+
+            function set_timeline_properties_info(obj) {
+                $("#opacity-slider").slider("option", "value", $(obj).attr("opacity")*100);
+                $("#delay-input").val($(obj).attr("delay"));
+                $("#speed-input").val($(obj).attr("speed"));
+            }
+            
+            // State id is a number.
+            function state_position(elementobj, stateid) {
+                var pos = 0;
+                $(elementobj).children("state").each(function(index) {
+                    if($(this).attr('state-id') == stateid) {
+                        pos = index + 1;
+                    }
+                });
+                return pos;
+            }
+            
+            // State pos is the *index* of the state in the list of states.
+            function state_id_from_position(elementobj, statepos) {
+                return $(elementobj).children("state").slice(statepos, statepos+1).attr("id");
+            } 
+                                 
+            function make_element_interactive(selector) {
+               $(selector).draggable({ 
+                    containment: pbid, 
+                    disabled: false,
+                    scroll: false,
+                    grid: gridArray,
+                    stack: pbid +" div,img,text,video,audio",
+                    stop: function(event, ui) { 
+                        update_element("#"+$(this).attr('id')); 
+                    },
+                });
+                $(selector).resizable({
+                    grid: gridArray,
+                    containment: pbid,
+                    disabled: false,
+                    stop: function(event, ui) {
+                        var selector = "#"+$(this).attr('id'); 
+                        // If there are video elements here, alter their width/height too.
+                        if($(selector +" video").length != 0) {
+                           // Only 1 element anyway.
+                           $(selector +" video").css('height', parseInt($(this).css('height')));
+                           $(selector +" video").css('width', parseInt($(this).css('width')));
+                        }
+                        else if($(selector +" audio").length != 0) {
+                           $(selector +" audio").css('height', parseInt($(this).css('height')));
+                           $(selector +" audio").css('width', parseInt($(this).css('width')));
+                        }
+                        /*else if($(selector +" .mceEditor").length != 0) {
+                            $(selector +" .mceEditor").css('height', parseInt($(this).css('height')));
+                            $(selector +" .mceEditor").css('width', parseInt($(this).css('width')));
+                        }*/
+                        update_element(selector); 
+                    },
+                    //animate: true,
+                });
+                
+                $(selector).mousedown(function(){
+                    if(!sidebar_out) { return; }
+                    
+                    var subselector;
+                                    
+                    // If element with id exists and is not the element selected, change the class.
+                    if(selectedelementid != $(this).attr('id') && selectedelementid != "") {
+                        subselector = '#' + selectedelementid;
+                        /*if($(subselector).attr("element-type") == 'audio') {
+                            subselector += ' audio';
+                        }*/
+                        $(subselector).removeClass('selected-element');
+                    }
+                    
+                    subselector = '#' + $(this).attr('id');
+                    /*if($(subselector).attr("element-type") == 'audio') {
+                        subselector += ' audio';
+                    }*/
+                    $(subselector).addClass('selected-element');
+                    
+                    validselect = true;
+                    selectedelementid = $(this).attr('id');
+
+                    // Timeline                    
+                    set_timeline_info(this);
+                    $("#timeline-editor").unblock();
+                });
+                    
+                if($(selector).attr('element-type') == 'text') {  
+                    $(selector).focusout(function(){
+                        if ($(selector).draggable("option","disabled") == false) {
+                            update_element(selector);
+                        }
+                    });
+                }
+            }
+                
+            function update_stateinfo(eselector) {
+                var sselector = "#stateinfo"+$(eselector).attr("state-id");
+                $(sselector).attr('opacity', $(eselector).attr("opacity"));
+                $(sselector).attr('delay', $(eselector).attr("delay"));
+                $(sselector).attr('speed', $(eselector).attr("speed"));
+                $(sselector).attr('order', $(eselector).attr("order"));              
+                $(sselector).css('left', $(eselector).css("left"));
+                $(sselector).css('width', $(eselector).css("width"));
+                $(sselector).css('height', $(eselector).css("height"));
+                $(sselector).css('top', $(eselector).css("top"));
+            }
+            
+            function update_element(selector) 
+                {
+                    // Populate Appropriate Fields
+                    var elementData = {};
+                    elementData['csrfmiddlewaretoken'] = '{{csrf_token}}';
+                    elementData['_action']='put';
+                    elementData['element-type']=$(selector).attr('element-type');
+                    elementData['element-id']=parseInt(selector.substr(8));
+                    elementData['state-id']=$(selector).attr('state-id');
+                    elementData['state-position_width']=parseInt($(selector).width() / gridArray[0]);
+                    elementData['state-position_height']=parseInt($(selector).height() / gridArray[1]);
+                    elementData['state-position_x']=parseInt(($(selector).position().left) / gridArray[0]);
+                    elementData['state-position_y']=parseInt(($(selector).position().top) / gridArray[1]);
+                    elementData['state-opacity']=parseFloat($(selector).attr('opacity'));
+                    elementData['state-order']=parseInt($(selector).attr('order'));
+                    elementData['state-delay']=parseInt($(selector).attr('delay'));
+                    elementData['state-speed']=parseInt($(selector).attr('speed'));
+                    elementData['element-start']=parseInt($(selector).attr('start'));
+                    
+                    var child = $('#state'+$(selector).attr('state-id')); 
+                    if ($(selector).attr('element-type') == 'image') 
+                    {
+                        elementData['image-alt'] = child.attr('alt');
+                    }
+                    else if ($(selector).attr('element-type') == 'text')
+                    {
+                        elementData['text-content'] = child.val();
+                        if (child.val().length == 0 && child.html().length !=0) 
+                        {
+                            elementData['text-content'] = child.html();
+                        }
+                    }
+                    else if($(selector).attr('element-type') == 'video' || $(selector).attr('element-type') == 'audio') {
+                        elementData[$(selector).attr('element-type')+'-start'] = parseInt($(selector).attr('start'));
+                    }
+                    elementData['child-id']=child.attr('child-id');
+                    
+                    $.ajax({
+                       url: '/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/'+selector.substr(8)+'.json',
+                       data: elementData,
+                       dataType: 'json',
+                       success: function() { 
+                            $(selector).effect("highlight", {}, 1000);
+                            update_stateinfo(selector); 
+                       },
+                       type: 'post',
+                    });
+                }
+            {% endif %}
+        </script>
+    <div id='content'>
+       {% block editbar %}
+       {% if blog_owner %}
+       <div id="editbar">
+           <a href="javascript:void(0);" id="edit_toggle"><span id="edit_toggle_text">Edit Bar</span></a>
+           <div id="editbar_contents" style="display: none">
+               <div id="editbar_contents_inner">
+                   <div id="scrollbar_container">
+                       <div id="scrollbar_content">
+                           <button id="image_upload">Add Image</button>
+                           <button id="text_upload">Add Text</button>
+                           <button id="video_upload">Add Video</button>
+                           <button id="audio_upload">Add Audio</button>
+                           <button id="pb_delete">Remove Posterboard</button>
+                           <!--<button id="save-changes">Save Changes to Posterboard</button>-->
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>
+       <div style="display:none" id="image_upload_form_wrapper">
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/' id="image_upload_form" name="image_upload_form" method="post"
+            enctype="multipart/form-data">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="element-type" value="image">
+               Image: <input type="file" id="upload-image-field" name="image"><br>
+               <input type="submit" id="image_upload_button" value="Upload Image">
+           </form>
+       </div>
+       <div style="display:none" id="video_upload_form_wrapper">
+           <p class="editing-mode-info" style="display:block;">
+               Please be aware that your media will not appear on your posterboard
+               for up to <strong>three minutes</strong>, to allow time for any re-encoding necessary
+               to finish. Your media will appear after that, whether or not the encoding
+               was successful. Please do not attempt to re-upload your media, as it will result
+               in unnecessary duplicate files. The maximum file size is 50MB.
+           </p>
+           <p class="editing-mode-info" style="display:block;">
+               Please upload your video in the <strong><code>ogv</code></strong> format. If you upload an 
+               <strong><code>avi</code></strong>/<strong><code>mpeg</code></strong> video, we will try our best to convert 
+               it successfully, but this isn't guaranteed. Utilities to
+               convert your video to <strong><code>ogv</code></strong> are 
+               <a href="http://video.online-convert.com/convert-to-ogg" target="_blank">
+                   available on the web
+               </a>.
+           </p>
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/' id="video_upload_form" name="video_upload_form" method="post"
+            enctype="multipart/form-data">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="element-type" value="video">
+               Video: <input type="file" id="upload-video-field" name="video"><br>
+               <input type="submit" id="video_upload_button" value="Upload Video">
+           </form> 
+       </div>
+       <div style="display:none" id="audio_upload_form_wrapper">
+           <p class="editing-mode-info" style="display:block;">
+               Please be aware that your media will not appear on your posterboard
+               for up to <strong>three minutes</strong>, to allow time for any re-encoding necessary
+               to finish. Your media will appear after that, whether or not the encoding
+               was successful. Please do not attempt to re-upload your media, as it will result
+               in unnecessary duplicate files. The maximum file size is 50MB.
+           </p>
+           <p class="editing-mode-info" style="display:block;">
+               Please upload your audio in the <strong><code>ogg</code></strong>/<strong><code>wav</code></strong> formats.
+               Audio files in other popular formats are not guaranteed to play correctly.
+               Utilities to convert your audio are 
+               <a href="http://www.oggconvert.com/" target="_blank">
+                   available on the web
+               </a>.
+           </p>
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/' id="audio_upload_form" name="audio_upload_form" method="post"
+            enctype="multipart/form-data">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="element-type" value="audio">
+               Audio: <input type="file" id="upload-audio-field" name="audio"><br>
+               <input type="submit" id="audio_upload_button" value="Upload audio">
+           </form>
+       </div>
+       <div style="display:none" id="text_upload_form_wrapper">
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/' id="text_upload_form" name="text_upload_form" method="post"
+            enctype="multipart/form-data">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="element-type" value="text">
+               <textarea name='text-content'>Enter Text Here.</textarea>
+               <input type="submit" id="text_upload_button" value="Upload Text">
+           </form>
+       </div>
+      <div style="display:none" id="pb_delete_form_wrapper">
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/' id="pb_delete_form" name="pb_delete_form" method="get">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="_action" value="delete">
+               <input type="submit" id="pb_delete_button" value="Delete Posterboard">
+           </form>
+       </div>
+       {% endif %}
+
+      {% if blog_owner %}
+      <p align='center' style="text-align:center" id="edit-status">Viewing Mode</p>
+      {% if converting %}
+      <p align='center' style='text-align:center' id='converting-info'>
+          <small>
+          <img src='{{ STATIC_URL }}images/jquery-modalbox-1.2.0/ajax-loader.gif' style='height: 2em;vertical-align:middle'> 
+          Converting uploaded media. The page will reload with updated information in a minute.
+          </small>
+      </p>
+      <script type="text/javascript">
+          setTimeout(function() {
+                window.location.reload();
+          },60000);
+      </script>
+      {% endif %}
+      {% if not linked %}
+         <div class="link-posterboard-info" style="display:block;">
+            Hey there. We notice this posterboard isn't yet linked from your 
+            <a href="/people/{{blogger.username}}">home page</a>. Don't forget!
+         </div>
+      {% endif %}
+      <p align='center' class="editing-mode-info" style="display:block;">
+          Use left sidebar to switch modes.The elements <strong>cannot</strong> be edited while in <strong>Viewing Mode</strong>.<br>
+          This is to prevent accidental editing. Elements appear lighter in editing mode.
+      </p>
+      
+      <div class="editing-mode-info" style="display:block;">
+          <a href="javascript:" id="toggle-editing-help">Help</a>
+      </div>
+      <div id='editing-help' class='editing-mode-help'>
+          <div>
+               Select an element by clicking on it. All changes to elements will be saved automatically.
+               <ul>
+                   <li><strong>Resize: </strong>
+                        Elements that are resizeable, such as images and video, can be resized using the bottom and right edges,
+                        as well as the bottom-left corner.
+                   </li>
+                   <li><strong>Drag-and-drop: </strong>
+                       Elements can be dragged and dropped about the posterboard.
+                   </li>
+                   <li><strong>Stack: </strong>
+                       Elements are stackable. You can intuitively drag an element out from underneath another element
+                       and place it on top and the stacking will work as expected.
+                   </li>
+                   <li><strong>Delete: </strong>
+                       You can delete an element by hitting the Shift + Delete key after you select it.
+                   </li>
+                   <li><strong>Opacity: </strong>
+                       Opacity is always 0.75 in editing mode. However, you can preview the actual opacity 
+                       by viewing the object in Viewing Mode.
+                   </li>
+                   <li><strong>Timeline: </strong>
+                       An element's timeline can be modified in Editing Mode. Creating a new state for an element will add
+                       that state to the add of the timeline. The new state's properties will be set to the same as that of 
+                       the state that the element was in when the new state was created. States can only be deleted when an
+                       element has more than one state. The delay before that state appears as well as the speed of the transition
+                       can be specified too.
+                   </li>
+               </ul>
+          </div>
+      </div>
+      <div id="timeline-editor" class="timeline-editor">
+          <div id="state-description" class="state-boxes timeline-editor">
+                <h3 style="text-align:center;margin:0"><span id="element-type"></span></h3>
+              <p>
+                Number of States: <span id="number-of-states">1</span><br>
+                State: <span id="timeline-step-label">1</span><br>
+              </p>
+              <button id="new-state-button">New State</button>
+              <button id="delete-state-button">Delete State</button>
+              <div id="media-start-label" class="media-start">Start Time (in ms)</div>
+              <input type="number" id="media-start-input" class="numerical-input media-start" maxlength="7">
+              <button id="media-start-button" class="media-start">Update Start</button>
+          </div>
+          <div id="state-properties" class="state-boxes timeline-editor">
+              <div id="opacity-slider"></div>
+              <span id="opacity-slider-label">Opacity</span>
+              <div id="delay-slider"></div>
+              <span id="delay-slider-label">Delay (in ms)</span>
+              <input type="number" id="delay-input" class="numerical-input" maxlength="6">
+              <div id="speed-slider"></div>
+              <span id="speed-slider-label">Speed (in ms)</span>
+              <input type="number" id="speed-input" class="numerical-input" maxlength="4">
+              <div id="delay-speed-text">Use mousewheel or ctrl/shift with arrow keys to ajdust values faster.</div>
+              <button id="update-delay-speed-button">Update Delay and Speed</button>
+              <button id="preview-timeline-button">Preview Timeline</button>
+          </div>
+          <div id="timeline-slider"></div>
+      </div>
+      {% endif %}
+      {% endblock %}
+      <br>
+      <div id="posterboard{{posterboard.id}}" class='grid pbgrid'>
+	<!-- 
+	     There shouldn't be any hardcoded elements here.
+	     All elements must be carefully added via jQuery and kept track of.
+	     When an element is added or removed, their unique, randomly generated IDs
+	     must be stored in javascript and regularly transmitted to the server
+	     in an attempt to 'save' the current state of the elements.
+	     All elements must be draggable, resizeable and extend properties that make
+	     them editable.
+	  --> 
+      </div>      
+      <div style="display:none" id="hidden-store">
+      </div>
+    </div>
+{% endblock %}

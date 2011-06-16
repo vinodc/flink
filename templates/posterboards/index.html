@@ -1,0 +1,17 @@
+{% extends "site_base.html" %}
+{% block title %}
+    {{ blogger.first_name }} {{ blogger.last_name }} | Flink
+{% endblock %}
+{% block extra_head %}
+    {{ block.super }}
+
+{% endblock %}
+{% block content %}
+    <div id='content'>
+      <ul>
+      {% for p in posterboards %}
+         <li><a href="/people/{{ blogger.username }}/posterboards/{{ p.title_path }}/">{{ p.title }}</a></li>
+      {% endfor %}
+      </ul>
+    </div>
+{% endblock %}

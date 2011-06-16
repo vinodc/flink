@@ -1,0 +1,23 @@
+{% extends "site_base.html" %}
+
+{% block title %} Settings {% endblock %}
+
+{% block content %}
+<h1>Personal Settings</h1>
+
+<p>
+<div id='content'>
+    
+    {% for key, value in profile.items %}
+        <div id='{{key}}'> {{key}} : {{ value }}</div>
+    {% endfor %}    	
+    <br>
+    <div id='message'> {{message}} </div>
+    <br>
+    <form action="/profile/settings" method="get">
+	<input type="submit" value="Edit Settings" />
+    </form>
+</div>
+</p>
+
+{% endblock %}

@@ -1,3 +1,11 @@
 *.py[co]
 *.db
 *.sw[po]
+logs/*
+media/*
+*.*#
+.sass-cache
+.project
+.pydevproject
+.settings
+.tmp_*~

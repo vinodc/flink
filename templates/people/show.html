@@ -1,0 +1,135 @@
+{% extends "posterboards/show.html" %}
+{% block title %}
+    {{ blogger.first_name }} {{ blogger.last_name }} ({{blogger.username}})| {{settings.blog_title}} | Flink
+{% endblock %}
+{% block extra_head %}
+    {{ block.super }}
+    
+{% endblock %}
+{% block content %}
+<div id="homepage-navigation">
+   {% if prevhomepage %}
+    <a href="/people/{{blogger.username}}/homepages/{{prevhomepage.id}}">
+        <span style="text-:left;float:left">Older</span>
+    </a>
+    {% endif %}
+
+    {% if nexthomepage %}
+    <a href="/people/{{blogger.username}}/homepages/{{nexthomepage.id}}">
+        <span style="text-align:right;float:right">Newer</span>
+    </a>
+    {% endif %}
+</div>
+    {{ block.super }}   
+    {% block editbar %}{% endblock %}
+    {% if blog_owner %}
+       <div id="editbar">
+           <a href="javascript:void(0);" id="edit_toggle"><span id="edit_toggle_text">Edit Bar</span></a>
+           <div id="editbar_contents" style="display: none">
+               <div id="editbar_contents_inner">
+                   <div id="scrollbar_container">
+                       <div id="scrollbar_content">
+                           <button id="image_upload">New Thumbnail</button>
+                           <button id="pb_delete">Remove Page</button>
+                           <button id="add_user_home_page">Add a Page</button>
+                           <button id="view_user_pbs">Posterboards</button>
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>
+       <div style="display:none" id="image_upload_form_wrapper">
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/elements/' 
+            id="image_upload_form" name="image_upload_form" method="post" enctype="multipart/form-data">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <p class="editing-mode-info" style="display:block;">
+               Note: you must first have some existing posterboards so as 
+               to create thumbnails for them on you user home page. 
+               </p>
+               <input type="hidden" name="element-type" value="image">
+               Image: <input type="file" id="upload-image-field" name="image"><br>
+               <select id="select-linked-posterboard" name="linked-posterboard">
+               {% for posterboard in unlinkedposterboards %}
+                    <option>{{posterboard.title}}</option>
+               {% endfor %}
+               </select>
+               <input type="submit" id="image_upload_button" value="Upload Image" disabled='1'>
+           </form>
+           <script type="text/javascript">
+               if($("#select-linked-posterboard").find("option").length >= 1) {
+                   $("#image_upload_button").removeAttr("disabled");
+               }
+           </script>
+       </div>
+        <div style="display:none" id="add_homepage_form_wrapper">
+           <p class="editing-mode-info" style="display:block;">
+               You are about to add another page to display your posterboards on! WTG!
+               You can always remove it later if you feel like. Note that deleting a page
+               won't delete the actual posterboards you've displayed links to on it. Deleting
+               images that link to posterboards frees them up to be added to other pages (such as 
+               the one you're about to create).
+           </p>
+           <form action='/people/{{blogger.username}}/posterboards/' id="add_homepage_form" name="add_homepage_form" 
+            method="post">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="is_user_home_page" value='1'>
+               <input type="submit" align="center" style="width:100%;padding:1em;" id="add_homepage_confirm" value="Go!">
+           </form>
+       </div>
+       <div style="display:none" id="pb_delete_form_wrapper">
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/' id="pb_delete_form" name="pb_delete_form" method="get">
+               <div class="form-submit-errors"></div>
+               {% csrf_token %}
+               <input type="hidden" name="_action" value="delete">
+               <input type="submit" id="pb_delete_button" value="Delete Posterboard">
+           </form>
+       </div>
+       <div style="display:none" id="view_user_pbs_form_wrapper">
+           <form action='/people/{{blogger.username}}/posterboards/{{posterboard.title_path}}/' id="pb_delete_form" name="pb_delete_form" method="get">
+               <div id='content'>
+      	       	    <ul>
+      			{% for p in linkedpbs %}
+         			<li><a href="/people/{{ blogger.username }}/posterboards/{{ p.title_path }}/">{{ p.title }}</a></li>
+      			{% endfor %}
+      		    </ul>
+    	       </div>
+           </form>
+       </div>
+    {% endif %}
+<!--
+Posterboards:
+<ul>
+{% for homepage in userhomepages %}
+   <li>
+       <a href="/people/{{blogger.username}}/homepages/{{homepage.id}}">{{ forloop.revcounter }}</a>
+   </li>
+{% endfor %}
+-->
+</ul>    
+
+<script type="text/javascript">
+    $(document).ready(function(){
+       $(".element-class a").click(function(){
+          if(sidebar_out) {
+              return false;
+          }
+       }); 
+       $(".element-class img").css("border-style","none");
+       
+       $("#add_user_home_page").click(function() {
+            jQuery.fn.modalBox("close");
+            jQuery.fn.modalBox({
+                directCall : { element: '#add_homepage_form_wrapper' }
+            });
+        });
+        $("#view_user_pbs").click(function() {
+            jQuery.fn.modalBox("close");
+            jQuery.fn.modalBox({
+                directCall : { element: '#view_user_pbs_form_wrapper' }
+            });
+        });
+    });
+</script>
+{% endblock %}

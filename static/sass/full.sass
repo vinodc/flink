@@ -1,0 +1,153 @@
+@import '_960'
+@import '_palette'
+
+/* GENERAL
+
+html
+  height: 100%
+
+body
+  height: 100%
+  background-color: #fff
+  margin: 0
+  padding: 0
+  color: #333
+  font-family: "Helvetica Neue", Arial, sans-serif
+  font-size: 16px
+
+a, li
+  list-style: none
+  text-decoration: none
+
+img
+  border: 0
+
+table
+  border-collapse: collapse
+  border-spacing: 0
+  border: 0
+  font-size: inherit
+
+td
+  margin: 0
+  border: 0
+  padding: 0
+
+
+#wrapper
+  width: 960px
+  margin: 0 auto
+  padding: 0
+
+#header
+  height: 120px
+  #logo
+    float: left
+    img
+      margin: -5px 30px
+      height: 119px
+  #topnav
+    float: right
+    margin: 30px 10px 0 10px
+    padding-right: 10px
+    font-size: 14px
+    ul
+      li
+        list-style: none
+        display: inline
+        a
+          font-size: 22px
+          display: inline
+          padding: 3px
+          margin: 5px
+          color: $dark_red
+          &:visited
+            color: desaturate($dark_red, 30%)
+          &:hover
+            color: #fff
+            background-color: $dark_red
+
+
+#content
+  margin: 20px
+  min-height: 400px
+
+#footer
+  color: #444
+  height: 150px
+  ul
+    float: left
+    margin: 15px 20px
+    max-width: 200px
+    li
+      a
+        color: #444
+        &:hover
+          color: #777
+        margin: 0px 10px
+        font-size: 15px
+  .header
+    color: #787878
+    font-weight: bold
+    font-size: 16px
+  #copyright
+    float: right
+    font-size: 14px
+    margin: 15px 30px
+
+.hr
+  background: url('/static/img/dots.gif') repeat-x center
+  height: 5px
+
+.ctrlHolder
+
+.login, .signup
+  margin: 0 auto
+  width: 450px
+  border: 0
+
+ul.tabs
+  border: 1px solid #999
+  height: 28px
+  li
+    border: 2px solid
+    float: left
+    a
+      display: block
+      font-size: 19px
+      padding: 0 20px
+      &:hover
+        background: #ccc
+
+.login_container
+  border: 2px solid
+  width: 600px
+
+.form_container
+  clear: both
+  border: 3px
+
+.tab_content
+  padding: 20px
+  font-size: 16px
+
+input[type="submit"]
+  background-color: $red
+  font-size: 12pt
+  padding: 2px 15px
+
+input
+  &[type="text"], &[type="password"]
+    padding: 3px
+    margin: 3px
+    font-size: 12pt
+    width: 250px
+
+label
+  width: 70px
+  text-align: right
+
+.errorlist, .errorField
+  text-align: center
+  margin: 0
+  padding: 0

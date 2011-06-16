@@ -1,0 +1,19 @@
+<div id="new-posterboards-form">
+    <script type="text/javascript">
+        $("form #title").keyup(function(){
+            var value = $(this).val().split(" ").join('');
+            if(value.length >= 5) {
+                $("form #submit").removeAttr("disabled");
+            }
+            else {
+                $("form #submit").attr("disabled", "disabled");
+            }
+        });
+    </script>
+    <form action="/people/{{ user.username }}/posterboards/" method="post">
+        {% csrf_token %}
+        Title: <input type="text" name="title" id="title" placeholder="Posterboard Title"> <br>
+        <input type="checkbox" name="private" id="private"> Private? <br>
+        <input type="submit" id="submit" value="Create it!" disabled="1">
+    </form>
+</div>

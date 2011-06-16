@@ -1,0 +1,21 @@
+Modify this list with updated information.
+
+* Defaults! And adjusting defaults and settings.
+    * Grid size (gridArray variable in posterboards/show should not be hardcoded
+      but should comprise template variables that are pulled from the DB).
+    * Default layout
+* Comments    
+* Details
+   * Timestamps for posterboards
+   * Use Amazon S3 to store content such as images, audio, video and retrieve 
+     the content properly.
+      * Use django plugins to help with this, or their native implementation 
+      	that helps interface with S3 and stuff.
+   * To preserve privacy, there must be a directory for each user's content,
+     rather than a shared one for all content, and this should be hashed,
+     with a second level of hashes for the actual posterboard, so as to 
+     preserve privacy of private posterboards. Use a secret key hashed with 
+     user id and posterboard id.
+* Patch vlprocess for pad options (done in our app, pull request?).
+* Patch django_cron for syncdb errors (done in our app, pull request?).
+* ***********MORE TESTS!!!!!****************
